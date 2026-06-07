@@ -1,0 +1,477 @@
+
+Act as a world-class team consisting of:
+
+* Staff Software Engineer
+* Principal Full Stack Engineer
+* System Architect
+* Startup Founder
+* Product Manager
+* Database Architect
+* DevOps Engineer
+* Security Engineer
+* AI Engineer
+* UX Designer
+* Technical Project Manager
+
+Your task is to perform COMPLETE Research & Development (R&D), Product Planning, System Design, Architecture Design, and Implementation Planning for the project described below.
+
+IMPORTANT:
+
+Do NOT provide a high-level overview.
+
+Do NOT provide generic advice.
+
+Do NOT skip details.
+
+Think as if this project will be built for real users, deployed to production, scaled to thousands of users, and potentially become a startup.
+
+I want an extremely detailed implementation blueprint.
+
+The output must be practical, realistic, and production-ready.
+
+Use simple text formatting.
+
+No tables unless absolutely necessary.
+
+---
+
+## PROJECT INFORMATION
+
+Project Name:
+[PROJECT NAME]
+
+Project Overview:
+[PROJECT OVERVIEW]
+
+Problem It Solves:
+[PROBLEM]
+
+Target Users:
+[TARGET USERS]
+
+Additional Requirements:
+[OPTIONAL]
+
+---
+
+## GOALS
+
+Optimize for:
+
+1. Real-world usefulness
+2. Resume impact
+3. Startup potential
+4. Scalability
+5. Security
+6. Production readiness
+7. Developer learning
+8. Maintainability
+9. Clean architecture
+10. Modern engineering practices
+
+---
+
+SECTION 1
+PROJECT ANALYSIS
+----------------
+
+Analyze:
+
+* What problem is being solved
+* Who experiences the problem
+* Current solutions
+* Competitor analysis
+* Weaknesses in competitors
+* Market opportunity
+* Revenue opportunities
+* Risks
+* Challenges
+* Technical complexity
+
+Provide a detailed SWOT analysis.
+
+---
+
+SECTION 2
+PRODUCT REQUIREMENTS DOCUMENT (PRD)
+-----------------------------------
+
+Create a complete PRD.
+
+Include:
+
+* Vision
+* Goals
+* User personas
+* User journeys
+* Functional requirements
+* Non-functional requirements
+* Success metrics
+* Business goals
+* Product roadmap
+
+---
+
+SECTION 3
+FEATURE BREAKDOWN
+-----------------
+
+Identify every feature.
+
+For each feature explain:
+
+* Purpose
+* Business value
+* User value
+* Technical complexity
+* Dependencies
+
+Classify as:
+
+P0 = Critical
+P1 = Important
+P2 = Future
+
+Create MVP scope.
+
+Create Version 1 scope.
+
+Create Future scope.
+
+---
+
+SECTION 4
+SYSTEM ARCHITECTURE
+-------------------
+
+Design complete architecture.
+
+Explain:
+
+* Frontend architecture
+* Backend architecture
+* Database architecture
+* Infrastructure architecture
+* AI architecture (if needed)
+* Event-driven architecture
+* Notification architecture
+* Analytics architecture
+* Billing architecture
+
+Explain why every technology is chosen.
+
+---
+
+SECTION 5
+DATABASE DESIGN
+---------------
+
+Design complete database.
+
+Include:
+
+* Entities
+* Relationships
+* Tables
+* Fields
+* Indexes
+* Constraints
+
+Explain:
+
+* Data modeling decisions
+* Scaling considerations
+* Multi-tenancy strategy if applicable
+
+Generate a complete ERD description.
+
+---
+
+SECTION 6
+API DESIGN
+----------
+
+Design all APIs.
+
+For every endpoint include:
+
+* Route
+* Method
+* Authentication
+* Validation
+* Request structure
+* Response structure
+* Error handling
+
+Explain API versioning strategy.
+
+---
+
+SECTION 7
+AUTHENTICATION & AUTHORIZATION
+------------------------------
+
+Design:
+
+* Authentication flow
+* JWT strategy
+* Session management
+* OAuth integrations
+* RBAC
+* Permission system
+
+Explain security considerations.
+
+---
+
+SECTION 8
+SECURITY DESIGN
+---------------
+
+Create a complete security plan.
+
+Cover:
+
+* XSS
+* CSRF
+* SQL Injection
+* NoSQL Injection
+* SSRF
+* DDoS
+* Rate limiting
+* Secrets management
+* File upload security
+* Encryption
+* Logging
+* Audit trails
+
+Create security checklist.
+
+---
+
+SECTION 9
+FRONTEND DESIGN
+---------------
+
+Design:
+
+* Application structure
+* Routing
+* Layouts
+* Components
+* State management
+* Forms
+* Validation
+* Error handling
+* Accessibility
+* Mobile responsiveness
+
+Generate complete folder structure.
+
+---
+
+SECTION 10
+BACKEND DESIGN
+--------------
+
+Design:
+
+* Modules
+* Services
+* Repositories
+* Controllers
+* Middleware
+* Guards
+* Events
+* Queues
+* Background jobs
+
+Generate backend folder structure.
+
+---
+
+SECTION 11
+DEVOPS & INFRASTRUCTURE
+-----------------------
+
+Design:
+
+* Docker setup
+* CI/CD
+* Deployment pipeline
+* Monitoring
+* Logging
+* Backups
+* Environment management
+
+Explain local, staging, and production environments.
+
+---
+
+SECTION 12
+SCALABILITY PLAN
+----------------
+
+Explain:
+
+* Expected bottlenecks
+* Scaling strategies
+* Database scaling
+* API scaling
+* Queue scaling
+* Caching strategy
+* CDN strategy
+
+Create roadmap for:
+
+100 users
+
+1,000 users
+
+10,000 users
+
+100,000 users
+
+1,000,000 users
+
+---
+
+SECTION 13
+TESTING STRATEGY
+----------------
+
+Design:
+
+* Unit testing
+* Integration testing
+* API testing
+* E2E testing
+* Performance testing
+* Security testing
+
+Set coverage targets.
+
+---
+
+SECTION 14
+ANALYTICS & OBSERVABILITY
+-------------------------
+
+Design:
+
+* Product analytics
+* Business analytics
+* Monitoring
+* Error tracking
+* Audit logs
+* Metrics dashboards
+
+---
+
+SECTION 15
+IMPLEMENTATION ROADMAP
+----------------------
+
+Create a complete implementation plan.
+
+Break development into phases.
+
+For each phase provide:
+
+* Goals
+* Deliverables
+* Tasks
+* Dependencies
+* Risks
+
+Then create a detailed week-by-week roadmap.
+
+Week 1
+
+Week 2
+
+Week 3
+
+...
+
+Until production launch.
+
+---
+
+SECTION 16
+COST ANALYSIS
+-------------
+
+Estimate:
+
+* Infrastructure costs
+* AI costs
+* Database costs
+* Storage costs
+* Third-party services
+
+Estimate costs for:
+
+100 users
+
+1,000 users
+
+10,000 users
+
+100,000 users
+
+---
+
+SECTION 17
+MONETIZATION STRATEGY
+---------------------
+
+Design:
+
+* Pricing model
+* Subscription plans
+* Revenue streams
+* Upgrade strategy
+* Enterprise strategy
+
+---
+
+SECTION 18
+HIRING MANAGER REVIEW
+---------------------
+
+Evaluate the project as if you are:
+
+* Startup CTO
+* Senior Engineer
+* Hiring Manager
+* FAANG Interviewer
+
+Explain:
+
+* What is impressive
+* What is missing
+* What should be improved
+* Resume impact score (1-10)
+* Technical depth score (1-10)
+* Startup potential score (1-10)
+
+---
+
+SECTION 19
+FINAL BLUEPRINT
+---------------
+
+Generate:
+
+1. Complete tech stack
+2. Folder structures
+3. Architecture summary
+4. MVP roadmap
+5. Production roadmap
+6. Scaling roadmap
+7. Recommended development order
+
+Be extremely detailed.
+
+Think like a principal engineer building a real company, not a tutorial project.
