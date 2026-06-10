@@ -1,5 +1,6 @@
 import * as React from "react"
 import { MarketingNav } from "@/components/layout/MarketingNav"
+import { Footer } from "@/components/layout/Footer"
 
 export default function MarketingLayout({
   children,
@@ -10,7 +11,7 @@ export default function MarketingLayout({
     <div className="relative flex min-h-screen flex-col overflow-x-hidden bg-[#F9FAFB]">
       <MarketingNav />
       <main className="flex-1">{children}</main>
-      {/* Footer will go here later */}
+      <Footer />
     </div>
   )
 }

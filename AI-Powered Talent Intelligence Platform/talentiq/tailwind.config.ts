@@ -101,6 +101,8 @@ const config: Config = {
         'dot-pulse': 'dotPulse 400ms ease-in-out infinite',
         'bell-shake': 'bellShake 200ms ease-in-out',
         'twinkle': 'twinkle 600ms ease-in-out',
+        'marquee': 'marquee 28s linear infinite',
+        'pulse-subtle': 'pulseSubtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
       },
       keyframes: {
         fadeSlideUp: {
@@ -112,6 +114,10 @@ const config: Config = {
           '33%': { transform: 'scale(1.04) translate(-8px, 6px)', opacity: '0.14' },
           '66%': { transform: 'scale(0.97) translate(6px, -4px)', opacity: '0.10' },
           '100%': { transform: 'scale(1.00) translate(0px, 0px)', opacity: '0.12' },
+        },
+        marquee: {
+          '0%': { transform: 'translateX(0)' },
+          '100%': { transform: 'translateX(-50%)' },
         },
         shimmer: {
           'from': { backgroundPosition: '200% 0' },
