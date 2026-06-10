@@ -25,7 +25,7 @@ import {
   X,
 } from 'lucide-react'
 import { Button, IconButton, PillButton } from '@/components/ui/button'
-import HeroInlineCTA from '@/components/marketing/HeroInlineCTA'
+import { HeroInlineCTA } from '@/components/marketing/HeroInlineCTA'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
