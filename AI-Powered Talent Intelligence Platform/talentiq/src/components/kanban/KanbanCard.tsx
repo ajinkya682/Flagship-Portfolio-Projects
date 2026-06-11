@@ -15,6 +15,7 @@ export interface Candidate {
   daysInStage: string
   avatar: string
   recruiterAvatar: string
+  stage?: string
 }
 
 interface KanbanCardProps {
@@ -57,6 +58,8 @@ export function KanbanCard({ candidate, onClick, isSelected }: KanbanCardProps) 
     "Indeed": "bg-neutral-100 text-neutral-700"
   }
 
+  const isHired = candidate.stage === "hired" || candidate.stage === "Hired"
+
   return (
     <div
       ref={setNodeRef as React.Ref<HTMLDivElement>}
@@ -65,12 +68,17 @@ export function KanbanCard({ candidate, onClick, isSelected }: KanbanCardProps) 
       {...listeners}
       onClick={() => onClick?.(candidate)}
       className={cn(
-        "relative flex w-full flex-col overflow-hidden rounded-[var(--radius-md)] border bg-white p-[14px_16px] shadow-sm transition-shadow",
+        "group relative flex w-full flex-col rounded-[var(--radius-md)] border bg-white p-[16px] text-left transition-colors",
         isDragging 
           ? "cursor-grabbing opacity-50 shadow-xl" // Note: the actual drag overlay handles the rotation and full opacity, the original item in the list fades out
           : "cursor-grab hover:shadow-md",
-        isSelected ? "border-primary-500 bg-primary-50" : "border-neutral-200"
+        isSelected ? "border-primary-500 bg-primary-50" : "border-neutral-200",
+        isHired && "animate-pulse-subtle"
       )}
+      role="button"
+      aria-pressed={isSelected}
+      tabIndex={0}
+      aria-label={`Candidate ${candidate.name}, ${candidate.role}`}
     >
       {/* Left accent bar */}
       <div 
@@ -107,11 +115,24 @@ export function KanbanCard({ candidate, onClick, isSelected }: KanbanCardProps) 
         <span className="font-body text-[11px] text-neutral-400">
           {candidate.daysInStage} in stage
         </span>
-        <img 
-          src={candidate.recruiterAvatar} 
-          alt="Recruiter" 
-          className="h-[20px] w-[20px] rounded-full object-cover shadow-xs" 
-        />
+        <div className="flex -space-x-1 overflow-visible">
+          {candidate.id === 'c1' && (
+            <div className="relative z-10 animate-bounce">
+              <img 
+                src="https://i.pravatar.cc/150?u=collab" 
+                alt="Sarah is viewing" 
+                className="h-[20px] w-[20px] rounded-full object-cover ring-2 ring-white" 
+                title="Sarah is viewing this card"
+              />
+              <span className="absolute -right-0.5 -top-0.5 flex h-2 w-2 rounded-full bg-accent-500 ring-[1.5px] ring-white"></span>
+            </div>
+          )}
+          <img 
+            src={candidate.recruiterAvatar} 
+            alt="Recruiter" 
+            className="relative z-0 h-[20px] w-[20px] rounded-full object-cover shadow-xs ring-2 ring-white" 
+          />
+        </div>
       </div>
 
     </div>

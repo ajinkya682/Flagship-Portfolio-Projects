@@ -86,13 +86,13 @@ export function ApplicationTable() {
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex items-center justify-end gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                  <button className="flex h-[28px] w-[28px] items-center justify-center rounded-sm text-neutral-400 hover:bg-neutral-100 hover:text-neutral-900" title="View Profile">
+                  <button className="flex h-[28px] w-[28px] items-center justify-center rounded-sm text-neutral-400 hover:bg-neutral-100 hover:text-neutral-900" title="View Profile" aria-label="View Profile">
                     <Eye size={14} />
                   </button>
-                  <button className="flex h-[28px] w-[28px] items-center justify-center rounded-sm text-neutral-400 hover:bg-neutral-100 hover:text-neutral-900" title="Move Stage">
+                  <button className="flex h-[28px] w-[28px] items-center justify-center rounded-sm text-neutral-400 hover:bg-neutral-100 hover:text-neutral-900" title="Move Stage" aria-label="Move Stage">
                     <ArrowRight size={14} />
                   </button>
-                  <button className="flex h-[28px] w-[28px] items-center justify-center rounded-sm text-neutral-400 hover:bg-neutral-100 hover:text-neutral-900" title="Schedule Interview">
+                  <button className="flex h-[28px] w-[28px] items-center justify-center rounded-sm text-neutral-400 hover:bg-neutral-100 hover:text-neutral-900" title="Schedule Interview" aria-label="Schedule Interview">
                     <Calendar size={14} />
                   </button>
                 </div>

@@ -77,7 +77,7 @@ export default function OnboardingLayout({
       </div>
 
       {/* MAIN CONTENT */}
-      <main className="mt-[120px] flex flex-1 justify-center pb-20">
+      <main id="main-content" className="mt-[120px] flex flex-1 justify-center pb-20">
         <div className="w-full max-w-[640px] px-6">
           {children}
         </div>

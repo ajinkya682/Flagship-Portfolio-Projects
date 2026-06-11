@@ -1,19 +1,25 @@
+"use client"
+
 import * as React from "react"
 
 export function WelcomeGreeting({ name }: { name: string }) {
-  // Determine greeting based on current time
-  const hour = new Date().getHours()
-  let greeting = "Good evening"
-  if (hour < 12) greeting = "Good morning"
-  else if (hour < 17) greeting = "Good afternoon"
+  const [greeting, setGreeting] = React.useState("Good morning")
+  const [today, setToday] = React.useState("")
 
-  const dateOptions: Intl.DateTimeFormatOptions = { 
-    weekday: 'long', 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
-  }
-  const today = new Date().toLocaleDateString('en-US', dateOptions)
+  React.useEffect(() => {
+    const hour = new Date().getHours()
+    if (hour < 12) setGreeting("Good morning")
+    else if (hour < 17) setGreeting("Good afternoon")
+    else setGreeting("Good evening")
+
+    const dateOptions: Intl.DateTimeFormatOptions = { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    }
+    setToday(new Date().toLocaleDateString('en-US', dateOptions))
+  }, [])
 
   return (
     <div className="flex flex-col">

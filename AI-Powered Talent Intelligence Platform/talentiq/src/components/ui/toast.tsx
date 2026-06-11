@@ -85,6 +85,7 @@ export function Toast({ id, type, title, description, onDismiss }: ToastProps) {
       <button
         onClick={() => onDismiss(id)}
         className="shrink-0 rounded-md p-1 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-900 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors"
+        aria-label="Dismiss toast"
       >
         <X size={16} />
       </button>

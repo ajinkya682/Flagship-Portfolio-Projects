@@ -70,9 +70,10 @@ export function ActionSidebar() {
 
         {/* TAGS */}
         <div className="mt-[20px] border-t border-neutral-200 pt-[20px] flex flex-col gap-[12px]">
-          <h5 className="font-display text-[14px] font-semibold text-neutral-900 m-0">Tags</h5>
+          <label htmlFor="tag-input" className="font-display text-[14px] font-semibold text-neutral-900 m-0">Tags</label>
           
           <Input 
+            id="tag-input"
             placeholder="Add tag..." 
             value={tagInput}
             onChange={(e) => setTagInput(e.target.value)}
@@ -87,6 +88,7 @@ export function ActionSidebar() {
                 <button 
                   onClick={() => handleRemoveTag(tag)}
                   className="flex h-[16px] w-[16px] items-center justify-center rounded-full hover:bg-neutral-300"
+                  aria-label={`Remove tag ${tag}`}
                 >
                   <X size={10} />
                 </button>
@@ -141,9 +143,9 @@ export function ActionSidebar() {
           
           <div className="py-[16px] flex flex-col gap-[20px]">
             <div className="flex flex-col gap-[6px]">
-              <span className="font-body text-[13px] font-medium text-neutral-700">Rejection Reason</span>
-              <Select value={rejectReason} onValueChange={setRejectReason}>
-                <SelectTrigger>
+              <span id="rejection-reason-label" className="font-body text-[13px] font-medium text-neutral-700">Rejection Reason</span>
+              <Select value={rejectReason} onValueChange={setRejectReason} aria-labelledby="rejection-reason-label">
+                <SelectTrigger aria-labelledby="rejection-reason-label">
                   <SelectValue placeholder="Select reason" />
                 </SelectTrigger>
                 <SelectContent>
@@ -157,8 +159,9 @@ export function ActionSidebar() {
             </div>
 
             <div className="flex flex-col gap-[6px]">
-              <span className="font-body text-[13px] font-medium text-neutral-700">Internal Note (Optional)</span>
+              <label htmlFor="reject-note" className="font-body text-[13px] font-medium text-neutral-700">Internal Note (Optional)</label>
               <Textarea 
+                id="reject-note"
                 placeholder="Add context for this rejection..." 
                 className="min-h-[80px]"
                 value={rejectNote}

@@ -50,6 +50,8 @@ export function ScoreRing({ score, size = "lg", className }: ScoreRingProps) {
         width={pxSize} 
         height={pxSize}
         className="absolute inset-0"
+        role="img"
+        aria-label={`AI Score: ${score}`}
       >
         {/* Track ring */}
         <circle

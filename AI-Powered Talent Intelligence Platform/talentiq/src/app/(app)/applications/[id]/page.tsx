@@ -11,6 +11,8 @@ import { ScorecardsTab } from "@/components/applications/ScorecardsTab"
 import { NotesTab } from "@/components/applications/NotesTab"
 import { ActivityTab } from "@/components/applications/ActivityTab"
 import { ActionSidebar } from "@/components/applications/ActionSidebar"
+import { Button } from "@/components/ui/button"
+import confetti from "canvas-confetti"
 
 export default function ApplicationDetailPage() {
   const tabs = [
@@ -23,6 +25,18 @@ export default function ApplicationDetailPage() {
     "Notes", 
     "Activity"
   ]
+
+  const [offerAccepted, setOfferAccepted] = React.useState(false)
+
+  const handleAcceptOffer = () => {
+    setOfferAccepted(true)
+    confetti({
+      particleCount: 150,
+      spread: 80,
+      origin: { y: 0.6 },
+      colors: ['#10B981', '#34D399', '#A7F3D0']
+    })
+  }
 
   return (
     <div className="flex w-full justify-center bg-neutral-100 min-h-[calc(100vh-60px)] custom-scrollbar overflow-y-auto">
@@ -121,7 +135,27 @@ export default function ApplicationDetailPage() {
                   </TabsContent>
 
                   <TabsContent value="offer" className="m-0 outline-none">
-                    <p className="text-neutral-500">Offer generation and status component would render here.</p>
+                    <div className="flex flex-col items-center justify-center rounded-[var(--radius-lg)] border border-neutral-200 bg-white p-[40px] text-center shadow-sm">
+                      <h4 className="font-display text-[18px] font-semibold text-neutral-900 mb-2">Offer Status</h4>
+                      {offerAccepted ? (
+                        <div className="flex flex-col items-center animate-fade-slide-up">
+                          <div className="h-12 w-12 rounded-full bg-accent-100 flex items-center justify-center mb-4">
+                            <span className="text-accent-600 font-bold text-xl">✓</span>
+                          </div>
+                          <p className="font-body text-[15px] font-medium text-accent-600 mb-1">Offer Accepted!</p>
+                          <p className="font-body text-[14px] text-neutral-500">The candidate has accepted the offer.</p>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center">
+                          <p className="font-body text-[14px] text-neutral-600 mb-6 max-w-[300px]">
+                            The offer has been sent to the candidate. Wait for their response or manually mark as accepted.
+                          </p>
+                          <Button onClick={handleAcceptOffer} variant="primary" className="h-[40px] px-6">
+                            Mark as Accepted
+                          </Button>
+                        </div>
+                      )}
+                    </div>
                   </TabsContent>
 
                   <TabsContent value="notes" className="m-0 outline-none">

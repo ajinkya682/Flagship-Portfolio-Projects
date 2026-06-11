@@ -58,6 +58,7 @@ export function AppHeader() {
             <button 
               onClick={() => setSearchValue("")}
               className="absolute right-2 flex h-[20px] w-[20px] items-center justify-center rounded-sm text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600"
+              aria-label="Clear search"
             >
               <X size={14} />
             </button>
@@ -65,8 +66,8 @@ export function AppHeader() {
         </div>
 
         {/* Notifications (Hidden on mobile) */}
-        <button className="hidden md:flex relative h-[36px] w-[36px] items-center justify-center rounded-[var(--radius-sm)] text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900 focus:outline-none focus:ring-2 focus:ring-primary-500">
-          <Bell size={18} />
+        <button className="hidden md:flex relative h-[36px] w-[36px] items-center justify-center rounded-[var(--radius-sm)] text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900 focus:outline-none focus:ring-2 focus:ring-primary-500" aria-label="Notifications">
+          <Bell size={18} className="animate-[bellShake_0.5s_ease-in-out_infinite]" />
           {/* Badge */}
           <span className="absolute top-[8px] right-[8px] h-[8px] w-[8px] rounded-full bg-accent-500 ring-2 ring-white" />
         </button>
@@ -75,7 +76,7 @@ export function AppHeader() {
         <div className="hidden md:block">
           <Popover>
             <PopoverTrigger asChild>
-              <button className="ml-2 focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-full">
+              <button className="ml-2 focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-full" aria-label="User menu">
                 <img src="https://i.pravatar.cc/150?u=a4" alt="Sarah Wilson" className="h-[32px] w-[32px] rounded-full object-cover shadow-sm" />
               </button>
             </PopoverTrigger>
@@ -103,7 +104,7 @@ export function AppHeader() {
         </div>
 
         {/* Mobile Hamburger */}
-        <button className="flex md:hidden h-[36px] w-[36px] items-center justify-center rounded-[var(--radius-sm)] text-neutral-900">
+        <button className="flex md:hidden h-[36px] w-[36px] items-center justify-center rounded-[var(--radius-sm)] text-neutral-900" aria-label="Toggle menu">
           <Menu size={24} />
         </button>
 

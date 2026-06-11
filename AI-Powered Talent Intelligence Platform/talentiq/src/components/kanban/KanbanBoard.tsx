@@ -198,12 +198,37 @@ export function KanbanBoard() {
     <>
       {/* Desktop View (Drag and Drop) */}
       <div className="hidden md:flex h-full gap-[16px] overflow-x-auto p-[20px] custom-scrollbar bg-neutral-100">
+        <div id="dnd-instructions" className="sr-only">
+          Press Space to grab a candidate card. Use arrow keys to move. Press Enter to drop, or Escape to cancel.
+        </div>
         <DndContext
           sensors={sensors}
           collisionDetection={closestCorners}
           onDragStart={onDragStart}
           onDragOver={onDragOver}
           onDragEnd={onDragEnd}
+          accessibility={{
+            announcements: {
+              onDragStart(id) {
+                return `Picked up candidate. Use arrow keys to move.`
+              },
+              onDragOver({ over }) {
+                if (over) {
+                  return `Moved over ${over.id}.`
+                }
+                return `Moved outside.`
+              },
+              onDragEnd({ over }) {
+                if (over) {
+                  return `Candidate dropped successfully into ${over.id}.`
+                }
+                return `Candidate drop cancelled.`
+              },
+              onDragCancel() {
+                return `Dragging cancelled.`
+              }
+            }
+          }}
         >
           {initialStages.map((stage) => (
             <KanbanColumn

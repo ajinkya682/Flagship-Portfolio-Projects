@@ -34,7 +34,7 @@
     "@tiptap/starter-kit": "^2.4.0",
     "@types/react-big-calendar": "^1.16.3",
     "axios": "^1.7.2",
-    "canvas-confetti": "^1.9.3",
+    "canvas-confetti": "^1.9.4",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
@@ -54,7 +54,7 @@
     "zustand": "^4.5.2"
   },
   "devDependencies": {
-    "@types/canvas-confetti": "^1.6.4",
+    "@types/canvas-confetti": "^1.9.0",
     "@types/dompurify": "^3.0.5",
     "@types/node": "^20.14.0",
     "@types/react": "^18.3.0",

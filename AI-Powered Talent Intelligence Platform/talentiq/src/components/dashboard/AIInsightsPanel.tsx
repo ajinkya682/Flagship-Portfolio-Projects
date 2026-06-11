@@ -1,7 +1,16 @@
 import * as React from "react"
 import { Sparkles, AlertTriangle, Info, CheckCircle } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 export function AIInsightsPanel() {
+  const [showSparkles, setShowSparkles] = React.useState(false)
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowSparkles(true)
+    }, 1500)
+    return () => clearTimeout(timer)
+  }, [])
   const insights = [
     {
       type: "warning",
@@ -38,7 +47,7 @@ export function AIInsightsPanel() {
       {/* Header */}
       <div className="flex items-center justify-between mb-[16px]">
         <div className="flex items-center gap-[8px]">
-          <Sparkles size={16} className="text-accent-600 animate-pulse-subtle" />
+          <Sparkles size={16} className={cn("text-accent-600", showSparkles && "animate-twinkle")} />
           <h4 className="font-display text-[16px] font-semibold text-neutral-900">
             AI Pipeline Insights
           </h4>

@@ -42,8 +42,8 @@ export function AppHeader({ pageTitle, breadcrumbs = [], unreadNotifications = t
         </div>
 
         {/* Notification Bell */}
-        <button className="relative flex h-9 w-9 items-center justify-center rounded-full text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
-          <Bell size={18} />
+        <button className="relative flex h-9 w-9 items-center justify-center rounded-full text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500" aria-label="Notifications">
+          <Bell size={18} className="animate-bell-shake" />
           {unreadNotifications && (
             <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-accent-500 ring-2 ring-white" />
           )}
@@ -52,7 +52,7 @@ export function AppHeader({ pageTitle, breadcrumbs = [], unreadNotifications = t
         {/* User Dropdown */}
         <Popover>
           <PopoverTrigger asChild>
-            <button className="ml-1 flex h-8 w-8 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ring-offset-1 transition-transform active:scale-95">
+            <button className="ml-1 flex h-8 w-8 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ring-offset-1 transition-transform active:scale-95" aria-label="User profile">
               <img
                 src="https://i.pravatar.cc/150?u=a042581f4e29026704d"
                 alt="User avatar"
