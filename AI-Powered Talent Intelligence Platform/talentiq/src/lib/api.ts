@@ -1,1 +1,52 @@
-export {}
+import axios from 'axios'
+import { getToken, clearToken } from './auth'
+
+const api = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api',
+  timeout: 15_000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+})
+
+// ── Request interceptor ─────────────────────────────────────────
+api.interceptors.request.use((config) => {
+  const token = getToken()
+  if (token) {
+    config.headers['Authorization'] = `Bearer ${token}`
+  }
+  return config
+})
+
+// ── Response interceptor ────────────────────────────────────────
+api.interceptors.response.use(
+  (response) => response,
+  (error: unknown) => {
+    if (axios.isAxiosError(error) && error.response) {
+      const { status, data } = error.response
+
+      if (status === 401) {
+        clearToken()
+        if (typeof window !== 'undefined') {
+          window.location.href = '/login'
+        }
+      }
+
+      if (status === 422) {
+        const validationErrors = data?.errors as Record<string, string[]> | undefined
+        if (validationErrors) {
+          const messages = Object.entries(validationErrors)
+            .map(([field, msgs]) => `${field}: ${msgs.join(', ')}`)
+            .join(' | ')
+          if (error.message !== undefined) {
+            // Attach formatted validation message to the error object
+            ;(error as { validationMessage?: string }).validationMessage = messages
+          }
+        }
+      }
+    }
+    return Promise.reject(error)
+  },
+)
+
+export default api
