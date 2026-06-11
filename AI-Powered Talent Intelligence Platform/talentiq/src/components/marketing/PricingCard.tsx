@@ -1,120 +1,83 @@
-import * as React from "react"
-import { CheckCircle2 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
+import Link from 'next/link'
+import { CheckCircle } from 'lucide-react'
 
-export interface PricingCardProps {
-  planName: string
-  price: string
-  period?: string
-  subLine: string
+interface PricingCardProps {
+  name: string
+  price: number
+  description: string
   features: string[]
-  buttonText: string
-  isFeatured?: boolean
-  className?: string
+  ctaText: string
+  ctaHref: string
+  featured?: boolean
+  billingPeriod: 'monthly' | 'annual'
 }
 
-export function PricingCard({
-  planName,
+export default function PricingCard({
+  name,
   price,
-  period = "/month",
-  subLine,
+  description,
   features,
-  buttonText,
-  isFeatured = false,
-  className,
+  ctaText,
+  ctaHref,
+  featured = false,
+  billingPeriod,
 }: PricingCardProps) {
+  const displayPrice = billingPeriod === 'annual' ? Math.floor(price * 0.8) : price
+
   return (
-    <div
-      className={cn(
-        "relative flex flex-col rounded-[var(--radius-xl)] p-8",
-        isFeatured
-          ? "bg-primary-900 text-white shadow-xl lg:scale-105 lg:p-9" // #0A2540
-          : "bg-white text-neutral-900 shadow-sm border border-neutral-200",
-        className
-      )}
+    <div 
+      className={`rounded-xl p-8 md:p-9 flex flex-col h-full ${
+        featured 
+          ? 'bg-[#0A2540] shadow-xl relative z-10 scale-100 lg:scale-[1.04]' 
+          : 'bg-white border border-neutral-200 shadow-sm'
+      }`}
     >
-      {isFeatured && (
-        <div className="absolute -top-3 right-6 rounded-full bg-accent-500 px-3.5 py-1.5 font-body text-[10px] font-semibold tracking-wide text-white uppercase shadow-sm">
+      {featured && (
+        <div className="absolute -top-3 right-5 bg-[#10B981] text-white text-[10px] font-bold px-3.5 py-1.5 rounded-full uppercase tracking-wider">
           Most Popular
         </div>
       )}
 
-      {/* Header section */}
-      <div className="mb-4">
-        <h4
-          className={cn(
-            "font-body text-[11px] font-semibold uppercase tracking-wider",
-            isFeatured ? "text-white/70" : "text-neutral-500"
-          )}
-        >
-          {planName}
-        </h4>
-        <div className="mt-4 flex items-baseline">
-          <span className="font-display text-[36px] font-extrabold leading-none tracking-tight">
-            {price}
-          </span>
-          <span
-            className={cn(
-              "ml-1 font-body text-[15px] font-medium",
-              isFeatured ? "text-white/70" : "text-neutral-500"
-            )}
-          >
-            {period}
-          </span>
-        </div>
-        <p
-          className={cn(
-            "mt-2 font-body text-[14px]",
-            isFeatured ? "text-white/70" : "text-neutral-600"
-          )}
-        >
-          {subLine}
-        </p>
+      <div className={`overline text-[11px] uppercase font-bold tracking-widest ${featured ? 'text-white/50' : 'text-neutral-500'}`}>
+        {name}
       </div>
 
-      <div
-        className={cn(
-          "my-6 h-px w-full",
-          isFeatured ? "bg-white/10" : "bg-neutral-100"
-        )}
-      />
+      <div className="mt-4 flex items-baseline gap-1">
+        <span className={`font-display text-[36px] font-extrabold leading-none ${featured ? 'text-white' : 'text-neutral-900'}`}>
+          ${displayPrice}
+        </span>
+        <span className={`font-body text-[15px] ${featured ? 'text-white/60' : 'text-neutral-500'}`}>
+          /month
+        </span>
+      </div>
 
-      {/* Features list */}
-      <ul className="flex flex-col gap-3 flex-1">
-        {features.map((feature, idx) => (
-          <li key={idx} className="flex items-start gap-2.5">
-            <CheckCircle2
-              size={18}
-              className={cn(
-                "mt-0.5 shrink-0",
-                isFeatured ? "text-accent-400" : "text-accent-500"
-              )}
-            />
-            <span
-              className={cn(
-                "font-body text-[14px]",
-                isFeatured ? "text-white" : "text-neutral-700"
-              )}
-            >
+      <p className={`font-body text-[14px] mt-3 ${featured ? 'text-white/70' : 'text-neutral-600'}`}>
+        {description}
+      </p>
+
+      <div className={`w-full h-[1px] my-6 ${featured ? 'bg-white/10' : 'bg-neutral-100'}`} />
+
+      <div className="flex flex-col gap-3 flex-grow">
+        {features.map((feature, i) => (
+          <div key={i} className="flex items-start gap-3">
+            <CheckCircle className={`w-3.5 h-3.5 shrink-0 mt-[3px] ${featured ? 'text-accent-400' : 'text-accent-500'}`} />
+            <span className={`font-body text-[14px] leading-snug ${featured ? 'text-white/85' : 'text-neutral-700'}`}>
               {feature}
             </span>
-          </li>
+          </div>
         ))}
-      </ul>
+      </div>
 
-      {/* CTA Button */}
-      <Button
-        variant={isFeatured ? "secondary" : "primary"}
-        size="large"
-        className={cn(
-          "mt-8 w-full",
-          isFeatured &&
-            "bg-white text-primary-600 hover:bg-neutral-50 hover:text-primary-700 border-none shadow-sm"
-        )}
+      <Link
+        href={ctaHref}
+        className={`mt-8 w-full h-12 rounded-lg flex items-center justify-center font-body text-[15px] font-semibold transition-colors ${
+          featured
+            ? 'bg-white text-primary-500 hover:bg-neutral-50 shadow-sm'
+            : 'bg-primary-500 text-white hover:bg-primary-600 shadow-sm'
+        }`}
       >
-        {buttonText}
-      </Button>
+        {ctaText}
+      </Link>
     </div>
   )
 }

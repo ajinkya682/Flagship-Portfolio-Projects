@@ -1,50 +1,57 @@
-import * as React from "react"
-import { ScrollEntry } from "@/components/shared/ScrollEntry"
+'use client'
 
-const logos = [
-  "Acme Corp", "TechFlow", "GlobalHire", "Nova Systems",
-  "BluePeak", "Vertex AI", "CloudScale", "NextGen Tech"
-]
+import { useMediaQuery } from '@/hooks/useMediaQuery'
+import { cn } from '@/lib/utils'
 
-export function LogoStrip() {
+export default function LogoStrip() {
+  const isMobile = useMediaQuery('(max-width: 767px)')
+  
+  const companies = [
+    'Momentum Labs', 'Prism Health', 'Orbit Finance', 'Cascade AI', 
+    'Nova Robotics', 'Apex Ventures', 'Vertex Systems', 'Luminary Co.'
+  ]
+
   return (
-    <ScrollEntry animation="fade-up">
-      <section className="w-full border-y border-neutral-200 bg-neutral-50 py-10">
-        <div className="mx-auto max-w-[1200px] px-5 md:px-10 lg:px-[80px]">
-          <h3 className="mb-6 text-center font-body text-[11px] font-semibold uppercase tracking-wider text-neutral-400">
-            Trusted by fast-growing teams
-          </h3>
-          
-          <div className="relative overflow-hidden">
-            {/* Desktop: Flex wrap center */}
-            <div className="hidden md:flex flex-wrap items-center justify-center gap-12">
-              {logos.map((logo, i) => (
-                <div 
-                  key={i}
-                  className="flex h-8 max-w-[120px] items-center justify-center text-xl font-bold text-neutral-400 opacity-40 grayscale transition-all duration-200 hover:opacity-80 hover:grayscale-0"
-                >
-                  {/* Placeholder for actual logos */}
-                  {logo}
+    <section className="bg-[#F9FAFB] py-10 border-y border-neutral-100 overflow-hidden">
+      <div className="text-center mb-6">
+        <span className="overline text-[11px] uppercase font-semibold text-neutral-400 tracking-widest">
+          TRUSTED BY FAST-GROWING TEAMS
+        </span>
+      </div>
+
+      {!isMobile ? (
+        <div className="max-w-[1200px] mx-auto px-10">
+          <div className="flex flex-row justify-center flex-wrap gap-12">
+            {companies.map((company, i) => (
+              <div 
+                key={i} 
+                className="font-display text-[14px] font-semibold text-neutral-400 opacity-40 grayscale hover:grayscale-0 hover:opacity-80 transition-all duration-200 cursor-default"
+              >
+                {company}
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div className="relative overflow-hidden w-full" style={{ maskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)' }}>
+          <div className="flex w-max animate-marquee">
+            <div className="flex gap-16 px-8">
+              {companies.map((company, i) => (
+                <div key={`m1-${i}`} className="font-display text-[14px] font-semibold text-neutral-400 opacity-40">
+                  {company}
                 </div>
               ))}
             </div>
-
-            {/* Mobile: Marquee */}
-            <div className="flex md:hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
-              <div className="flex min-w-full shrink-0 animate-marquee items-center gap-12 py-2 pr-12">
-                {[...logos, ...logos].map((logo, i) => (
-                  <div 
-                    key={i}
-                    className="flex h-8 max-w-[120px] items-center justify-center text-lg font-bold text-neutral-400 opacity-40 grayscale"
-                  >
-                    {logo}
-                  </div>
-                ))}
-              </div>
+            <div className="flex gap-16 px-8">
+              {companies.map((company, i) => (
+                <div key={`m2-${i}`} className="font-display text-[14px] font-semibold text-neutral-400 opacity-40">
+                  {company}
+                </div>
+              ))}
             </div>
           </div>
         </div>
-      </section>
-    </ScrollEntry>
+      )}
+    </section>
   )
 }

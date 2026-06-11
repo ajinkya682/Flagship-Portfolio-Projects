@@ -1,3 +1,33 @@
+import FeaturesShowcase from '@/components/marketing/FeaturesShowcase'
+import AIExplainerSection from '@/components/marketing/AIExplainerSection'
+import PipelineExplainerSection from '@/components/marketing/PipelineExplainerSection'
+import SectionWrapper from '@/components/marketing/SectionWrapper'
+import FinalCTASection from '@/components/marketing/FinalCTASection'
+
 export default function FeaturesPage() {
-  return null
+  return (
+    <div className="flex flex-col min-h-screen">
+      <section className="bg-white pt-20 pb-10 text-center">
+        <div className="max-w-[800px] mx-auto px-5">
+          <h1 className="font-display text-[40px] md:text-[56px] font-extrabold text-neutral-900 tracking-tight leading-tight">
+            Everything your team needs to hire better.
+          </h1>
+        </div>
+      </section>
+
+      <FeaturesShowcase />
+      
+      <SectionWrapper>
+        <AIExplainerSection />
+      </SectionWrapper>
+      
+      <SectionWrapper>
+        <PipelineExplainerSection />
+      </SectionWrapper>
+
+      <SectionWrapper>
+        <FinalCTASection />
+      </SectionWrapper>
+    </div>
+  )
 }

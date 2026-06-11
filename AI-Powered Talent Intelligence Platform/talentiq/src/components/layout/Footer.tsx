@@ -1,96 +1,81 @@
-import * as React from "react"
-import { Twitter, Linkedin, Github } from "lucide-react"
-import Link from "next/link"
+import Link from 'next/link'
+import { Twitter, Linkedin, Github } from 'lucide-react'
 
-export function Footer() {
+export default function Footer() {
   return (
-    <footer className="w-full bg-[#040D1A] py-[72px] pb-[40px]">
-      <div className="mx-auto max-w-[1200px] px-5 md:px-10 lg:px-[80px]">
-        
-        <div className="grid grid-cols-1 gap-[32px] lg:grid-cols-4 lg:gap-[48px]">
-          
-          {/* Column 1: Brand */}
+    <footer className="bg-[#040D1A] pt-[72px] pb-[40px]">
+      <div className="max-w-[1200px] mx-auto px-4 md:px-10 lg:px-20">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
+          {/* Column 1: Brand & Social */}
           <div className="flex flex-col">
-            <Link href="/" className="flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-sm w-fit">
-              <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect width="28" height="28" rx="6" fill="#2563EB"/>
-                <path d="M14 6L22 14L14 22L6 14L14 6Z" fill="white"/>
-              </svg>
-              <span className="font-display text-[20px] font-bold tracking-tight text-white">
-                Talent<span className="text-primary-500">IQ</span>
+            <Link href="/" className="inline-block mb-4">
+              <span className="font-display text-[20px] font-extrabold text-white tracking-tight">
+                Talent<span className="text-primary-400">IQ</span>
               </span>
             </Link>
-            <p className="mt-[12px] font-body text-[14px] text-white/55">
-              AI-powered talent intelligence for modern hiring teams.
+            <p className="text-[14px] text-white/55 font-body mb-6 max-w-[240px]">
+              Stop losing great candidates to outdated filters. TalentIQ scores every applicant with explainable AI.
             </p>
-            <div className="mt-[20px] flex gap-[12px]">
-              <a href="#" className="flex h-5 w-5 items-center justify-center text-neutral-400 transition-colors hover:text-white" aria-label="Twitter">
-                <Twitter size={20} />
+            <div className="flex items-center gap-3">
+              <a href="#" className="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-neutral-400 hover:text-white hover:bg-white/10 transition duration-120" aria-label="Twitter">
+                <Twitter className="w-4 h-4" />
               </a>
-              <a href="#" className="flex h-5 w-5 items-center justify-center text-neutral-400 transition-colors hover:text-white" aria-label="LinkedIn">
-                <Linkedin size={20} />
+              <a href="#" className="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-neutral-400 hover:text-white hover:bg-white/10 transition duration-120" aria-label="LinkedIn">
+                <Linkedin className="w-4 h-4" />
               </a>
-              <a href="#" className="flex h-5 w-5 items-center justify-center text-neutral-400 transition-colors hover:text-white" aria-label="GitHub">
-                <Github size={20} />
+              <a href="#" className="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-neutral-400 hover:text-white hover:bg-white/10 transition duration-120" aria-label="GitHub">
+                <Github className="w-4 h-4" />
               </a>
             </div>
           </div>
 
           {/* Column 2: Product */}
           <div className="flex flex-col">
-            <span className="font-body text-[11px] font-bold uppercase tracking-wider text-white/35">
-              Product
-            </span>
-            <div className="mt-[16px] flex flex-col gap-[8px]">
-              <Link href="/features" className="font-body text-[14px] text-white/55 transition-colors duration-120 hover:text-white">Features</Link>
-              <Link href="/pipeline" className="font-body text-[14px] text-white/55 transition-colors duration-120 hover:text-white">Pipeline</Link>
-              <Link href="/ai-scoring" className="font-body text-[14px] text-white/55 transition-colors duration-120 hover:text-white">AI Scoring</Link>
-              <Link href="/integrations" className="font-body text-[14px] text-white/55 transition-colors duration-120 hover:text-white">Integrations</Link>
-              <Link href="/pricing" className="font-body text-[14px] text-white/55 transition-colors duration-120 hover:text-white">Pricing</Link>
+            <h4 className="overline text-[11px] uppercase text-white/35 mb-4">Product</h4>
+            <div className="flex flex-col gap-2">
+              <Link href="/features" className="text-[14px] text-white/55 hover:text-white transition duration-120 w-fit">Features</Link>
+              <Link href="/features#pipeline" className="text-[14px] text-white/55 hover:text-white transition duration-120 w-fit">Pipeline</Link>
+              <Link href="/features#ai-scoring" className="text-[14px] text-white/55 hover:text-white transition duration-120 w-fit">AI Scoring</Link>
+              <Link href="/integrations" className="text-[14px] text-white/55 hover:text-white transition duration-120 w-fit">Integrations</Link>
+              <Link href="/pricing" className="text-[14px] text-white/55 hover:text-white transition duration-120 w-fit">Pricing</Link>
             </div>
           </div>
 
           {/* Column 3: Company */}
           <div className="flex flex-col">
-            <span className="font-body text-[11px] font-bold uppercase tracking-wider text-white/35">
-              Company
-            </span>
-            <div className="mt-[16px] flex flex-col gap-[8px]">
-              <Link href="/about" className="font-body text-[14px] text-white/55 transition-colors duration-120 hover:text-white">About</Link>
-              <Link href="/blog" className="font-body text-[14px] text-white/55 transition-colors duration-120 hover:text-white">Blog</Link>
-              <Link href="/careers" className="font-body text-[14px] text-white/55 transition-colors duration-120 hover:text-white">Careers</Link>
-              <Link href="/press" className="font-body text-[14px] text-white/55 transition-colors duration-120 hover:text-white">Press</Link>
-              <Link href="/contact" className="font-body text-[14px] text-white/55 transition-colors duration-120 hover:text-white">Contact</Link>
+            <h4 className="overline text-[11px] uppercase text-white/35 mb-4">Company</h4>
+            <div className="flex flex-col gap-2">
+              <Link href="/about" className="text-[14px] text-white/55 hover:text-white transition duration-120 w-fit">About</Link>
+              <Link href="/blog" className="text-[14px] text-white/55 hover:text-white transition duration-120 w-fit">Blog</Link>
+              <Link href="/careers" className="text-[14px] text-white/55 hover:text-white transition duration-120 w-fit">Careers</Link>
+              <Link href="/press" className="text-[14px] text-white/55 hover:text-white transition duration-120 w-fit">Press</Link>
+              <Link href="/contact" className="text-[14px] text-white/55 hover:text-white transition duration-120 w-fit">Contact</Link>
             </div>
           </div>
 
           {/* Column 4: Legal */}
           <div className="flex flex-col">
-            <span className="font-body text-[11px] font-bold uppercase tracking-wider text-white/35">
-              Legal
-            </span>
-            <div className="mt-[16px] flex flex-col gap-[8px]">
-              <Link href="/privacy" className="font-body text-[14px] text-white/55 transition-colors duration-120 hover:text-white">Privacy Policy</Link>
-              <Link href="/terms" className="font-body text-[14px] text-white/55 transition-colors duration-120 hover:text-white">Terms of Service</Link>
-              <Link href="/gdpr" className="font-body text-[14px] text-white/55 transition-colors duration-120 hover:text-white">GDPR</Link>
-              <Link href="/security" className="font-body text-[14px] text-white/55 transition-colors duration-120 hover:text-white">Security</Link>
-              <Link href="/cookies" className="font-body text-[14px] text-white/55 transition-colors duration-120 hover:text-white">Cookie Settings</Link>
+            <h4 className="overline text-[11px] uppercase text-white/35 mb-4">Legal</h4>
+            <div className="flex flex-col gap-2">
+              <Link href="/privacy" className="text-[14px] text-white/55 hover:text-white transition duration-120 w-fit">Privacy</Link>
+              <Link href="/terms" className="text-[14px] text-white/55 hover:text-white transition duration-120 w-fit">Terms</Link>
+              <Link href="/gdpr" className="text-[14px] text-white/55 hover:text-white transition duration-120 w-fit">GDPR</Link>
+              <Link href="/security" className="text-[14px] text-white/55 hover:text-white transition duration-120 w-fit">Security</Link>
+              <Link href="/cookies" className="text-[14px] text-white/55 hover:text-white transition duration-120 w-fit">Cookies</Link>
             </div>
           </div>
-
         </div>
 
         {/* Bottom Bar */}
-        <div className="mt-[48px] flex flex-col items-center justify-between gap-4 border-t border-white/[0.07] pt-[24px] md:flex-row">
-          <span className="font-body text-[13px] text-white/35">
-            © {new Date().getFullYear()} TalentIQ Inc. All rights reserved.
-          </span>
-          <div className="flex gap-4">
-            <Link href="/privacy" className="font-body text-[13px] text-white/35 hover:text-white transition-colors">Privacy</Link>
-            <Link href="/terms" className="font-body text-[13px] text-white/35 hover:text-white transition-colors">Terms</Link>
+        <div className="mt-12 pt-6 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="font-body text-[13px] text-white/35">
+            &copy; {new Date().getFullYear()} TalentIQ. All rights reserved.
+          </p>
+          <div className="flex items-center gap-6">
+            <Link href="/privacy" className="font-body text-[13px] text-white/35 hover:text-white transition-colors">Privacy Policy</Link>
+            <Link href="/terms" className="font-body text-[13px] text-white/35 hover:text-white transition-colors">Terms of Service</Link>
           </div>
         </div>
-
       </div>
     </footer>
   )

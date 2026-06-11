@@ -1,70 +1,57 @@
-import * as React from "react"
-import { Star } from "lucide-react"
-import { cn } from "@/lib/utils"
+import Image from 'next/image'
+import { Star } from 'lucide-react'
 
-export interface TestimonialCardProps {
+interface TestimonialCardProps {
   quote: string
   authorName: string
   authorTitle: string
-  authorCompany: string
-  authorAvatarUrl: string
-  metricCallout: string
-  className?: string
+  authorAvatar?: string
+  metric: string
 }
 
-export function TestimonialCard({
+export default function TestimonialCard({
   quote,
   authorName,
   authorTitle,
-  authorCompany,
-  authorAvatarUrl,
-  metricCallout,
-  className,
+  authorAvatar,
+  metric,
 }: TestimonialCardProps) {
-  return (
-    <div
-      className={cn(
-        "relative rounded-[var(--radius-xl)] bg-white p-8 shadow-sm transition-transform duration-200 hover:-translate-y-1 hover:shadow-md border border-neutral-100",
-        className
-      )}
-    >
-      {/* Decorative quote mark */}
-      <div className="absolute top-4 right-8 font-display text-[80px] font-black leading-none text-primary-50 select-none">
-        "
-      </div>
+  const initials = authorName.split(' ').map(n => n[0]).join('').substring(0, 2)
 
-      {/* Stars */}
-      <div className="relative z-10 flex items-center gap-0.5 text-[#FBBF24]">
-        {[...Array(5)].map((_, i) => (
-          <Star key={i} size={16} fill="currentColor" />
+  return (
+    <div className="bg-white rounded-xl p-8 shadow-sm h-full flex flex-col">
+      <div className="flex gap-0.5 mb-3">
+        {[1, 2, 3, 4, 5].map(i => (
+          <Star key={i} className="w-3.5 h-3.5 text-[#FBBF24] fill-[#FBBF24]" />
         ))}
       </div>
-
-      {/* Quote */}
-      <p className="relative z-10 mt-5 max-w-[340px] font-body text-[17px] italic leading-relaxed text-neutral-900">
-        "{quote}"
+      
+      <span className="text-[40px] font-extrabold text-[#BFDBFE] leading-none -mb-2 block">
+        &quot;
+      </span>
+      
+      <p className="font-body text-[17px] text-neutral-900 italic max-w-[340px] flex-grow leading-relaxed">
+        {quote}
       </p>
 
-      {/* Author Info */}
       <div className="mt-6 flex items-center gap-3">
-        <img
-          src={authorAvatarUrl}
-          alt={authorName}
-          className="h-11 w-11 rounded-full object-cover shadow-xs border border-neutral-100"
-        />
+        <div className="w-11 h-11 rounded-full shadow-xs bg-neutral-100 flex items-center justify-center overflow-hidden shrink-0">
+          {authorAvatar ? (
+            <Image src={authorAvatar} alt={authorName} width={44} height={44} className="object-cover" />
+          ) : (
+            <span className="font-display text-[14px] font-bold text-neutral-500">{initials}</span>
+          )}
+        </div>
         <div className="flex flex-col">
-          <span className="font-body text-[14px] font-semibold text-neutral-900">
-            {authorName}
-          </span>
-          <span className="font-body text-[12px] text-neutral-500">
-            {authorTitle}, {authorCompany}
-          </span>
+          <span className="font-body text-[14px] font-semibold text-neutral-900">{authorName}</span>
+          <span className="font-body text-[12px] text-neutral-500">{authorTitle}</span>
         </div>
       </div>
 
-      {/* Metric Callout */}
-      <div className="mt-6 inline-flex rounded-full bg-accent-50 px-3 py-1 font-body text-[13px] font-bold text-accent-600">
-        {metricCallout}
+      <div className="mt-4 pt-4 border-t border-neutral-100">
+        <span className="font-body text-[14px] font-bold text-[#10B981]">
+          {metric}
+        </span>
       </div>
     </div>
   )

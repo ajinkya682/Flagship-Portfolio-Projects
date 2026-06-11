@@ -1,80 +1,68 @@
-"use client"
+import StatCounter from './StatCounter'
 
-import * as React from "react"
-import { ScrollEntry } from "@/components/shared/ScrollEntry"
-import { useCountUp } from "@/hooks/useCountUp"
-import { cn } from "@/lib/utils"
-
-function StatCounter({ 
-  endValue, 
-  suffix = "", 
-  prefix = "",
-  label, 
-  subLabel, 
-  colorClass 
-}: { 
-  endValue: number, 
-  suffix?: string, 
-  prefix?: string,
-  label: string, 
-  subLabel: string, 
-  colorClass: string 
-}) {
-  const { count, ref } = useCountUp(endValue, 1200)
-
+export default function StatsStrip() {
   return (
-    <div ref={ref as React.RefObject<HTMLDivElement>} className="flex flex-col items-center justify-center p-6 text-center">
-      <div className={cn("font-display text-[52px] font-[800] leading-tight tracking-tight", colorClass)}>
-        {prefix}{count}{suffix}
-      </div>
-      <div className="mt-2 font-body text-[17px] font-medium text-neutral-700">
-        {label}
-      </div>
-      <div className="mt-1 font-body text-[12px] text-neutral-500">
-        {subLabel}
-      </div>
-    </div>
-  )
-}
+    <section className="bg-white py-20">
+      <div className="max-w-[1200px] mx-auto px-5 md:px-10 lg:px-20">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-y-12 md:gap-y-16 relative">
+          
+          {/* Desktop Dividers */}
+          <div className="hidden lg:block absolute top-0 bottom-0 left-1/4 w-[1px] bg-neutral-100" />
+          <div className="hidden lg:block absolute top-0 bottom-0 left-2/4 w-[1px] bg-neutral-100" />
+          <div className="hidden lg:block absolute top-0 bottom-0 left-3/4 w-[1px] bg-neutral-100" />
+          
+          {/* Tablet Dividers */}
+          <div className="hidden md:block lg:hidden absolute top-0 bottom-0 left-1/2 w-[1px] bg-neutral-100" />
+          <div className="hidden md:block lg:hidden absolute top-1/2 left-0 right-0 h-[1px] bg-neutral-100" />
 
-export function StatsStrip() {
-  return (
-    <ScrollEntry animation="fade-up">
-      <section className="w-full bg-white py-20">
-        <div className="mx-auto max-w-[1200px] px-5 md:px-10 lg:px-[80px]">
-          <div className="grid grid-cols-1 divide-y divide-neutral-100 md:grid-cols-2 md:divide-x md:divide-y-0 lg:grid-cols-4">
+          {/* Mobile Dividers (except last) */}
+          <div className="md:hidden absolute top-1/4 left-0 right-0 h-[1px] bg-neutral-100" />
+          <div className="md:hidden absolute top-2/4 left-0 right-0 h-[1px] bg-neutral-100" />
+          <div className="md:hidden absolute top-3/4 left-0 right-0 h-[1px] bg-neutral-100" />
+
+          <div className="flex-1 px-4 text-center">
             <StatCounter 
-              endValue={50} 
+              value={50} 
               suffix="%" 
               label="Faster time-to-hire" 
-              subLabel="Average across customers"
-              colorClass="text-primary-500"
+              sublabel="Average across customers"
+              color="#2563EB"
             />
+          </div>
+          
+          <div className="flex-1 px-4 text-center">
             <StatCounter 
-              endValue={70} 
+              value={70} 
               suffix="%" 
               label="Less time screening" 
-              subLabel="With AI pre-scoring"
-              colorClass="text-primary-500"
+              sublabel="With AI pre-scoring"
+              color="#2563EB"
             />
+          </div>
+          
+          <div className="flex-1 px-4 text-center">
             <StatCounter 
-              endValue={91} 
+              value={91} 
               suffix="%" 
               label="AI score accuracy" 
-              subLabel="Versus actual hire decisions"
-              colorClass="text-accent-500"
+              sublabel="Versus actual hire decisions"
+              color="#10B981"
             />
+          </div>
+          
+          <div className="flex-1 px-4 text-center">
             <StatCounter 
-              endValue={24} 
+              value={24} 
               prefix="$"
               suffix="K" 
               label="Saved per mis-hire" 
-              subLabel="Fully loaded cost reduction"
-              colorClass="text-accent-500"
+              sublabel="Fully loaded cost reduction"
+              color="#10B981"
             />
           </div>
+          
         </div>
-      </section>
-    </ScrollEntry>
+      </div>
+    </section>
   )
 }

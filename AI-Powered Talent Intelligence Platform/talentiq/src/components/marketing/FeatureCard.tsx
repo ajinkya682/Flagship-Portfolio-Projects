@@ -1,47 +1,21 @@
-import * as React from "react"
-import { type LucideIcon } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { ReactNode, ElementType } from 'react'
 
-export interface FeatureCardProps {
+interface FeatureCardProps {
+  icon: ElementType
   title: string
   description: string
-  icon: LucideIcon
-  colorVariant?: "primary" | "accent"
-  className?: string
 }
 
-export function FeatureCard({
-  title,
-  description,
-  icon: Icon,
-  colorVariant = "primary",
-  className,
-}: FeatureCardProps) {
-  const isPrimary = colorVariant === "primary"
-
+export default function FeatureCard({ icon: Icon, title, description }: FeatureCardProps) {
   return (
-    <div
-      className={cn(
-        "rounded-[var(--radius-xl)] bg-[var(--gradient-card-feature)] p-8",
-        "border border-[rgba(37,99,235,0.10)]",
-        "transition-all duration-200 ease-out hover:-translate-y-1 hover:shadow-lg",
-        className
-      )}
-    >
-      <div
-        className={cn(
-          "flex h-12 w-12 items-center justify-center rounded-lg",
-          isPrimary
-            ? "bg-gradient-to-br from-primary-50 to-primary-100/50 text-primary-500"
-            : "bg-gradient-to-br from-accent-50 to-accent-100/50 text-accent-500"
-        )}
-      >
-        <Icon size={24} />
+    <div className="bg-[var(--gradient-card-feature)] border border-[#2563EB]/10 rounded-xl p-8 hover:-translate-y-1 hover:shadow-lg transition-all duration-200 ease-out">
+      <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-[#EFF6FF] to-[#ECFDF5] flex items-center justify-center">
+        <Icon className="w-6 h-6 text-primary-500" />
       </div>
-      <h3 className="mt-4 font-display text-[18px] font-semibold text-neutral-900">
+      <h3 className="font-display text-[18px] font-semibold text-neutral-900 mt-4 leading-tight">
         {title}
       </h3>
-      <p className="mt-2 font-body text-[15px] leading-relaxed text-neutral-600">
+      <p className="font-body text-[15px] text-neutral-600 mt-2 leading-relaxed">
         {description}
       </p>
     </div>

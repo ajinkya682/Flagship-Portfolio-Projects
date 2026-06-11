@@ -1,19 +1,23 @@
-import * as React from "react"
-import { ArrowRight } from "lucide-react"
-import { cn } from "@/lib/utils"
+import Link from 'next/link'
+import { ArrowUpRight } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
-export function HeroInlineCTA({ className, label = "Start Free Trial" }: { className?: string, label?: string }) {
+interface HeroInlineCTAProps {
+  href?: string
+  className?: string
+}
+
+export default function HeroInlineCTA({ href = '/register', className }: HeroInlineCTAProps) {
   return (
-    <button 
+    <Link
+      href={href}
       className={cn(
-        "group relative inline-flex items-center justify-center overflow-hidden rounded-full bg-primary-500 font-display text-[16px] font-bold text-white transition-all hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2",
-        "h-[48px] px-6",
-        "shadow-[0_8px_32px_rgba(37,99,235,0.20)]",
+        'hero-inline-cta hidden sm:inline-flex items-center gap-2 px-5 py-2.5 bg-primary-500/92 border border-white/25 rounded-full text-white font-body text-[15px] font-semibold shadow-glass hover:scale-[1.04] hover:shadow-accent hover:bg-primary-500 active:scale-[0.98] transition-all duration-120 ease-out',
         className
       )}
     >
-      <span className="mr-2">{label}</span>
-      <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
-    </button>
+      Start Free Trial
+      <ArrowUpRight className="w-3.5 h-3.5 text-white" />
+    </Link>
   )
 }

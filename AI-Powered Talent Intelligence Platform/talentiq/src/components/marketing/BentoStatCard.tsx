@@ -1,48 +1,34 @@
-"use client"
+'use client'
 
-import * as React from "react"
-import { Play } from "lucide-react"
+import { Play } from 'lucide-react'
+import StatCounter from './StatCounter'
 
-export function BentoStatCard() {
-  const [count, setCount] = React.useState(0)
+interface BentoStatCardProps {
+  stat?: string
+  label: string
+  description: string
+}
+
+export default function BentoStatCard({ stat = '50', label, description }: BentoStatCardProps) {
+  const numericValue = parseInt(stat.replace(/\D/g, ''), 10) || 50
   
-  React.useEffect(() => {
-    // Simple count up animation on mount
-    let start = 0
-    const end = 60
-    const duration = 1200
-    const increment = end / (duration / 16)
-    
-    const timer = setInterval(() => {
-      start += increment
-      if (start >= end) {
-        setCount(end)
-        clearInterval(timer)
-      } else {
-        setCount(Math.floor(start))
-      }
-    }, 16)
-    
-    return () => clearInterval(timer)
-  }, [])
-
   return (
-    <div className="relative flex h-full min-h-[240px] flex-col rounded-[var(--radius-2xl)] border border-neutral-200 bg-neutral-50 p-8 transition-transform hover:-translate-y-1">
-      {/* Play Button */}
-      <button className="absolute right-6 top-6 flex h-12 w-12 items-center justify-center rounded-full bg-primary-500 text-white shadow-md transition-transform hover:scale-105">
-        <Play size={20} fill="currentColor" className="ml-1" />
-      </button>
+    <div className="bg-[#F9FAFB] border border-neutral-200 rounded-[24px] p-8 shadow-sm relative h-full flex flex-col justify-end min-h-[340px]">
+      <div className="absolute top-6 right-6 w-12 h-12 rounded-full bg-[#2563EB] flex items-center justify-center shadow-md">
+        <Play className="w-5 h-5 text-white ml-0.5" />
+      </div>
 
       <div className="mt-auto">
-        <div className="font-display text-[64px] font-[800] leading-none text-neutral-900 tracking-tight">
-          {count}%
+        <div className="text-left">
+          <StatCounter 
+            value={numericValue} 
+            suffix="%" 
+            label={label} 
+            sublabel={description}
+            color="#111827" 
+            align="left"
+          />
         </div>
-        <div className="mt-2 font-body text-[17px] font-medium text-neutral-700">
-          Faster time-to-hire
-        </div>
-        <p className="mt-2 font-body text-[13px] text-neutral-500">
-          Hiring at your fingertips
-        </p>
       </div>
     </div>
   )

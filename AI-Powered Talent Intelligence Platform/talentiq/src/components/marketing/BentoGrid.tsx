@@ -1,26 +1,22 @@
-import * as React from "react"
-import { BentoFeatureCard } from "./BentoFeatureCard"
-import { BentoStatCard } from "./BentoStatCard"
-import { BentoSocialCard } from "./BentoSocialCard"
+import BentoFeatureCard from './BentoFeatureCard'
+import BentoStatCard from './BentoStatCard'
+import BentoSocialCard from './BentoSocialCard'
 
-export function BentoGrid() {
+export default function BentoGrid() {
   return (
-    <section className="w-full bg-[#F9FAFB] pb-[80px]">
-      <div className="mx-auto max-w-[1100px] px-5 md:px-10 lg:px-[80px]">
-        {/* 
-          Grid layout matching spec:
-          Mobile: all three stack vertically full width
-          Tablet: Card A full width / Card B + C in 1fr 1fr grid below
-          Desktop: 1.4fr 1fr 1fr
-        */}
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr]">
-          <div className="md:col-span-2 lg:col-span-1">
+    <section className="bg-[#F9FAFB] pb-20">
+      <div className="max-w-[1100px] mx-auto px-5 md:px-20 lg:px-20">
+        <div className="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr_1fr] gap-4">
+          <div className="lg:col-span-1">
             <BentoFeatureCard />
           </div>
-          <div className="col-span-1">
-            <BentoStatCard />
-          </div>
-          <div className="col-span-1">
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:col-span-2 lg:grid-cols-2 gap-4">
+            <BentoStatCard 
+              stat="50%" 
+              label="Faster time-to-hire" 
+              description="Average across all customers" 
+            />
             <BentoSocialCard />
           </div>
         </div>

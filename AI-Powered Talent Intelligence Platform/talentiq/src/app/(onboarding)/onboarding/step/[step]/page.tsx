@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { MultiSelect } from "@/components/ui/multi-select"
 import { AIProcessingIndicator } from "@/components/ui/ai-processing"
-import { AIScoreDemo } from "@/components/marketing/AIScoreDemo"
+import AIScoreDemo from "@/components/marketing/AIScoreDemo"
 // Note: In a real app we'd conditionally import confetti, or use a reliable lib
 import confetti from "canvas-confetti"
 

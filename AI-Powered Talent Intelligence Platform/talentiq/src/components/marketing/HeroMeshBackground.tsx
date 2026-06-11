@@ -1,32 +1,34 @@
-"use client"
+'use client'
 
-import * as React from "react"
-import { cn } from "@/lib/utils"
+import { useMediaQuery } from '@/hooks/useMediaQuery'
 
-export function HeroMeshBackground({ className }: { className?: string }) {
+export default function HeroMeshBackground() {
+  const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
+
   return (
-    <div className={cn("absolute inset-0 overflow-hidden pointer-events-none z-0", className)}>
-      {/* Layer 1: primary-400 at 15% opacity */}
-      <div 
-        className="absolute inset-0 opacity-[0.15] animate-mesh-float motion-reduce:animate-none"
+    <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+      <div
+        className="absolute inset-0 animate-mesh-float"
         style={{
-          background: "radial-gradient(ellipse 30% 60% at 15% 40%, var(--color-primary-400, #3B82F6), transparent)",
+          animationDelay: '0s',
+          animationPlayState: prefersReducedMotion ? 'paused' : 'running',
+          background: 'radial-gradient(ellipse 30% 60% at 15% 40%, rgba(59, 130, 246, 0.15), transparent)',
         }}
       />
-      {/* Layer 2: accent-500 at 12% opacity */}
-      <div 
-        className="absolute inset-0 opacity-[0.12] animate-mesh-float motion-reduce:animate-none"
+      <div
+        className="absolute inset-0 animate-mesh-float"
         style={{
-          background: "radial-gradient(ellipse 40% 50% at 85% 15%, var(--color-accent-500, #10B981), transparent)",
-          animationDelay: "-6s"
+          animationDelay: '6s',
+          animationPlayState: prefersReducedMotion ? 'paused' : 'running',
+          background: 'radial-gradient(ellipse 40% 50% at 85% 15%, rgba(16, 185, 129, 0.12), transparent)',
         }}
       />
-      {/* Layer 3: primary-300 at 8% opacity */}
-      <div 
-        className="absolute inset-0 opacity-[0.08] animate-mesh-float motion-reduce:animate-none"
+      <div
+        className="absolute inset-0 animate-mesh-float"
         style={{
-          background: "radial-gradient(ellipse 35% 40% at 55% 85%, var(--color-primary-300, #60A5FA), transparent)",
-          animationDelay: "-12s"
+          animationDelay: '12s',
+          animationPlayState: prefersReducedMotion ? 'paused' : 'running',
+          background: 'radial-gradient(ellipse 35% 40% at 55% 85%, rgba(96, 165, 250, 0.08), transparent)',
         }}
       />
     </div>

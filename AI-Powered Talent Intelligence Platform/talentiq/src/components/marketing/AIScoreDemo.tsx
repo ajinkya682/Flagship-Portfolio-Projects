@@ -1,106 +1,83 @@
-"use client"
+'use client'
 
-import * as React from "react"
-import { ThumbsUp, ThumbsDown } from "lucide-react"
-import { ScoreRing } from "@/components/score/ScoreRing"
-import { PillButton } from "@/components/ui/button"
+import { ScoreRing } from '@/components/score/ScoreRing'
+import SubscoreBar from '@/components/score/SubscoreBar'
+import { ScrollEntry } from '@/components/shared/ScrollEntry'
+import { ThumbsUp, ThumbsDown } from 'lucide-react'
 
-function SubscoreBar({ label, percent, delayMs }: { label: string, percent: number, delayMs: number }) {
-  const [width, setWidth] = React.useState(0)
-  
-  React.useEffect(() => {
-    const timer = setTimeout(() => {
-      setWidth(percent)
-    }, delayMs)
-    return () => clearTimeout(timer)
-  }, [percent, delayMs])
-
+export default function AIScoreDemo() {
   return (
-    <div className="mt-3">
-      <div className="flex items-center justify-between font-body text-[12px]">
-        <span className="text-neutral-700">{label}</span>
-        <span className="font-semibold">{percent}%</span>
-      </div>
-      <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-neutral-100">
-        <div 
-          className="h-full bg-accent-500 transition-all duration-800 ease-out"
-          style={{ width: `${width}%` }}
-        />
-      </div>
-    </div>
-  )
-}
-
-export function AIScoreDemo() {
-  return (
-    <div className="w-full max-w-[480px] rounded-xl bg-white p-6 shadow-lg border border-neutral-100 animate-fade-slide-up [animation-delay:200ms] opacity-0">
-      <div className="flex flex-col">
-        {/* Header */}
-        <div className="flex flex-col">
-          <span className="font-body text-[15px] font-semibold text-neutral-900">Alex Chen</span>
-          <span className="font-body text-[13px] text-neutral-500">Senior Software Engineer</span>
+    <ScrollEntry>
+      <div className="bg-white rounded-xl shadow-lg p-6 max-w-[480px] border border-neutral-100 mx-auto lg:mx-0">
+        
+        {/* Header Row */}
+        <div className="flex items-center gap-3 border-b border-neutral-100 pb-4 mb-4">
+          <div className="w-10 h-10 rounded-full bg-neutral-200 flex items-center justify-center font-display font-bold text-neutral-600 text-[16px]">
+            AC
+          </div>
+          <div>
+            <div className="font-semibold text-[15px] text-neutral-900 leading-tight">Alex Chen</div>
+            <div className="text-[13px] text-neutral-500 mt-0.5">Senior Software Engineer</div>
+          </div>
         </div>
 
-        {/* Score Ring & Match Label */}
-        <div className="my-4 flex items-center gap-4">
+        {/* Score Ring */}
+        <div className="flex flex-col items-center my-4">
           <ScoreRing score={91} size="lg" />
-          <div className="flex flex-col justify-center">
-            <span className="font-body text-[13px] font-bold text-accent-700">Strong match for this role</span>
+          <div className="text-[13px] font-semibold text-[#059669] text-center mt-3">
+            Strong match for this role
           </div>
         </div>
 
         {/* Subscores */}
-        <div className="mt-4 flex flex-col">
-          <SubscoreBar label="Skills Match" percent={95} delayMs={500} />
-          <SubscoreBar label="Experience" percent={88} delayMs={700} />
-          <SubscoreBar label="Education" percent={72} delayMs={900} />
-          <SubscoreBar label="Keywords" percent={90} delayMs={1100} />
+        <div className="mt-6 flex flex-col gap-1">
+          <SubscoreBar label="Skills Match" score={95} />
+          <SubscoreBar label="Experience" score={88} />
+          <SubscoreBar label="Education" score={72} />
+          <SubscoreBar label="Keywords" score={90} />
         </div>
 
-        {/* Why this score section */}
-        <div className="mt-6 flex flex-col">
-          <span className="font-body text-[12px] font-semibold uppercase tracking-wider text-neutral-700">Why this score</span>
-          <ul className="mt-3 flex flex-col gap-2">
-            <li className="flex items-start gap-2">
-              <ThumbsUp size={14} className="mt-0.5 shrink-0 text-accent-500" />
-              <span className="font-body text-[12px] text-neutral-700">5+ years React matches senior req.</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <ThumbsUp size={14} className="mt-0.5 shrink-0 text-accent-500" />
-              <span className="font-body text-[12px] text-neutral-700">Open source contributions show initiative</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <ThumbsUp size={14} className="mt-0.5 shrink-0 text-accent-500" />
-              <span className="font-body text-[12px] text-neutral-700">AWS certified relevant to infra work</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <ThumbsDown size={14} className="mt-0.5 shrink-0 text-red-500" />
-              <span className="font-body text-[12px] text-neutral-700">No TypeScript listed explicitly</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <ThumbsDown size={14} className="mt-0.5 shrink-0 text-red-500" />
-              <span className="font-body text-[12px] text-neutral-700">Leadership experience not demonstrated</span>
-            </li>
-          </ul>
-        </div>
-
-        {/* Pills row */}
-        <div className="mt-4 flex flex-col gap-2">
-          <div className="flex flex-wrap gap-2">
-            <PillButton label="React" variant="accent" />
-            <PillButton label="Node.js" variant="accent" />
-            <PillButton label="AWS" variant="accent" />
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <div className="inline-flex items-center h-7 rounded-full bg-amber-100 px-3 font-body text-[12px] font-medium text-amber-700">
-              TypeScript
+        {/* Why this score */}
+        <div className="mt-6 pt-5 border-t border-neutral-100">
+          <h4 className="text-[12px] font-semibold text-neutral-700 uppercase tracking-wide mb-3">Why this score</h4>
+          
+          <div className="flex flex-col gap-2.5">
+            <div className="flex items-start gap-2">
+              <ThumbsUp className="w-3.5 h-3.5 text-[#10B981] mt-0.5 shrink-0" />
+              <span className="text-[12px] text-neutral-700 leading-snug">5+ years React matches senior requirement</span>
             </div>
-            <div className="inline-flex items-center h-7 rounded-full bg-amber-100 px-3 font-body text-[12px] font-medium text-amber-700">
-              Leadership
+            <div className="flex items-start gap-2">
+              <ThumbsUp className="w-3.5 h-3.5 text-[#10B981] mt-0.5 shrink-0" />
+              <span className="text-[12px] text-neutral-700 leading-snug">Open source contributions show initiative</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <ThumbsUp className="w-3.5 h-3.5 text-[#10B981] mt-0.5 shrink-0" />
+              <span className="text-[12px] text-neutral-700 leading-snug">AWS certified relevant to infrastructure work</span>
+            </div>
+            
+            <div className="flex items-start gap-2 mt-1">
+              <ThumbsDown className="w-3.5 h-3.5 text-[#EF4444] mt-0.5 shrink-0" />
+              <span className="text-[12px] text-neutral-700 leading-snug">No TypeScript listed explicitly</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <ThumbsDown className="w-3.5 h-3.5 text-[#EF4444] mt-0.5 shrink-0" />
+              <span className="text-[12px] text-neutral-700 leading-snug">Leadership experience not demonstrated</span>
             </div>
           </div>
         </div>
+
+        {/* Extracted Skills Pills */}
+        <div className="mt-5 pt-4 border-t border-neutral-100">
+          <div className="flex flex-wrap gap-2">
+            <span className="bg-accent-100 text-accent-700 rounded-full px-2.5 py-1 text-[10px] font-medium">React</span>
+            <span className="bg-accent-100 text-accent-700 rounded-full px-2.5 py-1 text-[10px] font-medium">Node.js</span>
+            <span className="bg-accent-100 text-accent-700 rounded-full px-2.5 py-1 text-[10px] font-medium">AWS</span>
+            <span className="bg-amber-100 text-amber-700 rounded-full px-2.5 py-1 text-[10px] font-medium">TypeScript</span>
+            <span className="bg-amber-100 text-amber-700 rounded-full px-2.5 py-1 text-[10px] font-medium">Leadership</span>
+          </div>
+        </div>
+
       </div>
-    </div>
+    </ScrollEntry>
   )
 }

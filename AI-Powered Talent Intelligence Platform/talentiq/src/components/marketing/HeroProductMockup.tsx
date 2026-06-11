@@ -1,39 +1,27 @@
-"use client"
+import Image from 'next/image'
 
-import * as React from "react"
-import { HeroFloatingBadge } from "./HeroFloatingBadge"
-import { cn } from "@/lib/utils"
-
-export function HeroProductMockup({ className }: { className?: string }) {
+export default function HeroProductMockup() {
   return (
-    <div className={cn("relative w-full", className)}>
-      <div className="relative overflow-hidden rounded-[24px] border border-neutral-200 bg-white shadow-2xl transition-transform duration-500 xl:rotate-[1.5deg] lg:rotate-[1.5deg]">
-        {/* Browser Chrome */}
-        <div className="flex h-[36px] items-center gap-2 border-b border-neutral-200 bg-neutral-100 px-4">
-          <div className="flex gap-1.5">
-            <div className="h-3 w-3 rounded-full bg-[#FF5F56]" />
-            <div className="h-3 w-3 rounded-full bg-[#FFBD2E]" />
-            <div className="h-3 w-3 rounded-full bg-[#27C93F]" />
-          </div>
-          <div className="mx-auto h-5 w-64 rounded-md bg-white/60 shadow-sm" />
-        </div>
-        
-        {/* Mockup Image */}
-        <div className="relative aspect-[16/10] w-full bg-neutral-50 flex items-center justify-center border-b border-neutral-100">
-          <img 
-            src="/images/hero-product.png" 
-            alt="TalentIQ Kanban Board Interface" 
-            className="h-full w-full object-cover"
-            onError={(e) => {
-              // Fallback placeholder if image is missing
-              (e.target as HTMLImageElement).src = "https://placehold.co/1200x800/f8fafc/94a3b8?text=Product+Interface+Mockup"
-            }}
-          />
-        </div>
+    <div className="relative rounded-[24px] shadow-2xl border border-neutral-200 overflow-hidden transform md:rotate-[1.5deg] rotate-0 transition-transform duration-300 ease-out bg-white">
+      {/* Browser Chrome */}
+      <div className="h-9 bg-neutral-100 flex items-center px-4 gap-1.5 border-b border-neutral-200">
+        <div className="w-2.5 h-2.5 rounded-full bg-[#EF4444]" />
+        <div className="w-2.5 h-2.5 rounded-full bg-[#F59E0B]" />
+        <div className="w-2.5 h-2.5 rounded-full bg-[#10B981]" />
+        <div className="flex-grow h-5 bg-neutral-200 rounded-full ml-3 opacity-50" />
       </div>
       
-      {/* Floating Badge */}
-      <HeroFloatingBadge />
+      {/* Product Image */}
+      <div className="relative w-full bg-neutral-50" style={{ aspectRatio: '800/600' }}>
+        <Image
+          src="/images/hero-product.png"
+          alt="TalentIQ Kanban Pipeline Dashboard"
+          fill
+          priority
+          className="object-cover"
+          sizes="(max-width: 768px) 100vw, 50vw"
+        />
+      </div>
     </div>
   )
 }
