@@ -1,6 +1,8 @@
 'use client'
 
+import { useRef } from 'react'
 import { useCountUp } from '@/hooks/useCountUp'
+import { useIntersectionObserver } from '@/hooks/useIntersectionObserver'
 import { cn } from '@/lib/utils'
 
 interface StatCounterProps {
@@ -22,11 +24,13 @@ export default function StatCounter({
   color = '#2563EB',
   align = 'center',
 }: StatCounterProps) {
-  const { count, ref } = useCountUp(value, 1200, 0)
+  const ref = useRef<HTMLDivElement>(null)
+  const { isIntersecting } = useIntersectionObserver(ref, { triggerOnce: true })
+  const count = useCountUp(value, 1200, isIntersecting)
 
   return (
     <div 
-      ref={ref as React.RefObject<HTMLDivElement>} 
+      ref={ref} 
       className={cn("flex flex-col", align === 'center' ? 'text-center' : 'text-left')}
     >
       <div 

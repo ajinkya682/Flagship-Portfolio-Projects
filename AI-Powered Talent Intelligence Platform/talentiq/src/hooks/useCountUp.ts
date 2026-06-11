@@ -1,34 +1,38 @@
-"use client"
+import { useState, useEffect } from 'react'
+import { useMediaQuery } from './useMediaQuery'
 
-import * as React from "react"
-import { useIntersectionObserver } from "./useIntersectionObserver"
+export function useCountUp(target: number, duration: number = 1200, start: boolean = true) {
+  const [count, setCount] = useState(0)
+  const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
 
-export function useCountUp(
-  end: number,
-  durationMs: number = 1200,
-  start: number = 0
-) {
-  const [count, setCount] = React.useState(start)
-  const { ref, isIntersecting } = useIntersectionObserver({ triggerOnce: true })
-  
-  React.useEffect(() => {
-    if (!isIntersecting) return
+  useEffect(() => {
+    if (!start) return
     
-    let current = start
-    const increment = (end - start) / (durationMs / 16)
-    
-    const timer = setInterval(() => {
-      current += increment
-      if (current >= end) {
-        setCount(end)
-        clearInterval(timer)
+    if (prefersReducedMotion) {
+      setCount(target)
+      return
+    }
+
+    let startTime: number
+    let animationFrameId: number
+
+    const step = (timestamp: number) => {
+      if (!startTime) startTime = timestamp
+      const progress = timestamp - startTime
+
+      if (progress < duration) {
+        const nextValue = Math.min(Math.floor((progress / duration) * target), target)
+        setCount(nextValue)
+        animationFrameId = requestAnimationFrame(step)
       } else {
-        setCount(Math.floor(current))
+        setCount(target)
       }
-    }, 16)
-    
-    return () => clearInterval(timer)
-  }, [end, durationMs, start, isIntersecting])
+    }
 
-  return { count, ref }
+    animationFrameId = requestAnimationFrame(step)
+
+    return () => cancelAnimationFrame(animationFrameId)
+  }, [target, duration, start, prefersReducedMotion])
+
+  return count
 }

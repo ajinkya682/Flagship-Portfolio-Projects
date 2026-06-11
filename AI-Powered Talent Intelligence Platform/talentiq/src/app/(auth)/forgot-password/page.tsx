@@ -1,84 +1,93 @@
-"use client"
+'use client'
 
-import * as React from "react"
-import Link from "next/link"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Button } from "@/components/ui/button"
+import { useState } from 'react'
+import Link from 'next/link'
+import { CheckCircle, Hexagon } from 'lucide-react'
 
 export default function ForgotPasswordPage() {
-  const [isLoading, setIsLoading] = React.useState(false)
-  const [isSuccess, setIsSuccess] = React.useState(false)
+  const [success, setSuccess] = useState(false)
+  const [email, setEmail] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
+    setIsSubmitting(true)
+    // Simulate API call
     setTimeout(() => {
-      setIsLoading(false)
-      setIsSuccess(true)
-    }, 600)
-  }
-
-  if (isSuccess) {
-    return (
-      <div className="flex w-full flex-col text-center items-center">
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-accent-50 text-accent-500 mb-4">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-            <polyline points="22 4 12 14.01 9 11.01"></polyline>
-          </svg>
-        </div>
-        <h3 className="font-display text-[22px] font-semibold text-neutral-900">
-          Check your email
-        </h3>
-        <p className="mt-2 font-body text-[14px] text-neutral-500 leading-relaxed">
-          We've sent a password reset link to your email address. Please click the link to reset your password.
-        </p>
-        <div className="mt-8 flex flex-col gap-3 w-full">
-          <Button 
-            variant="ghost" 
-            className="w-full"
-            onClick={() => setIsSuccess(false)}
-          >
-            Resend email
-          </Button>
-          <Link href="/login" className="font-body text-[14px] font-medium text-primary-500 hover:underline">
-            Back to login
-          </Link>
-        </div>
-      </div>
-    )
+      setSuccess(true)
+      setIsSubmitting(false)
+    }, 800)
   }
 
   return (
-    <div className="flex w-full flex-col">
-      <h3 className="font-display text-[22px] font-semibold text-neutral-900">
-        Reset password
-      </h3>
-      <p className="mt-1.5 font-body text-[13px] text-neutral-500">
-        Enter your email address and we'll send you a link to reset your password.
-      </p>
+    <div className="min-h-screen bg-neutral-50 flex flex-col items-center justify-center p-[24px]">
+      
+      <Link href="/" className="flex items-center gap-2 mb-[32px]">
+        <Hexagon className="w-8 h-8 text-primary-600 fill-primary-600" />
+        <span className="font-display text-[22px] font-bold text-neutral-900 tracking-tight">TalentIQ</span>
+      </Link>
 
-      <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-4">
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="email">Email address</Label>
-          <Input id="email" type="email" placeholder="name@company.com" required />
-        </div>
+      <div className="w-full max-w-[440px] bg-white p-[32px] md:p-[48px] rounded-[16px] md:rounded-[24px] shadow-sm md:shadow-lg border border-neutral-100/50 text-center">
+        {!success ? (
+          <>
+            <h1 className="font-display text-[28px] font-bold text-neutral-900 leading-tight">
+              Reset your password
+            </h1>
+            <p className="font-body text-[15px] text-neutral-500 mt-[8px]">
+              Enter the email address associated with your account and we&apos;ll send you a link to reset your password.
+            </p>
 
-        <Button 
-          type="submit" 
-          variant="primary" 
-          className="mt-2 h-[44px] w-full"
-          disabled={isLoading}
-        >
-          {isLoading ? "Sending..." : "Send reset link"}
-        </Button>
-      </form>
+            <form onSubmit={handleSubmit} className="mt-[32px] flex flex-col gap-[16px] text-left">
+              <div className="flex flex-col gap-[6px]">
+                <label className="font-body text-[13px] font-semibold text-neutral-700">Email address</label>
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder="name@company.com"
+                  className="h-[44px] px-[12px] bg-white border border-neutral-200 rounded-lg text-[15px] focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
+                />
+              </div>
 
-      <div className="mt-6 text-center">
-        <Link href="/login" className="font-body text-[14px] font-medium text-neutral-500 hover:text-neutral-900">
-          Back to login
-        </Link>
+              <button
+                type="submit"
+                disabled={isSubmitting || !email}
+                className="mt-[8px] w-full h-[44px] bg-primary-500 hover:bg-primary-600 text-white font-body text-[15px] font-semibold rounded-lg shadow-sm transition-colors disabled:opacity-70"
+              >
+                {isSubmitting ? 'Sending...' : 'Send reset link'}
+              </button>
+            </form>
+
+            <div className="mt-[32px]">
+              <Link href="/login" className="font-body text-[14px] font-medium text-neutral-500 hover:text-neutral-900 transition-colors">
+                Back to login
+              </Link>
+            </div>
+          </>
+        ) : (
+          <div className="flex flex-col items-center">
+            <CheckCircle className="w-[48px] h-[48px] text-accent-500 mb-[24px]" />
+            <h1 className="font-display text-[28px] font-bold text-neutral-900 leading-tight">
+              Check your email
+            </h1>
+            <p className="font-body text-[15px] text-neutral-500 mt-[16px] leading-relaxed">
+              We&apos;ve sent a password reset link to <strong>{email}</strong>. Please check your inbox.
+            </p>
+            <p className="font-body text-[13px] text-neutral-400 mt-[32px]">
+              Didn&apos;t receive it?{' '}
+              <button className="font-medium text-primary-500 hover:text-primary-600 underline">
+                Resend link
+              </button>
+            </p>
+            <Link
+              href="/login"
+              className="mt-[40px] w-full h-[44px] flex items-center justify-center border border-neutral-200 hover:bg-neutral-50 text-neutral-700 font-body text-[15px] font-semibold rounded-lg transition-colors"
+            >
+              Back to login
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   )

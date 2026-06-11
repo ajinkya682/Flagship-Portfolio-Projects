@@ -1,199 +1,210 @@
-"use client"
+'use client'
 
-import * as React from "react"
-import Link from "next/link"
-import { Eye, EyeOff } from "lucide-react"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Button } from "@/components/ui/button"
-import { PasswordStrengthMeter } from "@/components/ui/password-strength"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useState } from 'react'
+import Link from 'next/link'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as z from 'zod'
+import { Eye, EyeOff, CheckCircle } from 'lucide-react'
+import { useAuth } from '@/hooks/useAuth'
+import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
+import { useRouter } from 'next/navigation'
+
+const step1Schema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters'),
+  companyName: z.string().min(2, 'Company name is required'),
+  email: z.string().email('Please enter a valid work email'),
+  password: z.string().min(8, 'Password must be at least 8 characters').regex(/[0-9]/, 'Password must contain at least one number'),
+})
+
+const step2Schema = z.object({
+  companySize: z.string().min(1, 'Please select your company size'),
+  hearAbout: z.string().min(1, 'Please select an option'),
+})
 
 export default function RegisterPage() {
-  const [step, setStep] = React.useState(1)
-  const [showPassword, setShowPassword] = React.useState(false)
-  const [password, setPassword] = React.useState("")
-  const [isLoading, setIsLoading] = React.useState(false)
+  const { register: registerUser } = useAuth()
+  const router = useRouter()
+  const [step, setStep] = useState<1 | 2>(1)
+  const [showPassword, setShowPassword] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  
+  // Step 1 Form
+  const form1 = useForm<z.infer<typeof step1Schema>>({
+    resolver: zodResolver(step1Schema),
+  })
+  
+  // Step 2 Form
+  const form2 = useForm<z.infer<typeof step2Schema>>({
+    resolver: zodResolver(step2Schema),
+  })
 
-  const handleNextStep = (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setTimeout(() => {
-      setIsLoading(false)
-      setStep(2)
-    }, 600)
+  // Watch password for strength meter
+  const passwordValue = form1.watch('password', '')
+  const hasMinLength = passwordValue.length >= 8
+  const hasNumber = /[0-9]/.test(passwordValue)
+
+  const onStep1Submit = () => {
+    setStep(2)
   }
 
-  const handleComplete = (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setTimeout(() => {
-      setIsLoading(false)
-      window.location.href = "/" // Mock redirect to dashboard
-    }, 600)
+  const onStep2Submit = async (data: z.infer<typeof step2Schema>) => {
+    setIsSubmitting(true)
+    try {
+      const step1Data = form1.getValues()
+      await registerUser({
+        name: step1Data.name,
+        companyName: step1Data.companyName,
+        email: step1Data.email,
+        password: step1Data.password,
+      })
+      router.push('/onboarding/step/1')
+    } catch (error) {
+      console.error(error)
+      setIsSubmitting(false)
+    }
   }
 
   return (
-    <div className="flex w-full flex-col relative">
-      <span className="absolute -top-6 left-0 font-body text-[12px] font-medium text-neutral-500">
-        Step {step} of 2
-      </span>
+    <div className="flex flex-col w-full">
+      <div className="text-center mb-[32px]">
+        <h1 className="font-display text-[28px] font-bold text-neutral-900 leading-tight">
+          {step === 1 ? 'Create your account' : 'Just a few more details'}
+        </h1>
+        <p className="font-body text-[15px] text-neutral-500 mt-[8px]">
+          {step === 1 ? 'Start your 14-day free trial. No credit card required.' : 'Help us customize your experience.'}
+        </p>
+      </div>
 
-      {step === 1 ? (
-        <>
-          <h3 className="font-display text-[22px] font-semibold text-neutral-900">
-            Create your account
-          </h3>
+      {step === 1 && (
+        <form onSubmit={form1.handleSubmit(onStep1Submit)} className="flex flex-col gap-[16px]">
+          <div className="flex flex-col gap-[6px]">
+            <label className="font-body text-[13px] font-semibold text-neutral-700">Full Name</label>
+            <input
+              {...form1.register('name')}
+              type="text"
+              placeholder="Jane Doe"
+              className="h-[44px] px-[12px] bg-white border border-neutral-200 rounded-lg text-[15px] focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
+            />
+            {form1.formState.errors.name && <p className="text-[12px] text-red-500 mt-1">{form1.formState.errors.name.message}</p>}
+          </div>
 
-          <button 
-            type="button"
-            className="mt-6 flex h-[44px] w-full items-center justify-center gap-[12px] rounded-sm border border-neutral-200 bg-white hover:bg-neutral-50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500"
+          <div className="flex flex-col gap-[6px]">
+            <label className="font-body text-[13px] font-semibold text-neutral-700">Company Name</label>
+            <input
+              {...form1.register('companyName')}
+              type="text"
+              placeholder="Acme Corp"
+              className="h-[44px] px-[12px] bg-white border border-neutral-200 rounded-lg text-[15px] focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
+            />
+            {form1.formState.errors.companyName && <p className="text-[12px] text-red-500 mt-1">{form1.formState.errors.companyName.message}</p>}
+          </div>
+
+          <div className="flex flex-col gap-[6px]">
+            <label className="font-body text-[13px] font-semibold text-neutral-700">Work Email</label>
+            <input
+              {...form1.register('email')}
+              type="email"
+              placeholder="jane@acme.com"
+              className="h-[44px] px-[12px] bg-white border border-neutral-200 rounded-lg text-[15px] focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
+            />
+            {form1.formState.errors.email && <p className="text-[12px] text-red-500 mt-1">{form1.formState.errors.email.message}</p>}
+          </div>
+
+          <div className="flex flex-col gap-[6px]">
+            <label className="font-body text-[13px] font-semibold text-neutral-700">Password</label>
+            <div className="relative">
+              <input
+                {...form1.register('password')}
+                type={showPassword ? 'text' : 'password'}
+                placeholder="••••••••"
+                className="w-full h-[44px] pl-[12px] pr-[40px] bg-white border border-neutral-200 rounded-lg text-[15px] focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-[12px] top-[12px] text-neutral-400 hover:text-neutral-600"
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
+            {/* Password Strength */}
+            <div className="flex flex-col gap-1 mt-2">
+              <div className="flex items-center gap-2">
+                <CheckCircle size={12} className={hasMinLength ? "text-accent-500" : "text-neutral-300"} />
+                <span className={`text-[12px] ${hasMinLength ? "text-neutral-700" : "text-neutral-500"}`}>8+ characters</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle size={12} className={hasNumber ? "text-accent-500" : "text-neutral-300"} />
+                <span className={`text-[12px] ${hasNumber ? "text-neutral-700" : "text-neutral-500"}`}>At least 1 number</span>
+              </div>
+            </div>
+            {form1.formState.errors.password && <p className="text-[12px] text-red-500 mt-1">{form1.formState.errors.password.message}</p>}
+          </div>
+
+          <button
+            type="submit"
+            className="mt-[16px] w-full h-[44px] bg-primary-500 hover:bg-primary-600 text-white font-body text-[15px] font-semibold rounded-lg shadow-sm transition-colors"
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.16v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.16C1.43 8.55 1 10.22 1 12s.43 3.45 1.16 4.93l3.68-2.84z" fill="#FBBC05"/>
-              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.16 7.07l3.68 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-            </svg>
-            <span className="font-body text-[14px] font-semibold text-neutral-900">
-              Continue with Google
-            </span>
+            Continue
           </button>
 
-          <div className="my-5 flex items-center justify-center">
-            <div className="h-px flex-1 bg-neutral-200" />
-            <span className="px-3 font-body text-[12px] text-neutral-400">
-              or continue with email
-            </span>
-            <div className="h-px flex-1 bg-neutral-200" />
-          </div>
+          <p className="font-body text-[12px] text-neutral-500 text-center mt-[8px]">
+            By continuing, you agree to our{' '}
+            <a href="#" className="underline">Terms of Service</a> and{' '}
+            <a href="#" className="underline">Privacy Policy</a>.
+          </p>
 
-          <form onSubmit={handleNextStep} className="flex flex-col gap-4">
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="fullName">Full name</Label>
-              <Input id="fullName" placeholder="Jane Doe" required />
-            </div>
-            
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="companyName">Company name</Label>
-              <Input id="companyName" placeholder="Acme Corp" required />
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="email">Work email</Label>
-              <Input id="email" type="email" placeholder="jane@company.com" required />
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="password">Password</Label>
-              <div className="relative">
-                <Input 
-                  id="password" 
-                  type={showPassword ? "text" : "password"} 
-                  placeholder="••••••••" 
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-                <button 
-                  type="button"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 focus:outline-none"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
-              </div>
-              <div className="mt-1">
-                <PasswordStrengthMeter password={password} />
-              </div>
-            </div>
-
-            <Button 
-              type="submit" 
-              variant="primary" 
-              className="mt-2 h-[44px] w-full"
-              disabled={isLoading}
-            >
-              {isLoading ? "Creating..." : "Create Account"}
-            </Button>
-          </form>
-
-          <div className="mt-6 text-center">
-            <p className="font-body text-[12px] text-neutral-500 leading-relaxed">
-              By signing up you agree to our{" "}
-              <Link href="/terms" className="text-primary-500 hover:underline">Terms of Service</Link>
-              {" "}and{" "}
-              <Link href="/privacy" className="text-primary-500 hover:underline">Privacy Policy</Link>.
-            </p>
-          </div>
-          
-          <div className="mt-4 text-center">
-            <span className="font-body text-[14px] text-neutral-600">
-              Already have an account?{" "}
-            </span>
-            <Link href="/login" className="font-body text-[14px] font-medium text-primary-500 hover:underline">
+          <p className="font-body text-[14px] text-neutral-500 text-center mt-[24px]">
+            Already have an account?{' '}
+            <Link href="/login" className="font-medium text-primary-500 hover:text-primary-600">
               Sign in
             </Link>
-          </div>
-        </>
-      ) : (
-        <>
-          <h3 className="font-display text-[22px] font-semibold text-neutral-900">
-            Tell us about your team
-          </h3>
-
-          <form onSubmit={handleComplete} className="mt-6 flex flex-col gap-5">
-            <div className="flex flex-col gap-1.5">
-              <Label>Company size</Label>
-              <Select required>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select company size" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1-10">1-10 employees</SelectItem>
-                  <SelectItem value="11-50">11-50 employees</SelectItem>
-                  <SelectItem value="51-200">51-200 employees</SelectItem>
-                  <SelectItem value="201-500">201-500 employees</SelectItem>
-                  <SelectItem value="500+">500+ employees</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <Label>How did you hear about us?</Label>
-              <Select required>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select an option" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="google">Google Search</SelectItem>
-                  <SelectItem value="linkedin">LinkedIn</SelectItem>
-                  <SelectItem value="twitter">Twitter / X</SelectItem>
-                  <SelectItem value="referral">Friend / Colleague</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <Button 
-              type="submit" 
-              variant="primary" 
-              className="mt-4 h-[44px] w-full"
-              disabled={isLoading}
-            >
-              {isLoading ? "Setting up..." : "Go to Dashboard"}
-            </Button>
-            
-            <button
-              type="button"
-              onClick={() => window.location.href = "/"}
-              className="mt-1 text-center font-body text-[14px] font-medium text-neutral-500 hover:text-neutral-700"
-            >
-              Skip for now
-            </button>
-          </form>
-        </>
+          </p>
+        </form>
       )}
+
+      {step === 2 && (
+        <form onSubmit={form2.handleSubmit(onStep2Submit)} className="flex flex-col gap-[20px]">
+          <div className="flex flex-col gap-[8px]">
+            <label className="font-body text-[13px] font-semibold text-neutral-700">Company Size</label>
+            <div className="grid grid-cols-2 gap-[12px]">
+              {['1-10', '11-50', '51-200', '201-500', '501-1000', '1000+'].map(size => (
+                <label key={size} className={`flex items-center justify-center h-[44px] border rounded-lg cursor-pointer transition-colors ${form2.watch('companySize') === size ? 'bg-primary-50 border-primary-500 text-primary-700 font-semibold' : 'bg-white border-neutral-200 text-neutral-700 hover:bg-neutral-50'}`}>
+                  <input type="radio" value={size} {...form2.register('companySize')} className="hidden" />
+                  <span className="text-[14px]">{size}</span>
+                </label>
+              ))}
+            </div>
+            {form2.formState.errors.companySize && <p className="text-[12px] text-red-500 mt-1">{form2.formState.errors.companySize.message}</p>}
+          </div>
+
+          <div className="flex flex-col gap-[6px] mt-4">
+            <label className="font-body text-[13px] font-semibold text-neutral-700">How did you hear about us?</label>
+            <select
+              {...form2.register('hearAbout')}
+              className="h-[44px] px-[12px] bg-white border border-neutral-200 rounded-lg text-[15px] focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
+            >
+              <option value="">Select an option</option>
+              <option value="search">Search Engine (Google)</option>
+              <option value="social">Social Media (LinkedIn, Twitter)</option>
+              <option value="friend">Friend or Colleague</option>
+              <option value="blog">Blog or Article</option>
+              <option value="other">Other</option>
+            </select>
+            {form2.formState.errors.hearAbout && <p className="text-[12px] text-red-500 mt-1">{form2.formState.errors.hearAbout.message}</p>}
+          </div>
+
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="mt-[16px] w-full h-[44px] bg-primary-500 hover:bg-primary-600 text-white font-body text-[15px] font-semibold rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+          >
+            {isSubmitting ? <LoadingSpinner size="sm" className="text-white" /> : 'Complete Registration'}
+          </button>
+        </form>
+      )}
+
     </div>
   )
 }

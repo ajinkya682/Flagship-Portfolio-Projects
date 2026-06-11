@@ -1,13 +1,13 @@
-import * as React from "react"
-import { PortalHeader } from "@/components/portal/PortalHeader"
+import { ReactNode } from 'react'
+import PortalHeader from '@/components/portal/PortalHeader'
 
-export default function PortalLayout({ children }: { children: React.ReactNode }) {
+export default function PortalLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-screen w-full flex-col bg-white">
+    <div className="min-h-screen bg-white flex flex-col font-body">
       <PortalHeader />
-      <div id="main-content" className="flex-1 w-full bg-white">
+      <main id="main" className="flex-grow pt-[60px]">
         {children}
-      </div>
+      </main>
     </div>
   )
 }

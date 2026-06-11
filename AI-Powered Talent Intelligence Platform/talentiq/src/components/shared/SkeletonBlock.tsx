@@ -1,12 +1,26 @@
-import * as React from "react"
-import { Skeleton } from "@/components/ui/skeleton"
+import { cn } from '@/lib/utils'
 
-export function SkeletonBlock({ count = 1, className, gap = 2 }: { count?: number, className?: string, gap?: number }) {
+interface SkeletonBlockProps {
+  width?: string | number
+  height?: string | number
+  borderRadius?: string
+  className?: string
+}
+
+export function SkeletonBlock({
+  width = '100%',
+  height = '100%',
+  borderRadius = '6px',
+  className,
+}: SkeletonBlockProps) {
   return (
-    <div className={`flex flex-col gap-${gap} ${className || ''}`}>
-      {[...Array(count)].map((_, i) => (
-        <Skeleton key={i} variant="text" />
-      ))}
-    </div>
+    <div
+      className={cn('skeleton', className)}
+      style={{
+        width,
+        height,
+        borderRadius,
+      }}
+    />
   )
 }

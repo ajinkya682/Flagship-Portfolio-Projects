@@ -31,7 +31,7 @@ export function StatCard({
   subText
 }: StatCardProps) {
   // Use the useCountUp hook for animated numbers
-  const { count: animatedValue, ref } = useCountUp(value, 1200)
+  const animatedValue = useCountUp(value, 1200)
 
   const isPositive = delta >= 0
 
@@ -106,7 +106,7 @@ export function StatCard({
   }
 
   return (
-    <div ref={ref as any} className="relative flex h-full flex-col justify-between overflow-hidden rounded-[var(--radius-xl)] border border-neutral-200 bg-white p-[24px] shadow-sm transition-all duration-150 ease-out hover:-translate-y-[2px] hover:shadow-md cursor-pointer group">
+    <div className="relative flex h-full flex-col justify-between overflow-hidden rounded-[var(--radius-xl)] border border-neutral-200 bg-white p-[24px] shadow-sm transition-all duration-150 ease-out hover:-translate-y-[2px] hover:shadow-md cursor-pointer group">
       
       {/* Row 1 */}
       <div className="flex items-start justify-between z-10">

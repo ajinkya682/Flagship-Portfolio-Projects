@@ -1,29 +1,43 @@
-import * as React from "react"
-import { cn } from "@/lib/utils"
+import { ReactNode } from 'react'
+import Link from 'next/link'
+import { ArrowLeft } from 'lucide-react'
 
-export interface PageHeaderProps {
+interface PageHeaderProps {
   title: string
-  description?: string
-  actions?: React.ReactNode
-  className?: string
+  subtitle?: string
+  backHref?: string
+  backLabel?: string
+  children?: ReactNode
 }
 
-export function PageHeader({ title, description, actions, className }: PageHeaderProps) {
+export function PageHeader({ title, subtitle, backHref, backLabel, children }: PageHeaderProps) {
   return (
-    <div className={cn("mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center", className)}>
+    <div className="flex justify-between items-center pb-[24px] border-b border-[#E5E7EB] mb-[32px]">
       <div>
-        <h1 className="font-display text-[28px] font-bold tracking-tight text-neutral-900">
+        {backHref && (
+          <Link 
+            href={backHref}
+            className="flex items-center gap-[6px] mb-[8px] text-neutral-500 hover:text-neutral-700 transition-colors"
+          >
+            <ArrowLeft size={16} />
+            <span className="font-body text-[13px] font-medium">{backLabel || 'Back'}</span>
+          </Link>
+        )}
+        
+        <h1 className="font-display text-[36px] font-bold text-neutral-900 leading-tight">
           {title}
         </h1>
-        {description && (
-          <p className="mt-1 font-body text-[15px] text-neutral-500">
-            {description}
+        
+        {subtitle && (
+          <p className="font-body text-[15px] text-neutral-600 mt-[4px]">
+            {subtitle}
           </p>
         )}
       </div>
-      {actions && (
-        <div className="flex w-full shrink-0 items-center gap-3 sm:w-auto">
-          {actions}
+
+      {children && (
+        <div className="flex gap-[8px] items-center">
+          {children}
         </div>
       )}
     </div>

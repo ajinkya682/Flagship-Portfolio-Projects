@@ -1,35 +1,32 @@
-import * as React from "react"
-import { Sparkles, ArrowRight } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import Link from 'next/link'
+import { Lock } from 'lucide-react'
 
-export function UpgradePrompt({ 
-  title = "Unlock AI Insights", 
-  description = "Upgrade to Pro to unlock advanced AI scoring, automated interview generation, and predictive pipeline analytics.",
-  onUpgrade 
-}: { 
-  title?: string, 
-  description?: string, 
-  onUpgrade?: () => void 
-}) {
+interface UpgradePromptProps {
+  featureName: string
+  requiredPlan: string
+  description: string
+}
+
+export function UpgradePrompt({ featureName, requiredPlan, description }: UpgradePromptProps) {
   return (
-    <div className="flex flex-col items-start justify-between gap-6 rounded-xl bg-gradient-to-r from-primary-900 to-primary-800 p-6 sm:flex-row sm:items-center">
-      <div className="flex flex-col">
-        <div className="flex items-center gap-2">
-          <Sparkles size={16} className="text-accent-400" />
-          <h3 className="font-display text-[16px] font-bold text-white">{title}</h3>
-        </div>
-        <p className="mt-2 max-w-xl font-body text-[14px] text-primary-200 leading-relaxed">
+    <div className="bg-primary-50 border border-primary-200 rounded-lg py-[16px] px-[20px] flex items-center gap-[16px]">
+      <Lock size={20} className="text-primary-500 shrink-0" />
+      
+      <div className="flex-grow">
+        <h4 className="font-body text-[14px] font-semibold text-primary-900">
+          {featureName}
+        </h4>
+        <p className="font-body text-[13px] text-primary-700 mt-[4px]">
           {description}
         </p>
       </div>
-      <Button 
-        variant="primary" 
-        className="shrink-0 bg-white text-primary-900 hover:bg-neutral-100"
-        iconRight={<ArrowRight size={16} />}
-        onClick={onUpgrade}
+      
+      <Link
+        href="/settings/billing"
+        className="shrink-0 h-[32px] px-[12px] bg-primary-500 hover:bg-primary-600 text-white font-body text-[13px] font-semibold rounded-md shadow-sm transition-colors flex items-center justify-center"
       >
-        Upgrade Now
-      </Button>
+        Upgrade to {requiredPlan}
+      </Link>
     </div>
   )
 }

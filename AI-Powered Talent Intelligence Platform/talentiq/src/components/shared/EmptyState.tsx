@@ -1,34 +1,53 @@
-import * as React from "react"
-import { LucideIcon } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { ReactNode, ElementType } from 'react'
 
-export interface EmptyStateProps {
-  icon: LucideIcon
+interface EmptyStateProps {
+  icon: ElementType
   title: string
   description: string
-  action?: React.ReactNode
-  className?: string
+  ctaLabel?: string
+  ctaAction?: () => void
+  secondaryCtaLabel?: string
+  secondaryCtaAction?: () => void
 }
 
 export function EmptyState({
   icon: Icon,
   title,
   description,
-  action,
-  className,
+  ctaLabel,
+  ctaAction,
+  secondaryCtaLabel,
+  secondaryCtaAction,
 }: EmptyStateProps) {
   return (
-    <div className={cn("flex flex-col items-center justify-center p-8 text-center", className)}>
-      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-neutral-100">
-        <Icon size={24} className="text-neutral-400" />
-      </div>
-      <h3 className="font-display text-[16px] font-semibold text-neutral-900">
+    <div className="flex flex-col items-center justify-center py-[64px] px-[24px] text-center w-full">
+      <Icon size={40} color="#D1D5DB" className="text-neutral-300" />
+      
+      <h3 className="font-body text-[15px] font-semibold text-neutral-700 mt-[16px]">
         {title}
       </h3>
-      <p className="mt-1 max-w-sm font-body text-[14px] text-neutral-500 leading-relaxed">
+      
+      <p className="font-body text-[13px] text-neutral-500 mt-[8px] max-w-[320px]">
         {description}
       </p>
-      {action && <div className="mt-6">{action}</div>}
+      
+      {ctaLabel && ctaAction && (
+        <button
+          onClick={ctaAction}
+          className="mt-[20px] h-[36px] px-[16px] bg-primary-500 hover:bg-primary-600 text-white font-body text-[14px] font-medium rounded-md shadow-sm transition-colors"
+        >
+          {ctaLabel}
+        </button>
+      )}
+
+      {secondaryCtaLabel && secondaryCtaAction && (
+        <button
+          onClick={secondaryCtaAction}
+          className="mt-[8px] h-[36px] px-[16px] bg-white hover:bg-neutral-50 border border-neutral-200 text-neutral-700 font-body text-[14px] font-medium rounded-md transition-colors"
+        >
+          {secondaryCtaLabel}
+        </button>
+      )}
     </div>
   )
 }

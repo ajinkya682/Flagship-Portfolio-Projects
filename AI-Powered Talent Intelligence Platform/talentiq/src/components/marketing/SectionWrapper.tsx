@@ -1,6 +1,6 @@
 'use client'
 
-import { ReactNode } from 'react'
+import { ReactNode, useRef } from 'react'
 import { useIntersectionObserver } from '@/hooks/useIntersectionObserver'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { cn } from '@/lib/utils'
@@ -12,7 +12,8 @@ interface SectionWrapperProps {
 }
 
 export default function SectionWrapper({ children, delay = 0, className }: SectionWrapperProps) {
-  const { ref, isIntersecting } = useIntersectionObserver({ threshold: 0.15, triggerOnce: true })
+  const ref = useRef<HTMLDivElement>(null)
+  const { isIntersecting } = useIntersectionObserver(ref, { threshold: 0.15, triggerOnce: true })
   const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
 
   if (prefersReducedMotion) {
@@ -21,7 +22,7 @@ export default function SectionWrapper({ children, delay = 0, className }: Secti
 
   return (
     <div
-      ref={ref as React.RefObject<HTMLDivElement>}
+      ref={ref}
       className={cn(
         'transition-all duration-400 ease-out',
         isIntersecting ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5',
