@@ -1,41 +1,50 @@
-"use client"
+'use client'
 
-import * as React from "react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { Home, Briefcase, Users, Calendar, Menu } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { usePathname } from 'next/navigation'
+import Link from 'next/link'
+import { LayoutDashboard, Briefcase, GitMerge, Calendar, Menu } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
-export function MobileBottomNav() {
+export default function MobileBottomNav() {
   const pathname = usePathname()
 
-  const navItems = [
-    { name: "Home", href: "/dashboard", icon: Home },
-    { name: "Jobs", href: "/jobs/123/pipeline", icon: Briefcase },
-    { name: "Apps", href: "/applications/123", icon: Users },
-    { name: "Interviews", href: "/interviews", icon: Calendar },
-    { name: "More", href: "/settings", icon: Menu },
+  const tabs = [
+    { name: 'Home', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Jobs', href: '/jobs', icon: Briefcase },
+    { name: 'Pipeline', href: '/pipeline', icon: GitMerge },
+    { name: 'Interviews', href: '/interviews', icon: Calendar },
   ]
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 h-[64px] bg-white border-t border-neutral-200 flex items-center justify-around px-[8px] z-50 safe-area-bottom">
-      {navItems.map((item) => {
-        const isActive = pathname?.startsWith(item.href) || (item.name === "Home" && pathname === "/dashboard")
+    <div className="fixed bottom-0 left-0 right-0 z-[100] h-[64px] bg-white border-t border-[#E5E7EB] shadow-[0_-4px_12px_rgba(0,0,0,0.06)] md:hidden flex justify-between px-[8px]">
+      {tabs.map((tab) => {
+        const isActive = pathname.startsWith(tab.href)
+        const Icon = tab.icon
         
         return (
           <Link
-            key={item.name}
-            href={item.href}
-            className={cn(
-              "flex flex-col items-center justify-center w-[64px] h-full gap-[4px] transition-colors",
-              isActive ? "text-primary-600" : "text-neutral-500 hover:text-neutral-900"
-            )}
+            key={tab.name}
+            href={tab.href}
+            className="flex-1 flex flex-col items-center justify-center gap-[2px] p-[10px]"
           >
-            <item.icon size={20} className={isActive ? "fill-primary-50 stroke-primary-600" : ""} />
-            <span className="font-body text-[10px] font-medium">{item.name}</span>
+            <Icon 
+              size={20} 
+              className={cn(isActive ? "text-primary-500" : "text-neutral-400")} 
+            />
+            <span className={cn(
+              "text-[10px] font-semibold",
+              isActive ? "text-primary-600" : "text-neutral-500"
+            )}>
+              {tab.name}
+            </span>
           </Link>
         )
       })}
+      
+      <button className="flex-1 flex flex-col items-center justify-center gap-[2px] p-[10px] text-neutral-400">
+        <Menu size={20} />
+        <span className="text-[10px] font-semibold text-neutral-500">More</span>
+      </button>
     </div>
   )
 }

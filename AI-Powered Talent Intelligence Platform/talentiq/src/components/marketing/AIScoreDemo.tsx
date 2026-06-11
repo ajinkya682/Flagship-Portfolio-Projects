@@ -31,10 +31,10 @@ export default function AIScoreDemo() {
 
         {/* Subscores */}
         <div className="mt-6 flex flex-col gap-1">
-          <SubscoreBar label="Skills Match" score={95} />
-          <SubscoreBar label="Experience" score={88} />
-          <SubscoreBar label="Education" score={72} />
-          <SubscoreBar label="Keywords" score={90} />
+          <SubscoreBar label="Skills Match" value={95} />
+          <SubscoreBar label="Experience" value={88} />
+          <SubscoreBar label="Education" value={72} />
+          <SubscoreBar label="Keywords" value={90} />
         </div>
 
         {/* Why this score */}

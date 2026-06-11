@@ -1,127 +1,76 @@
-"use client"
+'use client'
 
-import * as React from "react"
-import { useDroppable } from "@dnd-kit/core"
-import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
-import { MoreHorizontal, Plus } from "lucide-react"
-import { KanbanCard, type Candidate } from "./KanbanCard"
-import { cn } from "@/lib/utils"
-import confetti from "canvas-confetti"
-
-export interface Stage {
-  id: string
-  name: string
-  color: "primary" | "info" | "warning" | "purple" | "accent" | "hired"
-}
+import { useDroppable } from '@dnd-kit/core'
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import { MoreHorizontal, Plus } from 'lucide-react'
+import { Application } from '@/types/domain.types'
+import KanbanCard from './KanbanCard'
 
 interface KanbanColumnProps {
-  stage: Stage
-  candidates: Candidate[]
-  onCardClick?: (candidate: Candidate) => void
-  selectedCardId?: string | null
+  stage: {
+    name: string
+    color: string
+  }
+  applications: Application[]
+  onOpenPanel: (app: Application) => void
+  isOver?: boolean
 }
 
-export function KanbanColumn({ stage, candidates, onCardClick, selectedCardId }: KanbanColumnProps) {
-  const { setNodeRef, isOver } = useDroppable({
-    id: stage.id,
-    data: {
-      type: "Column",
-      stage,
-    },
+export default function KanbanColumn({ stage, applications, onOpenPanel, isOver = false }: KanbanColumnProps) {
+  const { setNodeRef } = useDroppable({
+    id: stage.name,
   })
 
-  const stageColors = {
-    primary: { border: "border-primary-500", text: "text-primary-700", bg: "bg-primary-50" }, // Screening
-    info: { border: "border-[#3B82F6]", text: "text-[#3B82F6]", bg: "bg-blue-50" }, // Phone Screen
-    warning: { border: "border-[#F59E0B]", text: "text-[#F59E0B]", bg: "bg-amber-50" }, // Interview
-    purple: { border: "border-[#8B5CF6]", text: "text-[#8B5CF6]", bg: "bg-purple-50" }, // Assessment
-    accent: { border: "border-accent-500", text: "text-accent-700", bg: "bg-accent-50" }, // Offer
-    hired: { border: "border-accent-600", text: "text-accent-800", bg: "bg-accent-100" }, // Hired
-  }
-
-  const colorConfig = stageColors[stage.color] || stageColors.primary
-
-  const prevCountRef = React.useRef(candidates.length)
-  
-  React.useEffect(() => {
-    if (stage.color === "hired" && candidates.length > prevCountRef.current) {
-      // Fire mini confetti burst for Hired column
-      confetti({
-        particleCount: 40,
-        spread: 60,
-        origin: { y: 0.6 },
-        colors: ['#10B981', '#34D399', '#A7F3D0'],
-        disableForReducedMotion: true
-      })
-    }
-    prevCountRef.current = candidates.length
-  }, [candidates.length, stage.color])
-
   return (
-    <div 
-      className="flex h-full w-[280px] shrink-0 flex-col rounded-md"
-      role="region"
-      aria-label={`${stage.name} stage with ${candidates.length} candidates`}
-    >
+    <div className="w-[280px] shrink-0 flex flex-col h-full rounded-md overflow-hidden">
       
-      {/* Column Header */}
-      <div className="relative flex h-[44px] shrink-0 items-center justify-between rounded-[var(--radius-md)] bg-white px-[12px] shadow-sm">
-        <div className="flex items-center gap-[8px]">
-          {/* Left accent */}
-          <div className={`h-[24px] w-[3px] rounded-full border-l-3 ${colorConfig.border} border-l-[3px]`} />
-          <h5 className="font-display text-[14px] font-semibold text-neutral-900">{stage.name}</h5>
-          
-          {/* Count Badge */}
-          <div 
-            key={candidates.length} // Force re-mount to trigger animation
-            className="flex h-[20px] min-w-[20px] items-center justify-center rounded-full bg-neutral-50 px-[6px] font-body text-[11px] font-bold text-neutral-600 animate-spring-in"
-          >
-            {candidates.length}
-          </div>
+      {/* Header */}
+      <div className="h-[44px] bg-white rounded-md flex items-center px-[12px] gap-[8px] mb-[8px] border border-[#E5E7EB] shadow-sm relative shrink-0">
+        <div 
+          className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-md"
+          style={{ backgroundColor: stage.color }}
+        />
+        <h5 className="font-body text-[15px] font-semibold text-neutral-900 ml-[4px]">
+          {stage.name}
+        </h5>
+        <div className="bg-neutral-100 text-neutral-700 text-[10px] font-bold px-[8px] py-[2px] rounded-full ml-auto">
+          {applications.length}
         </div>
-
-        <button 
-          className="flex h-[24px] w-[24px] items-center justify-center rounded-sm text-neutral-400 hover:bg-neutral-100 hover:text-neutral-900"
-          aria-label={`Options for ${stage.name}`}
-        >
+        <button className="text-neutral-400 hover:text-neutral-600 transition-colors cursor-pointer">
           <MoreHorizontal size={16} />
         </button>
       </div>
 
-      {/* Column Body (Droppable & Sortable) */}
+      {/* Body */}
       <div 
-        ref={setNodeRef as React.Ref<HTMLDivElement>}
-        className={cn(
-          "mt-[8px] flex flex-1 flex-col gap-[8px] overflow-y-auto overflow-x-hidden p-[8px] rounded-md custom-scrollbar-thin transition-colors",
-          isOver ? "bg-neutral-200/50" : "bg-transparent"
-        )}
+        ref={setNodeRef}
+        className={`flex-grow overflow-y-auto p-[8px] flex flex-col gap-[8px] rounded-md transition-colors duration-100 min-h-[150px] thin-scrollbar ${
+          isOver ? 'bg-[#ECFDF5] border border-accent-200' : 'bg-neutral-100'
+        }`}
       >
-        <SortableContext 
-          items={candidates.map(c => c.id)} 
-          strategy={verticalListSortingStrategy}
-        >
-          {candidates.map(candidate => (
+        <SortableContext items={applications.map(app => app.id)} strategy={verticalListSortingStrategy}>
+          {applications.map(app => (
             <KanbanCard 
-              key={candidate.id} 
-              candidate={candidate} 
-              onClick={onCardClick}
-              isSelected={selectedCardId === candidate.id}
+              key={app.id} 
+              application={app} 
+              onOpenPanel={onOpenPanel} 
             />
           ))}
         </SortableContext>
-        
-        {/* Empty state padding to allow dropping into empty column easily */}
-        <div className="min-h-[40px] w-full" />
-      </div>
 
-      {/* Column Footer */}
-      <div className="shrink-0 pt-[8px] text-center">
-        <button 
-          className="inline-flex items-center font-body text-[12px] font-medium text-neutral-400 hover:text-neutral-700 transition-colors"
-          aria-label={`Add candidate to ${stage.name}`}
-        >
-          <Plus size={12} className="mr-1" /> Add Candidate
-        </button>
+        {applications.length === 0 && (
+          <div className="h-[80px] border-2 border-dashed border-neutral-200 rounded-md flex items-center justify-center">
+            <button className="flex items-center gap-[4px] text-neutral-400 hover:text-neutral-500 font-body text-[12px] font-medium transition-colors">
+              <Plus size={14} /> Add Candidate
+            </button>
+          </div>
+        )}
+
+        <div className="mt-auto pt-[8px] pb-[4px]">
+          <button className="w-full flex items-center justify-center gap-[4px] text-neutral-400 hover:text-neutral-600 font-body text-[12px] font-medium transition-colors py-[8px] hover:bg-neutral-200/50 rounded-md">
+            <Plus size={14} /> Add Candidate
+          </button>
+        </div>
       </div>
 
     </div>

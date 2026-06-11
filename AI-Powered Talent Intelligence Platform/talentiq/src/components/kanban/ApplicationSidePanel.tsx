@@ -1,161 +1,203 @@
-"use client"
+'use client'
 
-import * as React from "react"
-import { X, ExternalLink } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ScoreDetailCard } from "./ScoreDetailCard"
-import { type Candidate } from "./KanbanCard"
-import { cn } from "@/lib/utils"
+import { useState } from 'react'
+import { X, ExternalLink } from 'lucide-react'
+import { Application } from '@/types/domain.types'
+import { StageBadge } from '@/components/shared/StageBadge'
+import { SourceBadge } from '@/components/shared/SourceBadge'
+import { formatDate } from '@/lib/utils'
+import { getScoreColor, getScoreLabel } from '@/lib/score'
+import { ScoreRing } from '@/components/score/ScoreRing'
 
 interface ApplicationSidePanelProps {
-  candidate: Candidate | null
-  isOpen: boolean
+  application: Application | null
   onClose: () => void
 }
 
-export function ApplicationSidePanel({ candidate, isOpen, onClose }: ApplicationSidePanelProps) {
-  if (!candidate && !isOpen) return null
+export default function ApplicationSidePanel({ application, onClose }: ApplicationSidePanelProps) {
+  const [activeTab, setActiveTab] = useState('Overview')
 
-  // Prevent scroll on body when open
-  React.useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden"
-    } else {
-      document.body.style.overflow = ""
-    }
-    return () => { document.body.style.overflow = "" }
-  }, [isOpen])
+  const tabs = ['Overview', 'AI Score', 'Notes', 'Resume', 'Interviews']
+
+  const score = typeof application?.aiScore === 'number' ? application.aiScore : 0
 
   return (
     <>
-      {/* Backdrop */}
-      <div 
-        className={cn(
-          "fixed inset-0 z-40 bg-neutral-900/20 backdrop-blur-sm transition-opacity duration-200",
-          isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-        )}
-        onClick={onClose}
-      />
+      {application && (
+        <div 
+          className="fixed inset-0 bg-neutral-900/20 z-40 md:hidden"
+          onClick={onClose}
+        />
+      )}
 
-      {/* Drawer / Bottom Sheet */}
       <div 
-        className={cn(
-          "fixed z-50 flex flex-col bg-white shadow-xl transition-transform duration-200 ease-out",
-          // Mobile: Bottom Sheet
-          "bottom-0 left-0 right-0 top-[60px] rounded-t-[24px] md:top-0 md:rounded-t-none",
-          isOpen ? "translate-y-0 md:translate-y-0 md:translate-x-0" : "translate-y-[100%] md:translate-y-0 md:translate-x-[100%]",
-          // Desktop: Side Panel
-          "md:left-auto md:right-0 md:w-[480px]"
-        )}
+        className={`fixed right-0 top-0 bottom-0 w-full md:w-[480px] bg-white shadow-xl z-50 flex flex-col transition-transform duration-200 ease-out ${
+          application ? 'translate-x-0' : 'translate-x-full'
+        }`}
       >
-        {candidate && (
+        {application && (
           <>
             {/* Header */}
-            <div className="flex shrink-0 flex-col border-b border-neutral-200 p-[24px]">
-              <div className="flex items-start justify-between">
-                <div className="flex flex-col">
-                  <h3 className="font-display text-[20px] font-bold text-neutral-900">
-                    {candidate.name}
-                  </h3>
-                  <a href="#" className="mt-[4px] inline-flex items-center font-body text-[13px] font-medium text-primary-500 hover:underline">
-                    Open Full Profile <ExternalLink size={12} className="ml-1" />
-                  </a>
-                </div>
+            <div className="p-[20px] md:px-[24px] border-b border-[#E5E7EB] flex items-center justify-between shrink-0">
+              <h3 className="font-display text-[22px] font-semibold text-neutral-900 truncate pr-[16px]">
+                {application.candidate.name}
+              </h3>
+              <div className="flex items-center gap-[12px] shrink-0">
+                <a href="#" className="font-body text-[13px] text-primary-500 font-medium hover:text-primary-600 transition-colors items-center gap-[4px] hidden md:flex">
+                  Open Full Profile <ExternalLink size={14} className="ml-[2px]" />
+                </a>
                 <button 
                   onClick={onClose}
-                  className="flex h-[32px] w-[32px] items-center justify-center rounded-sm text-neutral-400 hover:bg-neutral-100 hover:text-neutral-900"
+                  className="w-[32px] h-[32px] flex items-center justify-center rounded-md hover:bg-neutral-100 text-neutral-500 transition-colors"
                 >
                   <X size={20} />
                 </button>
               </div>
             </div>
 
-            {/* Content Body with Tabs */}
-            <div className="flex-1 overflow-y-auto bg-neutral-50 p-[24px] custom-scrollbar">
-              <Tabs defaultValue="ai-score" className="w-full">
-                <TabsList className="flex h-[40px] w-full justify-start rounded-none border-b border-neutral-200 bg-transparent p-0 mb-[24px]">
-                  {["Overview", "Resume", "AI Score", "Interviews", "Notes"].map(tab => {
-                    const value = tab.toLowerCase().replace(" ", "-")
-                    return (
-                      <TabsTrigger 
-                        key={value}
-                        value={value}
-                        className="relative h-[40px] rounded-none border-b-2 border-transparent bg-transparent px-[16px] pb-[10px] pt-[10px] font-body text-[14px] font-medium text-neutral-500 hover:text-neutral-900 data-[state=active]:border-primary-500 data-[state=active]:text-primary-700 data-[state=active]:shadow-none focus-visible:ring-0"
-                      >
-                        {tab}
-                      </TabsTrigger>
-                    )
-                  })}
-                </TabsList>
+            {/* Tabs */}
+            <div className="flex border-b border-[#E5E7EB] shrink-0 overflow-x-auto">
+              {tabs.map(tab => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`font-body text-[14px] font-medium px-[16px] py-[12px] border-b-2 whitespace-nowrap transition-colors ${
+                    activeTab === tab 
+                      ? 'border-primary-500 text-primary-700' 
+                      : 'border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-200'
+                  }`}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
 
-                <TabsContent value="ai-score" className="mt-0 outline-none">
-                  <ScoreDetailCard 
-                    score={candidate.score}
-                    matchLabel="Strong Match"
-                    subscores={[
-                      { label: "Technical Skills", percent: 92 },
-                      { label: "Experience Match", percent: 85 },
-                      { label: "Culture Fit", percent: 88 },
-                      { label: "Communication", percent: 95 },
-                    ]}
-                    strengths={[
-                      "Extensive experience with modern React stack",
-                      "Strong system design background from previous role"
-                    ]}
-                    gaps={[
-                      "Less experience with GraphQL than requested",
-                      "No direct management experience"
-                    ]}
+            {/* Content */}
+            <div className="flex-grow overflow-y-auto p-[20px] md:p-[24px]">
+              {activeTab === 'Overview' && (
+                <div className="flex flex-col gap-[20px]">
+                  <div className="grid grid-cols-2 gap-[16px]">
+                    <div className="flex flex-col gap-[4px]">
+                      <span className="font-body text-[12px] font-semibold text-neutral-400 uppercase tracking-wider">Stage</span>
+                      <StageBadge stage={application.stage as any} />
+                    </div>
+                    <div className="flex flex-col gap-[4px]">
+                      <span className="font-body text-[12px] font-semibold text-neutral-400 uppercase tracking-wider">Source</span>
+                      <SourceBadge source={application.source as any} />
+                    </div>
+                    <div className="flex flex-col gap-[4px]">
+                      <span className="font-body text-[12px] font-semibold text-neutral-400 uppercase tracking-wider">Applied</span>
+                      <span className="font-body text-[14px] text-neutral-900">{formatDate(application.appliedAt)}</span>
+                    </div>
+                    <div className="flex flex-col gap-[4px]">
+                      <span className="font-body text-[12px] font-semibold text-neutral-400 uppercase tracking-wider">Days in Stage</span>
+                      <span className="font-body text-[14px] text-neutral-900">{application.daysInStage ?? 0} days</span>
+                    </div>
+                  </div>
+                  
+                  <div className="h-[1px] w-full bg-neutral-100" />
+                  
+                  <div className="flex flex-col gap-[8px]">
+                    <h4 className="font-body text-[14px] font-semibold text-neutral-900">Contact Info</h4>
+                    <span className="font-body text-[13px] text-neutral-600">{application.candidate.email}</span>
+                    {application.candidate.phone && (
+                      <span className="font-body text-[13px] text-neutral-600">{application.candidate.phone}</span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'AI Score' && (
+                <div className="flex flex-col items-center gap-[24px]">
+                  {score > 0 ? (
+                    <>
+                      <div className="flex flex-col items-center gap-[8px] mt-[8px]">
+                        <ScoreRing score={score} size="xl" />
+                        <span 
+                          className="font-body text-[13px] font-semibold mt-[4px]"
+                          style={{ color: getScoreColor(score) }}
+                        >
+                          {getScoreLabel(score)}
+                        </span>
+                      </div>
+                      <p className="font-body text-[13px] text-neutral-500 text-center max-w-[300px]">
+                        This candidate was automatically scored based on their resume and the job requirements.
+                      </p>
+                    </>
+                  ) : (
+                    <div className="text-[13px] text-neutral-500 font-body italic mt-[32px]">
+                      No AI Score available yet for this candidate.
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {activeTab === 'Notes' && (
+                <div className="flex flex-col gap-[16px]">
+                  <textarea 
+                    placeholder="Add a note about this candidate..."
+                    className="w-full min-h-[100px] border border-neutral-200 rounded-md p-[12px] font-body text-[13px] focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500/30 resize-y"
                   />
-                </TabsContent>
+                  <button className="bg-neutral-100 text-neutral-700 font-body text-[13px] font-medium py-[6px] px-[12px] rounded-md hover:bg-neutral-200 transition-colors w-fit self-end">
+                    Post Note
+                  </button>
+                  {application.recruiterNotes && application.recruiterNotes.length > 0 ? (
+                    <div className="flex flex-col gap-[8px] mt-[8px]">
+                      {application.recruiterNotes.map((note, i) => (
+                        <div key={i} className="bg-neutral-50 rounded-md p-[12px] font-body text-[13px] text-neutral-700">
+                          {note}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-[13px] text-neutral-400 font-body italic mt-[16px]">No notes yet.</div>
+                  )}
+                </div>
+              )}
 
-                {/* Placeholders for other tabs */}
-                <TabsContent value="overview">
-                  <p className="text-[14px] text-neutral-500">Overview content goes here.</p>
-                </TabsContent>
-                <TabsContent value="resume">
-                  <p className="text-[14px] text-neutral-500">Resume viewer goes here.</p>
-                </TabsContent>
-                <TabsContent value="interviews">
-                  <p className="text-[14px] text-neutral-500">Interview history goes here.</p>
-                </TabsContent>
-                <TabsContent value="notes">
-                  <p className="text-[14px] text-neutral-500">Recruiter notes go here.</p>
-                </TabsContent>
-              </Tabs>
+              {activeTab === 'Resume' && (
+                <div className="w-full min-h-[400px] border border-neutral-200 rounded-md bg-neutral-50 flex items-center justify-center p-[24px]">
+                  {application.candidate.resumeUrl ? (
+                    <a href={application.candidate.resumeUrl} target="_blank" rel="noreferrer" className="text-primary-500 font-body text-[14px] font-medium hover:underline">
+                      Open Resume PDF
+                    </a>
+                  ) : (
+                    <span className="text-neutral-400 font-body text-[13px]">No resume uploaded</span>
+                  )}
+                </div>
+              )}
+
+              {activeTab === 'Interviews' && (
+                <div className="flex flex-col items-center justify-center h-[200px] gap-[12px]">
+                  <span className="text-neutral-400 font-body text-[13px]">No upcoming interviews scheduled</span>
+                  <button className="text-primary-500 font-body text-[13px] font-medium hover:text-primary-600 hover:underline transition-colors">
+                    Schedule an Interview
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Footer */}
-            <div className="shrink-0 border-t border-neutral-200 bg-white p-[24px]">
-              
-              <div className="flex items-center justify-between mb-[16px]">
-                <div className="w-[180px]">
-                  <Select defaultValue="interview">
-                    <SelectTrigger className="h-[32px] text-[13px]">
-                      <SelectValue placeholder="Move Stage" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="screening">Screening</SelectItem>
-                      <SelectItem value="phone">Phone Screen</SelectItem>
-                      <SelectItem value="interview">Interview</SelectItem>
-                      <SelectItem value="assessment">Assessment</SelectItem>
-                      <SelectItem value="offer">Offer</SelectItem>
-                      <SelectItem value="hired">Hired</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <Button className="h-[32px] px-4 text-[13px]">Move</Button>
+            <div className="p-[16px] md:px-[24px] border-t border-[#E5E7EB] shrink-0 bg-neutral-50">
+              <div className="flex gap-[8px] mb-[8px]">
+                <select className="flex-grow h-[36px] rounded-md border border-neutral-200 px-[12px] font-body text-[13px] focus:outline-none focus:border-primary-500 bg-white">
+                  <option value="Screening">Screening</option>
+                  <option value="Phone Screen">Phone Screen</option>
+                  <option value="Interview">Interview</option>
+                  <option value="Assessment">Assessment</option>
+                  <option value="Offer">Offer</option>
+                  <option value="Hired">Hired</option>
+                </select>
+                <button className="bg-primary-500 hover:bg-primary-600 text-white font-body text-[13px] font-medium px-[16px] rounded-md transition-colors h-[36px] shrink-0">
+                  Move Stage
+                </button>
               </div>
-
-              <div className="flex flex-col gap-[8px]">
-                <Button className="w-full">Schedule Interview</Button>
-                <Button variant="ghost" className="w-full text-[#EF4444] hover:bg-red-50 hover:text-[#DC2626]">
-                  Reject Candidate
-                </Button>
-              </div>
-
+              <button className="w-full bg-white border border-[#E5E7EB] hover:bg-neutral-50 text-neutral-900 font-body text-[13px] font-medium py-[8px] rounded-md transition-colors mb-[4px]">
+                Schedule Interview
+              </button>
+              <button className="w-full bg-transparent hover:bg-red-50 text-[#DC2626] font-body text-[13px] font-medium py-[8px] rounded-md transition-colors">
+                Reject Candidate
+              </button>
             </div>
           </>
         )}

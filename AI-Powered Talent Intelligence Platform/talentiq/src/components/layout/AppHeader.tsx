@@ -1,115 +1,72 @@
-"use client"
+'use client'
 
-import * as React from "react"
-import { usePathname } from "next/navigation"
-import { Search, Bell, X, LogOut, Settings, User, Menu } from "lucide-react"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Search, Bell } from 'lucide-react'
+import Breadcrumb from './Breadcrumb'
+import { useCurrentUser } from '@/hooks/useCurrentUser'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
-export function AppHeader() {
-  const pathname = usePathname()
-  const [searchValue, setSearchValue] = React.useState("")
+export default function AppHeader() {
+  const { user } = useCurrentUser()
 
-  // Simple breadcrumb logic
-  const segments = pathname.split('/').filter(Boolean)
-  // For dashboard, title is "Dashboard"
-  let title = "Dashboard"
-  if (segments.includes("jobs")) title = "Jobs"
-  if (segments.includes("pipeline")) title = "Pipeline"
-  if (segments.includes("candidates")) title = "Candidates"
-  
   return (
-    <header className="sticky top-0 z-30 flex h-[60px] w-full items-center justify-between border-b border-neutral-200 bg-white px-[16px] md:px-[32px]">
-      
-      {/* LEFT: Breadcrumb (Hidden on Mobile) */}
-      <div className="hidden md:flex items-center gap-2">
-        {/* We can expand this with actual parents if nested */}
-        {segments.length > 2 && (
-          <>
-            <span className="font-body text-[13px] text-neutral-500">Jobs</span>
-            <span className="font-body text-[13px] text-neutral-300">/</span>
-          </>
-        )}
-        <h2 className="font-display text-[17px] font-semibold text-neutral-900 capitalize">
-          {title}
-        </h2>
+    <header className="sticky top-0 z-30 flex h-[60px] items-center justify-between bg-white px-[16px] md:px-[32px] border-b border-[#E5E7EB]">
+      <div className="flex items-center">
+        <Breadcrumb />
       </div>
 
-      {/* CENTER: Logo (Mobile Only) */}
-      <div className="flex md:hidden items-center justify-center flex-1">
-        <div className="flex h-[32px] w-[32px] items-center justify-center rounded-lg bg-neutral-900 text-white font-display font-bold text-[16px]">
-          T
-        </div>
-      </div>
-
-      {/* RIGHT: Cluster */}
-      <div className="flex items-center gap-[12px] md:gap-4">
-        
-        {/* Search (Hidden on mobile) */}
-        <div className="hidden md:flex relative w-[280px] items-center">
-          <Search size={16} className="absolute left-3 text-neutral-400" />
-          <input 
-            type="text" 
-            placeholder="Search candidates, jobs..." 
-            value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
-            className="h-[36px] w-full rounded-[var(--radius-sm)] border border-neutral-200 bg-white pl-[36px] pr-[36px] font-body text-[14px] text-neutral-900 transition-colors focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+      <div className="flex items-center gap-[8px]">
+        {/* Search */}
+        <div className="relative hidden md:block">
+          <Search size={16} className="absolute left-[10px] top-[10px] text-neutral-400" />
+          <input
+            type="text"
+            placeholder="Search candidates, jobs..."
+            className="w-[280px] h-[36px] pl-[32px] pr-[12px] bg-neutral-50 hover:bg-neutral-100 border border-transparent focus:border-primary-300 focus:bg-white rounded-md text-[13px] text-neutral-900 placeholder:text-neutral-500 focus:outline-none transition-colors"
           />
-          {searchValue && (
-            <button 
-              onClick={() => setSearchValue("")}
-              className="absolute right-2 flex h-[20px] w-[20px] items-center justify-center rounded-sm text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600"
-              aria-label="Clear search"
-            >
-              <X size={14} />
+        </div>
+
+        {/* Notifications */}
+        <button className="w-[36px] h-[36px] flex items-center justify-center rounded-md hover:bg-neutral-50 text-neutral-500 transition-colors relative">
+          <Bell size={18} />
+          <span className="absolute top-[8px] right-[8px] w-[8px] h-[8px] rounded-full bg-accent-500 border-2 border-white"></span>
+        </button>
+
+        {/* User Dropdown */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="w-[32px] h-[32px] rounded-full bg-neutral-200 border border-neutral-200 overflow-hidden ml-[4px] cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-500/50">
+              {user?.avatar ? (
+                <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover" />
+              ) : (
+                <span className="w-full h-full flex items-center justify-center text-neutral-500 text-[12px] font-medium bg-neutral-100">
+                  {user?.name?.charAt(0) || 'U'}
+                </span>
+              )}
             </button>
-          )}
-        </div>
-
-        {/* Notifications (Hidden on mobile) */}
-        <button className="hidden md:flex relative h-[36px] w-[36px] items-center justify-center rounded-[var(--radius-sm)] text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900 focus:outline-none focus:ring-2 focus:ring-primary-500" aria-label="Notifications">
-          <Bell size={18} className="animate-[bellShake_0.5s_ease-in-out_infinite]" />
-          {/* Badge */}
-          <span className="absolute top-[8px] right-[8px] h-[8px] w-[8px] rounded-full bg-accent-500 ring-2 ring-white" />
-        </button>
-
-        {/* User Dropdown (Hidden on mobile) */}
-        <div className="hidden md:block">
-          <Popover>
-            <PopoverTrigger asChild>
-              <button className="ml-2 focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-full" aria-label="User menu">
-                <img src="https://i.pravatar.cc/150?u=a4" alt="Sarah Wilson" className="h-[32px] w-[32px] rounded-full object-cover shadow-sm" />
-              </button>
-            </PopoverTrigger>
-          <PopoverContent align="end" className="w-[220px] p-2">
-            <div className="p-3">
-              <p className="font-body text-[12px] text-neutral-500 truncate">sarah@globalhire.com</p>
-            </div>
-            <div className="my-1 h-px bg-neutral-100" />
-            <div className="flex flex-col gap-1">
-              <button className="flex h-[36px] items-center gap-2 rounded-md px-3 font-body text-[14px] text-neutral-900 hover:bg-neutral-50">
-                <User size={16} className="text-neutral-500" /> Profile Settings
-              </button>
-              <button className="flex h-[36px] items-center gap-2 rounded-md px-3 font-body text-[14px] text-neutral-900 hover:bg-neutral-50">
-                <Settings size={16} className="text-neutral-500" /> Account Settings
-              </button>
-            </div>
-            <div className="my-1 h-px bg-neutral-100" />
-              <div className="flex flex-col gap-1">
-                <button className="flex h-[36px] items-center gap-2 rounded-md px-3 font-body text-[14px] text-[#DC2626] hover:bg-red-50">
-                  <LogOut size={16} className="text-[#DC2626]" /> Sign out
-                </button>
-              </div>
-            </PopoverContent>
-          </Popover>
-        </div>
-
-        {/* Mobile Hamburger */}
-        <button className="flex md:hidden h-[36px] w-[36px] items-center justify-center rounded-[var(--radius-sm)] text-neutral-900" aria-label="Toggle menu">
-          <Menu size={24} />
-        </button>
-
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-[200px] bg-white rounded-md shadow-lg border border-neutral-100 p-[4px] font-body z-50">
+            <DropdownMenuItem className="text-[13px] font-medium text-neutral-700 focus:bg-neutral-50 focus:text-neutral-900 cursor-pointer rounded-sm px-[8px] py-[6px]">
+              Profile Settings
+            </DropdownMenuItem>
+            <DropdownMenuItem className="text-[13px] font-medium text-neutral-700 focus:bg-neutral-50 focus:text-neutral-900 cursor-pointer rounded-sm px-[8px] py-[6px]">
+              Account Settings
+            </DropdownMenuItem>
+            <DropdownMenuItem className="text-[13px] font-medium text-neutral-700 focus:bg-neutral-50 focus:text-neutral-900 cursor-pointer rounded-sm px-[8px] py-[6px]">
+              Billing
+            </DropdownMenuItem>
+            <DropdownMenuSeparator className="my-[4px] bg-neutral-100 h-[1px]" />
+            <DropdownMenuItem className="text-[13px] font-medium text-[#DC2626] focus:bg-red-50 focus:text-[#DC2626] cursor-pointer rounded-sm px-[8px] py-[6px]" onClick={() => window.location.href = '/login'}>
+              Sign out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
-
     </header>
   )
 }

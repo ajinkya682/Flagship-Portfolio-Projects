@@ -16,13 +16,13 @@ export default function AIScoreReveal() {
         {/* Details */}
         <div className="flex-1 flex flex-col gap-[12px]">
           <div className="animate-in slide-in-from-right-4 fade-in duration-500 delay-300 fill-mode-both">
-            <SubscoreBar label="Technical Skills" score={92} />
+            <SubscoreBar label="Technical Skills" value={92} />
           </div>
           <div className="animate-in slide-in-from-right-4 fade-in duration-500 delay-400 fill-mode-both">
-            <SubscoreBar label="Experience Match" score={85} />
+            <SubscoreBar label="Experience Match" value={85} />
           </div>
           <div className="animate-in slide-in-from-right-4 fade-in duration-500 delay-500 fill-mode-both">
-            <SubscoreBar label="Education" score={78} />
+            <SubscoreBar label="Education" value={78} />
           </div>
         </div>
       </div>

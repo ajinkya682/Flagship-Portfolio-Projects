@@ -1,36 +1,28 @@
-"use client"
+'use client'
 
-import * as React from "react"
+import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { formatDate } from '@/lib/utils'
 
-export function WelcomeGreeting({ name }: { name: string }) {
-  const [greeting, setGreeting] = React.useState("Good morning")
-  const [today, setToday] = React.useState("")
+export default function WelcomeGreeting() {
+  const { user } = useCurrentUser()
+  const hour = new Date().getHours()
+  
+  let greeting = 'Good evening'
+  if (hour < 12) {
+    greeting = 'Good morning'
+  } else if (hour < 18) {
+    greeting = 'Good afternoon'
+  }
 
-  React.useEffect(() => {
-    const hour = new Date().getHours()
-    if (hour < 12) setGreeting("Good morning")
-    else if (hour < 17) setGreeting("Good afternoon")
-    else setGreeting("Good evening")
-
-    const dateOptions: Intl.DateTimeFormatOptions = { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    }
-    setToday(new Date().toLocaleDateString('en-US', dateOptions))
-  }, [])
+  const firstName = user?.name ? user.name.split(' ')[0] : 'User'
 
   return (
-    <div className="flex flex-col">
-      <span className="font-body text-[14px] italic text-neutral-500">
-        {greeting}, {name}.
-      </span>
-      <h1 className="mt-1 font-display text-[36px] font-bold text-neutral-900 leading-tight">
-        Dashboard
+    <div className="flex flex-col gap-[4px]">
+      <h1 className="font-body text-[14px] text-neutral-500 italic">
+        {greeting}, {firstName}
       </h1>
-      <span className="mt-1 font-body text-[14px] text-neutral-500">
-        {today}
+      <span className="font-body text-[14px] text-neutral-500">
+        {formatDate(new Date().toISOString())}
       </span>
     </div>
   )

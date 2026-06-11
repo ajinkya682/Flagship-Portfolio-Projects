@@ -1,37 +1,26 @@
-"use client"
+'use client'
 
-import * as React from "react"
-import { DragOverlay, defaultDropAnimationSideEffects } from "@dnd-kit/core"
-import { KanbanCard, type Candidate } from "./KanbanCard"
+import { DragOverlay } from '@dnd-kit/core'
+import KanbanCard from './KanbanCard'
+import { Application } from '@/types/domain.types'
 
 interface KanbanDragOverlayProps {
-  activeCandidate: Candidate | null
+  activeId: string | null
+  applications: Application[]
 }
 
-export function KanbanDragOverlay({ activeCandidate }: KanbanDragOverlayProps) {
-  if (!activeCandidate) return null
+export default function KanbanDragOverlay({ activeId, applications }: KanbanDragOverlayProps) {
+  if (!activeId) return null
 
-  // Custom animation when dropping
-  const dropAnimationConfig = {
-    sideEffects: defaultDropAnimationSideEffects({
-      styles: {
-        active: {
-          opacity: "0.5",
-        },
-      },
-    }),
-  }
+  const activeApplication = applications.find(app => app.id === activeId)
+
+  if (!activeApplication) return null
 
   return (
-    <DragOverlay dropAnimation={dropAnimationConfig}>
-      {activeCandidate ? (
-        <div 
-          className="scale-[1.02] shadow-[var(--shadow-xl)] rotate-[0.8deg] cursor-grabbing"
-          style={{ width: "100%", height: "100%" }}
-        >
-          <KanbanCard candidate={activeCandidate} />
-        </div>
-      ) : null}
+    <DragOverlay dropAnimation={null}>
+      <div style={{ transform: 'scale(1.02) rotate(0.8deg)', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)', cursor: 'grabbing', opacity: 0.9 }}>
+        <KanbanCard application={activeApplication} onOpenPanel={() => {}} />
+      </div>
     </DragOverlay>
   )
 }

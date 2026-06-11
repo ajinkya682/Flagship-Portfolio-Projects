@@ -1,56 +1,54 @@
-import * as React from "react"
-import { StatCard } from "./StatCard"
+'use client'
+
+import StatCard from './StatCard'
+import { Briefcase, Users, Sparkles, FileText } from 'lucide-react'
 
 export function DashboardStats() {
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-[12px] md:gap-[20px]">
-      <div className="h-full">
-        <StatCard 
-          title="Open Roles"
-          value={12}
-          delta={24}
-          deltaPeriod="vs last month"
-          iconType="briefcase"
-          colorTheme="primary"
-          sparklineData={[4, 5, 8, 7, 10, 12]}
-        />
-      </div>
+      <StatCard
+        icon={Briefcase}
+        iconBg="#EFF6FF"
+        iconColor="#3B82F6"
+        value={12}
+        label="Open Roles"
+        delta="+3"
+        deltaPositive={true}
+        period="vs last month"
+      />
       
-      <div className="h-full">
-        <StatCard 
-          title="Applications"
-          value={342}
-          delta={12}
-          deltaPeriod="vs last week"
-          iconType="userPlus"
-          colorTheme="accent"
-          sparklineData={[120, 140, 180, 150, 260, 342]}
-        />
-      </div>
+      <StatCard
+        icon={Users}
+        iconBg="#F0FDF4"
+        iconColor="#10B981"
+        value={342}
+        label="Applications"
+        delta="+12%"
+        deltaPositive={true}
+        period="vs last week"
+        sparklineData={[120, 140, 180, 150, 260, 342]}
+      />
 
-      <div className="h-full">
-        <StatCard 
-          title="Avg AI Score"
-          value={84}
-          valueSuffix="/100"
-          delta={5}
-          deltaPeriod="vs last month"
-          iconType="sparkles"
-          colorTheme="primary"
-        />
-      </div>
+      <StatCard
+        icon={Sparkles}
+        iconBg="#F5F3FF"
+        iconColor="#8B5CF6"
+        value="84/100"
+        label="Avg AI Score"
+        delta="+5"
+        deltaPositive={true}
+        period="vs last month"
+      />
 
-      <div className="h-full">
-        <StatCard 
-          title="Offers Pending"
-          value={4}
-          delta={-1}
-          deltaPeriod="vs last week"
-          iconType="fileText"
-          colorTheme="warning"
-          subText="2 expiring in 48h"
-        />
-      </div>
+      <StatCard
+        icon={FileText}
+        iconBg="#FFFBEB"
+        iconColor="#F59E0B"
+        value={4}
+        label="Offers Pending"
+        delta="2 expiring in 48h"
+        deltaPositive={false}
+      />
     </div>
   )
 }

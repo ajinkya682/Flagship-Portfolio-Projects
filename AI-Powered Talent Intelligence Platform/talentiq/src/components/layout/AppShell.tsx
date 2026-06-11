@@ -1,34 +1,29 @@
-"use client"
+'use client'
 
-import * as React from "react"
-import { Sidebar } from "./Sidebar"
-import { AppHeader } from "./AppHeader"
-import { MobileBottomNav } from "./MobileBottomNav"
+import { ReactNode } from 'react'
+import { useUIStore } from '@/store/ui.store'
+import Sidebar from './Sidebar'
+import AppHeader from './AppHeader'
+import MobileBottomNav from './MobileBottomNav'
 
-export function AppShell({ children }: { children: React.ReactNode }) {
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = React.useState(false)
+export default function AppShell({ children }: { children: ReactNode }) {
+  const { sidebarCollapsed } = useUIStore()
 
   return (
-    <div className="flex min-h-screen bg-neutral-50 font-sans antialiased text-neutral-900 overflow-hidden">
-      
-      {/* Sidebar - fixed on left */}
-      <div className="hidden md:block">
-        <Sidebar isCollapsed={isSidebarCollapsed} setIsCollapsed={setIsSidebarCollapsed} />
-      </div>
-
-      {/* Main layout column */}
-      <div className="flex flex-1 flex-col min-w-0 pb-[64px] md:pb-0">
-        
-        {/* App Header - sticky top */}
+    <div className="flex h-screen overflow-hidden bg-neutral-50 font-body">
+      <Sidebar />
+      <div 
+        className="flex flex-col flex-grow overflow-hidden transition-all duration-300 ease-in-out"
+        style={{ paddingLeft: sidebarCollapsed ? '64px' : '260px' }}
+      >
         <AppHeader />
-
-        {/* Page Content */}
-        <main id="main-content" className="flex-1 overflow-auto custom-scrollbar px-[16px] md:px-0">
+        <main 
+          id="main" 
+          className="flex-grow overflow-y-auto p-[16px] md:p-[32px] pb-[80px] md:pb-[32px]"
+        >
           {children}
         </main>
-        
       </div>
-
       <MobileBottomNav />
     </div>
   )

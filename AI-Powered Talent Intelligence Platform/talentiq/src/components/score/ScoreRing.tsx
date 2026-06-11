@@ -1,90 +1,77 @@
-"use client"
+'use client'
 
-import * as React from "react"
-import { cn } from "@/lib/utils"
+import { useState, useEffect } from 'react'
+import { cn } from '@/lib/utils'
+import { getScoreColor, getScoreLabel } from '@/lib/score'
 
 export interface ScoreRingProps {
   score: number
-  size?: "sm" | "md" | "lg" | "xl"
+  size?: 'sm' | 'md' | 'lg' | 'xl'
   className?: string
 }
 
-const sizeMap = {
-  sm: 32,
-  md: 72,
-  lg: 80,
-  xl: 100,
-}
-
-export function ScoreRing({ score, size = "lg", className }: ScoreRingProps) {
-  const [mounted, setMounted] = React.useState(false)
-  React.useEffect(() => {
-    // Small delay to trigger animation on mount
-    const t = setTimeout(() => setMounted(true), 50)
-    return () => clearTimeout(t)
-  }, [])
-
-  const pxSize = sizeMap[size]
-  const isSm = size === "sm"
-  
-  // Color logic
-  let scoreColor = "#10B981" // high
-  if (score < 50) { // Spec says <60 is low, but previous parts used <50 for low and 50-80 for medium. The spec here says: "score >= 80: high, score >= 60: medium, score < 60: low".
-    scoreColor = "#EF4444" // low
-  } else if (score < 80) {
-    scoreColor = "#F59E0B" // medium
+export function ScoreRing({ score, size = 'lg', className }: ScoreRingProps) {
+  const sizeMap = {
+    sm: { px: 32, radius: 12, stroke: 4, text: 8 },
+    md: { px: 72, radius: 29, stroke: 6, text: 13 },
+    lg: { px: 80, radius: 32, stroke: 8, text: 16 },
+    xl: { px: 100, radius: 40, stroke: 10, text: 20 },
   }
 
-  // Base SVG viewBox is 80x80. Center is 40,40. Radius 32. 
-  // Circumference: 2 * pi * 32 = ~201.06
-  const circumference = 2 * Math.PI * 32
+  const { px, radius, stroke, text } = sizeMap[size]
+  const circumference = 2 * Math.PI * radius
   const targetOffset = circumference * (1 - score / 100)
+  const color = getScoreColor(score)
+  const label = getScoreLabel(score)
+
+  const [displayOffset, setDisplayOffset] = useState(circumference)
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDisplayOffset(targetOffset)
+    }, 50)
+    return () => clearTimeout(timer)
+  }, [targetOffset])
 
   return (
-    <div 
-      className={cn("relative flex items-center justify-center", className)}
-      style={{ width: pxSize, height: pxSize }}
-    >
+    <div className={cn("relative flex items-center justify-center", className)} style={{ width: px, height: px }}>
       <svg 
-        viewBox="0 0 80 80" 
-        width={pxSize} 
-        height={pxSize}
+        viewBox={`0 0 ${px} ${px}`} 
+        width={px} 
+        height={px}
         className="absolute inset-0"
         role="img"
-        aria-label={`AI Score: ${score}`}
+        aria-label={`AI Score: ${score} out of 100 - ${label}`}
       >
-        {/* Track ring */}
         <circle
-          cx="40" 
-          cy="40" 
-          r="32"
+          cx={px / 2} 
+          cy={px / 2} 
+          r={radius}
           fill="none"
-          stroke="#F5F5F5" // var(--color-neutral-100)
-          strokeWidth="8"
+          stroke="#F3F4F6"
+          strokeWidth={stroke}
         />
-        {/* Score ring */}
         <circle
-          cx="40" 
-          cy="40" 
-          r="32"
+          cx={px / 2} 
+          cy={px / 2} 
+          r={radius}
           fill="none"
-          stroke={scoreColor}
-          strokeWidth="8"
+          stroke={color}
+          strokeWidth={stroke}
           strokeLinecap="round"
           strokeDasharray={circumference}
-          strokeDashoffset={mounted ? targetOffset : circumference}
-          transform="rotate(-90 40 40)"
-          style={{ transition: "stroke-dashoffset 600ms cubic-bezier(0.4,0,0.2,1)" }}
+          strokeDashoffset={displayOffset}
+          transform={`rotate(-90 ${px / 2} ${px / 2})`}
+          className="score-ring-animated"
         />
-        {/* Center label */}
         <text 
-          x="40" 
-          y={isSm ? "45" : "46"}
+          x={px / 2} 
+          y={px / 2 + text / 3}
           textAnchor="middle"
           fontFamily="Inter, sans-serif" 
-          fontSize={isSm ? "24" : "18"} 
+          fontSize={text} 
           fontWeight="700"
-          fill={scoreColor}
+          fill={color}
         >
           {score}
         </text>

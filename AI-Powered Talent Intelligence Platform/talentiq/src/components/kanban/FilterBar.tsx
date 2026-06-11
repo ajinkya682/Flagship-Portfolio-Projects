@@ -1,113 +1,111 @@
-"use client"
+'use client'
 
-import * as React from "react"
-import { Search, X, Filter } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Slider } from "@/components/ui/slider"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Search } from 'lucide-react'
+import FilterChip from './FilterChip'
+import ScoreRangeSlider from './ScoreRangeSlider'
 
-export function FilterBar() {
-  const [searchValue, setSearchValue] = React.useState("")
-  const [scoreRange, setScoreRange] = React.useState([70, 100])
-  const [source, setSource] = React.useState("all")
+export interface FiltersState {
+  source: string
+  scoreRange: number[]
+  stages: string[]
+  search: string
+}
 
-  // For mock purposes, just a simple boolean if filters are active
-  const hasFilters = searchValue !== "" || scoreRange[0] > 0 || source !== "all"
+interface FilterBarProps {
+  filters: FiltersState
+  onFiltersChange: (newFilters: FiltersState) => void
+}
+
+export default function FilterBar({ filters, onFiltersChange }: FilterBarProps) {
+  const hasFilters = filters.source !== '' || filters.scoreRange[0] > 0 || filters.scoreRange[1] < 100 || filters.stages.length > 0 || filters.search !== ''
+
+  const handleClear = () => {
+    onFiltersChange({
+      source: '',
+      scoreRange: [0, 100],
+      stages: [],
+      search: ''
+    })
+  }
 
   return (
-    <div className="flex flex-col border-b border-neutral-200 bg-white p-[16px_32px]">
-      
-      {/* Top Row Controls */}
-      <div className="flex flex-wrap items-center gap-[12px]">
+    <div className="flex flex-col border-b border-[#E5E7EB] bg-white w-full">
+      <div className="p-[16px] md:px-[32px] flex gap-[12px] flex-wrap items-center">
         
-        {/* Source Dropdown */}
-        <div className="w-[140px]">
-          <Select value={source} onValueChange={setSource}>
-            <SelectTrigger className="h-[32px] text-[13px]">
-              <SelectValue placeholder="Source" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Sources</SelectItem>
-              <SelectItem value="linkedin">LinkedIn</SelectItem>
-              <SelectItem value="website">Website</SelectItem>
-              <SelectItem value="referral">Referral</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        <select 
+          value={filters.source}
+          onChange={(e) => onFiltersChange({ ...filters, source: e.target.value })}
+          className="h-[36px] w-[140px] rounded-md border border-neutral-200 px-[12px] font-body text-[13px] focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 bg-white"
+        >
+          <option value="">All Sources</option>
+          <option value="linkedin">LinkedIn</option>
+          <option value="referral">Referral</option>
+          <option value="career-page">Career Page</option>
+          <option value="indeed">Indeed</option>
+        </select>
 
-        {/* Score Slider */}
-        <div className="flex w-[200px] items-center gap-3 rounded-[var(--radius-sm)] border border-neutral-200 bg-white px-3 h-[32px]">
-          <span className="font-body text-[12px] text-neutral-500 whitespace-nowrap">AI Score</span>
-          <Slider 
-            value={scoreRange}
-            min={0}
-            max={100}
-            step={5}
-            onValueChange={setScoreRange}
-            className="flex-1"
+        <div className="flex flex-col gap-[4px] w-[200px] border border-neutral-200 rounded-md px-[12px] py-[6px] justify-center bg-white h-[36px]">
+          <span className="text-[9px] font-semibold text-neutral-400 uppercase tracking-wider leading-none">Score</span>
+          <ScoreRangeSlider 
+            value={filters.scoreRange}
+            onValueChange={(val) => onFiltersChange({ ...filters, scoreRange: val })}
           />
         </div>
 
-        {/* Search */}
-        <div className="relative flex w-[240px] items-center">
-          <Search size={14} className="absolute left-3 text-neutral-400" />
-          <Input 
-            type="text" 
-            placeholder="Search candidates..." 
-            value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
-            className="h-[32px] pl-[32px] text-[13px]"
+        <select 
+          value={filters.stages[0] || ''}
+          onChange={(e) => {
+            const val = e.target.value
+            onFiltersChange({ ...filters, stages: val ? [val] : [] })
+          }}
+          className="h-[36px] w-[180px] rounded-md border border-neutral-200 px-[12px] font-body text-[13px] focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 bg-white"
+        >
+          <option value="">All Stages</option>
+          <option value="Screening">Screening</option>
+          <option value="Phone Screen">Phone Screen</option>
+          <option value="Interview">Interview</option>
+          <option value="Assessment">Assessment</option>
+          <option value="Offer">Offer</option>
+          <option value="Hired">Hired</option>
+        </select>
+
+        <div className="relative">
+          <Search size={14} className="absolute left-[10px] top-[11px] text-neutral-400" />
+          <input
+            type="text"
+            value={filters.search}
+            onChange={(e) => onFiltersChange({ ...filters, search: e.target.value })}
+            placeholder="Search candidates..."
+            className="w-[240px] h-[36px] pl-[32px] pr-[12px] bg-white border border-neutral-200 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 rounded-md text-[13px] text-neutral-900 placeholder:text-neutral-500 focus:outline-none transition-colors"
           />
         </div>
 
-        {/* Divider & Clear */}
         {hasFilters && (
-          <>
-            <div className="mx-[4px] h-[20px] w-px bg-neutral-200" />
-            <Button 
-              variant="ghost" 
-              className="h-[32px] px-3 text-[13px] text-neutral-500 hover:text-neutral-900"
-              onClick={() => {
-                setSearchValue("")
-                setScoreRange([0, 100])
-                setSource("all")
-              }}
-            >
-              Clear filters
-            </Button>
-          </>
+          <button 
+            onClick={handleClear}
+            className="text-[13px] font-medium text-neutral-500 hover:text-neutral-700 ml-auto transition-colors px-[12px]"
+          >
+            Clear filters
+          </button>
         )}
       </div>
 
-      {/* Active Filter Chips */}
       {hasFilters && (
-        <div className="mt-[8px] flex flex-wrap gap-2">
-          <div className="flex h-[24px] items-center gap-1 rounded-full bg-primary-50 px-2 font-body text-[12px] font-medium text-primary-700">
-            <Filter size={10} className="mr-1" />
-            Active Filters:
-          </div>
-          
-          {(scoreRange[0] > 0 || scoreRange[1] < 100) && (
-            <div className="flex h-[24px] items-center gap-1 rounded-full bg-primary-100 px-[8px] font-body text-[12px] font-medium text-primary-700">
-              Score: {scoreRange[0]}-{scoreRange[1]}
-              <button className="ml-1 flex h-[14px] w-[14px] items-center justify-center rounded-full hover:bg-primary-200" onClick={() => setScoreRange([0, 100])}>
-                <X size={10} />
-              </button>
-            </div>
+        <div className="px-[16px] md:px-[32px] pb-[16px] pt-[4px] flex gap-[8px] flex-wrap">
+          {filters.source && (
+            <FilterChip label={`Source: ${filters.source}`} onRemove={() => onFiltersChange({ ...filters, source: '' })} />
           )}
-
-          {source !== "all" && (
-            <div className="flex h-[24px] items-center gap-1 rounded-full bg-primary-100 px-[8px] font-body text-[12px] font-medium text-primary-700 capitalize">
-              Source: {source}
-              <button className="ml-1 flex h-[14px] w-[14px] items-center justify-center rounded-full hover:bg-primary-200" onClick={() => setSource("all")}>
-                <X size={10} />
-              </button>
-            </div>
+          {(filters.scoreRange[0] > 0 || filters.scoreRange[1] < 100) && (
+            <FilterChip label={`Score: ${filters.scoreRange[0]}-${filters.scoreRange[1]}`} onRemove={() => onFiltersChange({ ...filters, scoreRange: [0, 100] })} />
+          )}
+          {filters.stages.map(stage => (
+            <FilterChip key={stage} label={`Stage: ${stage}`} onRemove={() => onFiltersChange({ ...filters, stages: filters.stages.filter(s => s !== stage) })} />
+          ))}
+          {filters.search && (
+            <FilterChip label={`Search: ${filters.search}`} onRemove={() => onFiltersChange({ ...filters, search: '' })} />
           )}
         </div>
       )}
-
     </div>
   )
 }
