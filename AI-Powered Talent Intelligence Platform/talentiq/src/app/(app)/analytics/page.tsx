@@ -83,28 +83,28 @@ export default function AnalyticsPage() {
 
       {/* SEC 1: KEY METRICS */}
       <div className="grid grid-cols-12 gap-[24px] mb-[24px]">
-        <div className="col-span-3">
+        <div className="col-span-12 md:col-span-6 lg:col-span-3">
           <StatCard title="Total Applications" value="1,245" icon={<Users size={16} />} trend="+12.5%" positive={true} />
         </div>
-        <div className="col-span-3">
+        <div className="col-span-12 md:col-span-6 lg:col-span-3">
           <StatCard title="Time to Hire" value="18 Days" icon={<Clock size={16} />} trend="-2.4 days" positive={true} />
         </div>
-        <div className="col-span-3">
+        <div className="col-span-12 md:col-span-6 lg:col-span-3">
           <StatCard title="Offer Acceptance" value="82%" icon={<CheckCircle2 size={16} />} trend="-4.1%" positive={false} />
         </div>
-        <div className="col-span-3">
+        <div className="col-span-12 md:col-span-6 lg:col-span-3">
           <StatCard title="Pipeline Conversion" value="3.4%" icon={<TrendingUp size={16} />} trend="+0.8%" positive={true} />
         </div>
       </div>
 
       {/* SEC 2: PIPELINE FUNNEL */}
       <div className="grid grid-cols-12 gap-[24px] mb-[24px]">
-        <div className="col-span-8">
+        <div className="col-span-12 lg:col-span-8">
           <ChartCard title="Conversion Funnel" period="Last 30 Days">
             <PipelineFunnelChart />
           </ChartCard>
         </div>
-        <div className="col-span-4">
+        <div className="col-span-12 lg:col-span-4">
           <CompactTable />
         </div>
       </div>
@@ -120,12 +120,12 @@ export default function AnalyticsPage() {
 
       {/* SEC 4: SOURCE QUALITY */}
       <div className="grid grid-cols-12 gap-[24px] mb-[24px]">
-        <div className="col-span-6">
+        <div className="col-span-12 lg:col-span-6">
           <ChartCard title="Conversion by Source" period="Last 30 Days">
             <SourceQualityChart />
           </ChartCard>
         </div>
-        <div className="col-span-6">
+        <div className="col-span-12 lg:col-span-6">
           <ChartCard title="Application Volume by Source" period="Last 30 Days">
             <SourceVolumeDonut />
           </ChartCard>

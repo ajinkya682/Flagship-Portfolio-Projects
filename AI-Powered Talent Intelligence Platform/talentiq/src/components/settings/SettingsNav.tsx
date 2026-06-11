@@ -21,11 +21,11 @@ export function SettingsNav() {
   ]
 
   return (
-    <div className="flex flex-col w-[200px] flex-shrink-0">
-      <h5 className="font-display text-[13px] font-semibold text-neutral-500 uppercase tracking-wider mb-[12px] px-[12px]">
+    <div className="flex flex-col w-full md:w-[200px] flex-shrink-0">
+      <h5 className="font-display text-[13px] font-semibold text-neutral-500 uppercase tracking-wider mb-[12px] px-[12px] hidden md:block">
         Settings
       </h5>
-      <nav className="flex flex-col gap-[2px]">
+      <nav className="flex flex-row md:flex-col overflow-x-auto md:overflow-visible gap-[2px] custom-scrollbar-thin pb-2 md:pb-0">
         {navItems.map((item) => {
           // Exact match for /settings, otherwise startsWith for subpages
           const isActive = item.href === "/settings" 
@@ -37,7 +37,7 @@ export function SettingsNav() {
               key={item.name}
               href={item.href}
               className={cn(
-                "flex items-center gap-[10px] h-[36px] px-[12px] rounded-[var(--radius-md)] font-body text-[14px] font-medium transition-colors border-l-2",
+                "flex items-center gap-[10px] h-[36px] px-[12px] rounded-[var(--radius-md)] font-body text-[14px] font-medium transition-colors border-b-2 md:border-b-0 md:border-l-2 whitespace-nowrap",
                 isActive
                   ? "border-primary-500 bg-primary-50 text-primary-700"
                   : "border-transparent text-neutral-700 hover:bg-neutral-50 hover:text-neutral-900"

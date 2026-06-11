@@ -5,7 +5,7 @@ import {
   DndContext, 
   DragOverlay, 
   closestCorners, 
-  KeyboardSensor, 
+  KeyboardSensor,
   PointerSensor, 
   useSensor, 
   useSensors,
@@ -14,6 +14,7 @@ import {
   DragEndEvent
 } from "@dnd-kit/core"
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable"
+import { ChevronDown, ChevronRight } from "lucide-react"
 import confetti from "canvas-confetti"
 import { KanbanColumn, type Stage } from "./KanbanColumn"
 import { KanbanCard, type Candidate } from "./KanbanCard"
@@ -58,6 +59,7 @@ export function KanbanBoard() {
   // Side Panel State
   const [selectedCandidate, setSelectedCandidate] = React.useState<Candidate | null>(null)
   const [isPanelOpen, setIsPanelOpen] = React.useState(false)
+  const [expandedMobileStage, setExpandedMobileStage] = React.useState<string | null>("screening")
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -193,32 +195,91 @@ export function KanbanBoard() {
   }
 
   return (
-    <div className="flex h-full gap-[16px] overflow-x-auto p-[20px] custom-scrollbar bg-neutral-100">
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCorners}
-        onDragStart={onDragStart}
-        onDragOver={onDragOver}
-        onDragEnd={onDragEnd}
-      >
-        {initialStages.map((stage) => (
-          <KanbanColumn
-            key={stage.id}
-            stage={stage}
-            candidates={columns[stage.id] || []}
-            onCardClick={handleCardClick}
-            selectedCardId={selectedCandidate?.id}
-          />
-        ))}
+    <>
+      {/* Desktop View (Drag and Drop) */}
+      <div className="hidden md:flex h-full gap-[16px] overflow-x-auto p-[20px] custom-scrollbar bg-neutral-100">
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCorners}
+          onDragStart={onDragStart}
+          onDragOver={onDragOver}
+          onDragEnd={onDragEnd}
+        >
+          {initialStages.map((stage) => (
+            <KanbanColumn
+              key={stage.id}
+              stage={stage}
+              candidates={columns[stage.id] || []}
+              onCardClick={handleCardClick}
+              selectedCardId={selectedCandidate?.id}
+            />
+          ))}
 
-        <KanbanDragOverlay activeCandidate={activeCandidate} />
-      </DndContext>
+          <KanbanDragOverlay activeCandidate={activeCandidate} />
+        </DndContext>
+      </div>
+
+      {/* Mobile View (Accordion) */}
+      <div className="flex md:hidden flex-col h-full gap-[12px] overflow-y-auto p-[16px] bg-neutral-100 pb-[100px]">
+        {initialStages.map((stage) => {
+          const isExpanded = expandedMobileStage === stage.id
+          const stageCandidates = columns[stage.id] || []
+          
+          const stageColors = {
+            primary: "bg-primary-500",
+            info: "bg-[#3B82F6]",
+            warning: "bg-[#F59E0B]",
+            purple: "bg-[#8B5CF6]",
+            accent: "bg-accent-500",
+            hired: "bg-accent-600",
+          }
+          const colorClass = stageColors[stage.color] || stageColors.primary
+
+          return (
+            <div key={stage.id} className="flex flex-col rounded-[var(--radius-md)] border border-neutral-200 bg-white overflow-hidden shadow-sm">
+              <button 
+                onClick={() => setExpandedMobileStage(isExpanded ? null : stage.id)}
+                className="flex items-center justify-between p-[16px] bg-white text-left hover:bg-neutral-50 transition-colors"
+              >
+                <div className="flex items-center gap-[12px]">
+                  <div className={`h-[16px] w-[3px] rounded-full ${colorClass}`} />
+                  <span className="font-display font-semibold text-neutral-900 text-[15px]">{stage.name}</span>
+                  <span className="flex h-[20px] min-w-[20px] items-center justify-center rounded-full bg-neutral-100 px-[6px] text-[11px] font-bold text-neutral-600">
+                    {stageCandidates.length}
+                  </span>
+                </div>
+                {isExpanded ? <ChevronDown size={18} className="text-neutral-500" /> : <ChevronRight size={18} className="text-neutral-500" />}
+              </button>
+              
+              {isExpanded && (
+                <div className="flex flex-col gap-[12px] p-[16px] pt-0 bg-neutral-50/50 border-t border-neutral-100">
+                  <div className="mt-[16px] flex flex-col gap-[12px]">
+                    {stageCandidates.map(candidate => (
+                      <KanbanCard 
+                        key={candidate.id} 
+                        candidate={candidate} 
+                        onClick={handleCardClick}
+                        isSelected={selectedCandidate?.id === candidate.id}
+                      />
+                    ))}
+                    {stageCandidates.length === 0 && (
+                      <div className="py-[20px] text-center text-neutral-400 text-[13px]">
+                        No candidates in this stage.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
 
       <ApplicationSidePanel 
         candidate={selectedCandidate} 
         isOpen={isPanelOpen} 
         onClose={() => setIsPanelOpen(false)} 
       />
-    </div>
+    </>
   )
 }

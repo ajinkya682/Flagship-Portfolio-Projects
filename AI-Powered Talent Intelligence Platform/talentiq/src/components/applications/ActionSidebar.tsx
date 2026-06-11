@@ -35,7 +35,7 @@ export function ActionSidebar() {
 
   return (
     <>
-      <div className="sticky top-[88px] flex flex-col rounded-[var(--radius-lg)] border border-neutral-200 bg-neutral-50 p-[20px] shadow-sm">
+      <div className="static lg:sticky top-[88px] flex flex-col rounded-[var(--radius-lg)] border border-neutral-200 bg-neutral-50 p-[20px] shadow-sm">
         
         {/* MOVE STAGE */}
         <div className="flex flex-col gap-[8px]">

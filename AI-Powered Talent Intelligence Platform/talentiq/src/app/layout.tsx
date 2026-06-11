@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { SkipToMain } from "@/components/layout/SkipToMain";
 
 const inter = Inter({ subsets: ["latin"], display: "swap" });
 
@@ -33,7 +34,10 @@ export default function RootLayout({
           crossOrigin="anonymous"
         />
       </head>
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className}>
+        <SkipToMain />
+        {children}
+      </body>
     </html>
   );
 }

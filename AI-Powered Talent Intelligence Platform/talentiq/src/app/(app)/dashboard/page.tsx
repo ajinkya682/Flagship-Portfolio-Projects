@@ -12,12 +12,12 @@ import { ApplicationTable } from "@/components/dashboard/ApplicationTable"
 
 export default function DashboardPage() {
   return (
-    <div className="mx-auto w-full max-w-[1400px] p-[28px_32px]">
+    <div className="mx-auto w-full max-w-[1400px] p-[20px_16px] md:p-[28px_32px]">
       
       {/* 1. PAGE HEADER ROW */}
-      <div className="flex items-end justify-between mb-[32px]">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-[16px] mb-[32px]">
         <WelcomeGreeting name="Sarah" />
-        <Button variant="primary" iconLeft={<Plus size={16} />}>
+        <Button variant="primary" iconLeft={<Plus size={16} className="hidden md:block" />} className="w-full md:w-auto">
           Create Job
         </Button>
       </div>

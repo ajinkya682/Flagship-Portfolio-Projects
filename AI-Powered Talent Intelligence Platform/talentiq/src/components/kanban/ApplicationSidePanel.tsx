@@ -39,11 +39,15 @@ export function ApplicationSidePanel({ candidate, isOpen, onClose }: Application
         onClick={onClose}
       />
 
-      {/* Drawer */}
+      {/* Drawer / Bottom Sheet */}
       <div 
         className={cn(
-          "fixed bottom-0 right-0 top-0 z-50 flex w-[480px] flex-col bg-white shadow-xl transition-transform duration-200 ease-out",
-          isOpen ? "translate-x-0" : "translate-x-[100%]"
+          "fixed z-50 flex flex-col bg-white shadow-xl transition-transform duration-200 ease-out",
+          // Mobile: Bottom Sheet
+          "bottom-0 left-0 right-0 top-[60px] rounded-t-[24px] md:top-0 md:rounded-t-none",
+          isOpen ? "translate-y-0 md:translate-y-0 md:translate-x-0" : "translate-y-[100%] md:translate-y-0 md:translate-x-[100%]",
+          // Desktop: Side Panel
+          "md:left-auto md:right-0 md:w-[480px]"
         )}
       >
         {candidate && (

@@ -12,10 +12,10 @@ export function HeroSection() {
       <HeroMeshBackground />
       
       <div className="relative mx-auto max-w-[1200px] px-5 md:px-10 lg:px-[80px]">
-        <div className="flex flex-col lg:flex-row lg:items-center gap-12 lg:gap-8">
+        <div className="flex flex-col md:flex-row md:items-center gap-12 md:gap-8">
           
           {/* LEFT COLUMN (55%) */}
-          <div className="flex w-full flex-col lg:w-[55%]">
+          <div className="flex w-full flex-col md:w-[55%]">
             
             {/* AI Badge Pill */}
             <div className="animate-fade-slide-up [animation-delay:0ms] opacity-0 flex h-7 w-fit items-center gap-1.5 rounded-full border border-accent-200 bg-accent-100 px-3 shadow-accent-lg shadow-accent-500/30">
@@ -32,14 +32,14 @@ export function HeroSection() {
               </span>
               <span className="animate-fade-slide-up [animation-delay:140ms] opacity-0 flex flex-wrap items-center gap-3">
                 <span>Before Your <GradientText variant="primary">Competition</GradientText></span>
-                <span className="hidden lg:inline-flex items-center">
+                <span className="hidden md:inline-flex items-center">
                   <HeroInlineCTA />
                 </span>
               </span>
             </h1>
 
             {/* Mobile CTA (Drops below headline) */}
-            <div className="mt-6 flex lg:hidden animate-fade-slide-up [animation-delay:180ms] opacity-0">
+            <div className="mt-6 flex md:hidden animate-fade-slide-up [animation-delay:180ms] opacity-0">
               <HeroInlineCTA className="w-full sm:w-auto" />
             </div>
 
@@ -72,7 +72,7 @@ export function HeroSection() {
           </div>
 
           {/* RIGHT COLUMN (45%) */}
-          <div className="animate-fade-slide-up [animation-delay:100ms] opacity-0 mt-8 lg:mt-0 flex w-full lg:w-[45%] items-center justify-center">
+          <div className="animate-fade-slide-up [animation-delay:100ms] opacity-0 mt-8 md:mt-0 flex w-full md:w-[45%] items-center justify-center">
             <HeroProductMockup className="scale-100 md:scale-95 lg:scale-100" />
           </div>
 

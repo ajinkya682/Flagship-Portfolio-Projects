@@ -40,7 +40,7 @@ export function ApplicationTable() {
   }
 
   return (
-    <div className="rounded-[var(--radius-lg)] border border-neutral-200 bg-white overflow-hidden shadow-sm">
+    <div className="rounded-[var(--radius-lg)] border border-neutral-200 bg-white overflow-x-auto shadow-sm">
       <Table>
         <TableHeader>
           <TableRow className="bg-neutral-50 hover:bg-neutral-50">

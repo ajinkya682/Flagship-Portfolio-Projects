@@ -42,7 +42,7 @@ export default function ApplicationDetailPage() {
         <div className="grid grid-cols-12 gap-[32px] w-full">
           
           {/* MAIN CONTENT (8 cols) */}
-          <div className="col-span-8 flex flex-col">
+          <div className="col-span-12 lg:col-span-8 flex flex-col">
             
             {/* Header */}
             <div className="flex flex-col">
@@ -139,7 +139,7 @@ export default function ApplicationDetailPage() {
           </div>
 
           {/* ACTION SIDEBAR (4 cols) */}
-          <div className="col-span-4 relative">
+          <div className="col-span-12 lg:col-span-4 relative mt-8 lg:mt-0">
             <ActionSidebar />
           </div>
 
