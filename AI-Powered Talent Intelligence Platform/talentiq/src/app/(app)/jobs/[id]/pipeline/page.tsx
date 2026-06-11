@@ -4,7 +4,7 @@ import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import JobStatusBadge from '@/components/jobs/JobStatusBadge'
-import FilterBar, { FiltersState } from '@/components/kanban/FilterBar'
+import FilterBar, { type FiltersState } from '@/components/kanban/FilterBar'
 import { useState } from 'react'
 import dynamic from 'next/dynamic'
 

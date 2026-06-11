@@ -1,3 +1,5 @@
+'use client'
+
 import StatCard from '@/components/dashboard/StatCard'
 import { Users, Clock, ThumbsUp, Filter } from 'lucide-react'
 

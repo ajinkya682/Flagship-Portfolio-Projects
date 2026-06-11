@@ -4,7 +4,7 @@ import { Twitter, Linkedin, Github } from 'lucide-react'
 export default function Footer() {
   return (
     <footer className="bg-[#040D1A] pt-[72px] pb-[40px]">
-      <div className="max-w-[1200px] mx-auto px-4 md:px-10 lg:px-20">
+      <div className="max-w-[1440px] mx-auto px-4 md:px-10 lg:px-8 xl:px-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
           {/* Column 1: Brand & Social */}
           <div className="flex flex-col">

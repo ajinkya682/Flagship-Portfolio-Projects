@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Search } from 'lucide-react'
 import ApplicationTable from '@/components/applications/ApplicationTable'
-import FilterBar, { FiltersState } from '@/components/kanban/FilterBar'
+import FilterBar, { type FiltersState } from '@/components/kanban/FilterBar'
 import { Application } from '@/types/domain.types'
 
 // Mock Applications
@@ -12,7 +12,7 @@ const mockApplications: Application[] = [
     id: 'app_1',
     jobId: 'job_1',
     job: { title: 'Senior Software Engineer' } as any,
-    candidate: { name: 'Jennifer Park', email: 'jennifer@example.com', avatar: undefined } as any,
+    candidate: { name: 'Jennifer Park', email: 'jennifer@example.com', avatar: 'https://randomuser.me/api/portraits/women/65.jpg' } as any,
     stage: 'Screening',
     aiScore: 92,
     appliedAt: new Date(Date.now() - 86400000 * 2).toISOString(),
@@ -26,7 +26,7 @@ const mockApplications: Application[] = [
     id: 'app_2',
     jobId: 'job_2',
     job: { title: 'Product Manager' } as any,
-    candidate: { name: 'David Chen', email: 'david@example.com', avatar: undefined } as any,
+    candidate: { name: 'David Chen', email: 'david@example.com', avatar: 'https://randomuser.me/api/portraits/men/32.jpg' } as any,
     stage: 'Interview',
     aiScore: 88,
     appliedAt: new Date(Date.now() - 86400000 * 5).toISOString(),
@@ -40,7 +40,7 @@ const mockApplications: Application[] = [
     id: 'app_3',
     jobId: 'job_1',
     job: { title: 'Senior Software Engineer' } as any,
-    candidate: { name: 'Sarah Kim', email: 'sarah.kim@example.com', avatar: undefined } as any,
+    candidate: { name: 'Sarah Kim', email: 'sarah.kim@example.com', avatar: 'https://randomuser.me/api/portraits/women/44.jpg' } as any,
     stage: 'Offer',
     aiScore: 95,
     appliedAt: new Date(Date.now() - 86400000 * 14).toISOString(),

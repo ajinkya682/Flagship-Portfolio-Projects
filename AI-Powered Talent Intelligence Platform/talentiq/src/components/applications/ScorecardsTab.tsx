@@ -12,7 +12,7 @@ const mockScorecards: Scorecard[] = [
   {
     id: 'sc_1',
     interviewId: 'int_2',
-    interviewer: { id: 'u2', name: 'Sarah Recruiter', avatar: undefined } as any,
+    interviewer: { id: 'u2', name: 'Sarah Recruiter', avatar: 'https://randomuser.me/api/portraits/women/44.jpg' } as any,
     overallRating: 'yes',
     criteria: [
       { name: 'Technical Skills', rating: 4, comment: 'Strong understanding of React concepts.' },

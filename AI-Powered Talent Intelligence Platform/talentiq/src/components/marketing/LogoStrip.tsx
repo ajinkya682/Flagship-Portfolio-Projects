@@ -20,7 +20,7 @@ export default function LogoStrip() {
       </div>
 
       {!isMobile ? (
-        <div className="max-w-[1200px] mx-auto px-10">
+        <div className="max-w-[1440px] mx-auto px-10">
           <div className="flex flex-row justify-center flex-wrap gap-12">
             {companies.map((company, i) => (
               <div 

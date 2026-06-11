@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import TestimonialCard from './TestimonialCard'
+import ParticleField from './ParticleField'
 
 export default function TestimonialsSection() {
   const [activeIndex, setActiveIndex] = useState(0)
@@ -12,18 +13,21 @@ export default function TestimonialsSection() {
       quote: "We reduced time-to-hire from 45 days to 17 days. The AI scoring alone paid for itself in the first hire.",
       authorName: "Marcus Rodriguez",
       authorTitle: "Head of Talent at Cascade AI",
+      authorAvatar: "https://randomuser.me/api/portraits/men/46.jpg",
       metric: "Cut time-to-hire by 62%"
     },
     {
       quote: "TalentIQ caught bias in our job descriptions we had been running for years. That alone changed how we hire.",
       authorName: "Jennifer Park",
       authorTitle: "Chief People Officer at Orbit Finance",
+      authorAvatar: "https://randomuser.me/api/portraits/women/65.jpg",
       metric: "Reduced bias flags by 84%"
     },
     {
       quote: "Our hiring managers actually trust the data now. Before it was always gut feel. Now we move faster and with more confidence.",
       authorName: "David Chen",
       authorTitle: "VP Engineering at Prism Health",
+      authorAvatar: "https://randomuser.me/api/portraits/men/32.jpg",
       metric: "3x faster decision making"
     }
   ]
@@ -39,8 +43,11 @@ export default function TestimonialsSection() {
   }
 
   return (
-    <section className="bg-[#0A2540] py-24">
-      <div className="max-w-[1200px] mx-auto px-5 md:px-10 lg:px-20">
+    <section className="bg-[#0A2540] py-24 relative overflow-hidden">
+      <div className="absolute inset-0 z-0">
+        <ParticleField />
+      </div>
+      <div className="max-w-[1440px] mx-auto px-5 md:px-10 lg:px-8 xl:px-12 relative z-10">
         
         {/* Header */}
         <div className="max-w-[600px] mx-auto text-center">

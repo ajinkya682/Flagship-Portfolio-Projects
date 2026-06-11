@@ -1,47 +1,50 @@
-import type { Metadata } from 'next'
-import { Plus_Jakarta_Sans, Inter, JetBrains_Mono } from 'next/font/google'
-import { QueryProvider } from '@/lib/QueryProvider'
-import './globals.css'
-import type { ReactNode } from 'react'
+import type { Metadata } from "next";
+import { Plus_Jakarta_Sans, Inter, JetBrains_Mono } from "next/font/google";
+import { QueryProvider } from "@/lib/QueryProvider";
+import "./globals.css";
+import type { ReactNode } from "react";
+import kjd from "../../public/images/logo.png";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
-  subsets: ['latin'],
-  weight: ['600', '700', '800'],
-  variable: '--font-display',
-  display: 'swap',
-})
+  subsets: ["latin"],
+  weight: ["600", "700", "800"],
+  variable: "--font-display",
+  display: "swap",
+});
 
 const inter = Inter({
-  subsets: ['latin'],
-  weight: ['400', '500', '600'],
-  variable: '--font-body',
-  display: 'swap',
-})
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-body",
+  display: "swap",
+});
 
 const jetbrainsMono = JetBrains_Mono({
-  subsets: ['latin'],
-  weight: ['400', '500'],
-  variable: '--font-mono',
-  display: 'swap',
-})
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-mono",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'),
-  title: 'TalentIQ — AI-Powered Talent Intelligence',
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
+  ),
+  title: "TalentIQ — AI-Powered Talent Intelligence",
   description:
-    'Stop losing great candidates to outdated filters. TalentIQ scores every applicant with explainable AI.',
+    "Stop losing great candidates to outdated filters. TalentIQ scores every applicant with explainable AI.",
   openGraph: {
-    title: 'TalentIQ — AI-Powered Talent Intelligence',
+    title: "TalentIQ — AI-Powered Talent Intelligence",
     description:
-      'Stop losing great candidates to outdated filters. TalentIQ scores every applicant with explainable AI.',
-    type: 'website',
-    url: process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000',
-    images: ['/images/og-image.png'],
+      "Stop losing great candidates to outdated filters. TalentIQ scores every applicant with explainable AI.",
+    type: "website",
+    url: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
+    images: ["../../public/images/logo.png"],
   },
   twitter: {
-    card: 'summary_large_image',
+    card: "summary_large_image",
   },
-}
+};
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
@@ -61,5 +64,5 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         </QueryProvider>
       </body>
     </html>
-  )
+  );
 }

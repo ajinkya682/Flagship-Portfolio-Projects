@@ -1,14 +1,48 @@
 'use client'
 
+import React, { useRef } from 'react'
+import { useGSAP } from '@gsap/react'
+import gsap from '@/lib/gsap'
+import { ScrollTrigger } from '@/lib/gsap'
 import { ScoreRing } from '@/components/score/ScoreRing'
 import SubscoreBar from '@/components/score/SubscoreBar'
-import { ScrollEntry } from '@/components/shared/ScrollEntry'
 import { ThumbsUp, ThumbsDown } from 'lucide-react'
 
 export default function AIScoreDemo() {
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useGSAP(() => {
+    if (!containerRef.current) return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: containerRef.current,
+        start: 'top 85%'
+      }
+    })
+
+    tl.fromTo('.demo-subscore', 
+      { scaleX: 0, opacity: 0 },
+      { scaleX: 1, opacity: 1, duration: 0.6, stagger: 0.1, ease: 'power2.out', transformOrigin: 'left' }
+    )
+
+    tl.fromTo('.demo-thumb', 
+      { x: -10, opacity: 0 },
+      { x: 0, opacity: 1, duration: 0.4, stagger: 0.08, ease: 'power2.out' },
+      '-=0.2'
+    )
+
+    tl.fromTo('.demo-pill',
+      { scale: 0.8, opacity: 0 },
+      { scale: 1, opacity: 1, duration: 0.4, stagger: 0.05, ease: 'back.out(1.5)' },
+      '-=0.2'
+    )
+
+  }, { scope: containerRef })
+
   return (
-    <ScrollEntry>
-      <div className="bg-white rounded-xl shadow-lg p-6 max-w-[480px] border border-neutral-100 mx-auto lg:mx-0">
+    <div ref={containerRef} className="bg-white rounded-xl shadow-lg p-6 max-w-[480px] border border-neutral-100 mx-auto lg:mx-0">
         
         {/* Header Row */}
         <div className="flex items-center gap-3 border-b border-neutral-100 pb-4 mb-4">
@@ -31,10 +65,10 @@ export default function AIScoreDemo() {
 
         {/* Subscores */}
         <div className="mt-6 flex flex-col gap-1">
-          <SubscoreBar label="Skills Match" value={95} />
-          <SubscoreBar label="Experience" value={88} />
-          <SubscoreBar label="Education" value={72} />
-          <SubscoreBar label="Keywords" value={90} />
+          <div className="demo-subscore"><SubscoreBar label="Skills Match" value={95} /></div>
+          <div className="demo-subscore"><SubscoreBar label="Experience" value={88} /></div>
+          <div className="demo-subscore"><SubscoreBar label="Education" value={72} /></div>
+          <div className="demo-subscore"><SubscoreBar label="Keywords" value={90} /></div>
         </div>
 
         {/* Why this score */}
@@ -42,24 +76,24 @@ export default function AIScoreDemo() {
           <h4 className="text-[12px] font-semibold text-neutral-700 uppercase tracking-wide mb-3">Why this score</h4>
           
           <div className="flex flex-col gap-2.5">
-            <div className="flex items-start gap-2">
+            <div className="demo-thumb flex items-start gap-2">
               <ThumbsUp className="w-3.5 h-3.5 text-[#10B981] mt-0.5 shrink-0" />
               <span className="text-[12px] text-neutral-700 leading-snug">5+ years React matches senior requirement</span>
             </div>
-            <div className="flex items-start gap-2">
+            <div className="demo-thumb flex items-start gap-2">
               <ThumbsUp className="w-3.5 h-3.5 text-[#10B981] mt-0.5 shrink-0" />
               <span className="text-[12px] text-neutral-700 leading-snug">Open source contributions show initiative</span>
             </div>
-            <div className="flex items-start gap-2">
+            <div className="demo-thumb flex items-start gap-2">
               <ThumbsUp className="w-3.5 h-3.5 text-[#10B981] mt-0.5 shrink-0" />
               <span className="text-[12px] text-neutral-700 leading-snug">AWS certified relevant to infrastructure work</span>
             </div>
             
-            <div className="flex items-start gap-2 mt-1">
+            <div className="demo-thumb flex items-start gap-2 mt-1">
               <ThumbsDown className="w-3.5 h-3.5 text-[#EF4444] mt-0.5 shrink-0" />
               <span className="text-[12px] text-neutral-700 leading-snug">No TypeScript listed explicitly</span>
             </div>
-            <div className="flex items-start gap-2">
+            <div className="demo-thumb flex items-start gap-2">
               <ThumbsDown className="w-3.5 h-3.5 text-[#EF4444] mt-0.5 shrink-0" />
               <span className="text-[12px] text-neutral-700 leading-snug">Leadership experience not demonstrated</span>
             </div>
@@ -69,15 +103,14 @@ export default function AIScoreDemo() {
         {/* Extracted Skills Pills */}
         <div className="mt-5 pt-4 border-t border-neutral-100">
           <div className="flex flex-wrap gap-2">
-            <span className="bg-accent-100 text-accent-700 rounded-full px-2.5 py-1 text-[10px] font-medium">React</span>
-            <span className="bg-accent-100 text-accent-700 rounded-full px-2.5 py-1 text-[10px] font-medium">Node.js</span>
-            <span className="bg-accent-100 text-accent-700 rounded-full px-2.5 py-1 text-[10px] font-medium">AWS</span>
-            <span className="bg-amber-100 text-amber-700 rounded-full px-2.5 py-1 text-[10px] font-medium">TypeScript</span>
-            <span className="bg-amber-100 text-amber-700 rounded-full px-2.5 py-1 text-[10px] font-medium">Leadership</span>
+            <span className="demo-pill bg-accent-100 text-accent-700 rounded-full px-2.5 py-1 text-[10px] font-medium">React</span>
+            <span className="demo-pill bg-accent-100 text-accent-700 rounded-full px-2.5 py-1 text-[10px] font-medium">Node.js</span>
+            <span className="demo-pill bg-accent-100 text-accent-700 rounded-full px-2.5 py-1 text-[10px] font-medium">AWS</span>
+            <span className="demo-pill bg-amber-100 text-amber-700 rounded-full px-2.5 py-1 text-[10px] font-medium">TypeScript</span>
+            <span className="demo-pill bg-amber-100 text-amber-700 rounded-full px-2.5 py-1 text-[10px] font-medium">Leadership</span>
           </div>
         </div>
 
       </div>
-    </ScrollEntry>
   )
 }

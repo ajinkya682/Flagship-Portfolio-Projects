@@ -29,7 +29,7 @@ export function useAuth() {
             careerPageUrl: '',
             subdomain: 'acme'
           },
-          avatar: undefined,
+          avatar: 'https://randomuser.me/api/portraits/women/68.jpg',
           plan: 'growth',
           createdAt: new Date().toISOString(),
           lastActiveAt: new Date().toISOString(),
@@ -60,7 +60,7 @@ export function useAuth() {
             careerPageUrl: '',
             subdomain: 'acme'
           },
-          avatar: undefined,
+          avatar: 'https://randomuser.me/api/portraits/women/68.jpg',
           plan: 'starter',
           createdAt: new Date().toISOString(),
           lastActiveAt: new Date().toISOString(),

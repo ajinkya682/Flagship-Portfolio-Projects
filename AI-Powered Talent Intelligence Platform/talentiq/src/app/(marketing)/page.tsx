@@ -1,5 +1,5 @@
+import dynamic from 'next/dynamic'
 import HeroSection from '@/components/marketing/HeroSection'
-import BentoGrid from '@/components/marketing/BentoGrid'
 import LogoStrip from '@/components/marketing/LogoStrip'
 import StatsStrip from '@/components/marketing/StatsStrip'
 import AIExplainerSection from '@/components/marketing/AIExplainerSection'
@@ -11,57 +11,71 @@ import PricingSection from '@/components/marketing/PricingSection'
 import TestimonialsSection from '@/components/marketing/TestimonialsSection'
 import FAQSection from '@/components/marketing/FAQSection'
 import FinalCTASection from '@/components/marketing/FinalCTASection'
-import SectionWrapper from '@/components/marketing/SectionWrapper'
+import ScrollReveal from '@/components/marketing/ScrollReveal'
+import HeroTextReveal from '@/components/marketing/HeroTextReveal'
+import ScrollProgress from '@/components/marketing/ScrollProgress'
+
+// Dynamically import heavy WebGL and GSAP horizontal scroll components
+const ThreeHeroBackground = dynamic(() => import('@/components/marketing/ThreeHeroBackground'), { ssr: false })
+const HorizontalBentoScroll = dynamic(() => import('@/components/marketing/HorizontalBentoScroll'), { ssr: false })
 
 export default function MarketingHomePage() {
   return (
     <div className="flex flex-col min-h-screen">
-      <HeroSection />
-      <BentoGrid />
+      <ScrollProgress />
+
+      <div className="relative">
+        <ThreeHeroBackground />
+        <HeroTextReveal>
+          <HeroSection />
+        </HeroTextReveal>
+      </div>
+
+      <HorizontalBentoScroll />
       
-      <SectionWrapper delay={0}>
+      <ScrollReveal animation="stagger" className="relative z-10 bg-white">
         <LogoStrip />
-      </SectionWrapper>
+      </ScrollReveal>
       
-      <SectionWrapper delay={60}>
+      <ScrollReveal animation="cards" className="relative z-10 bg-white">
         <StatsStrip />
-      </SectionWrapper>
+      </ScrollReveal>
       
-      <SectionWrapper delay={120}>
+      <ScrollReveal animation="mask" className="relative z-10 bg-white">
         <AIExplainerSection />
-      </SectionWrapper>
+      </ScrollReveal>
       
-      <SectionWrapper delay={180}>
+      <ScrollReveal animation="none" className="relative z-10 bg-white">
         <FeaturesShowcase />
-      </SectionWrapper>
+      </ScrollReveal>
       
-      <SectionWrapper delay={240}>
+      <ScrollReveal animation="none" className="relative z-10 bg-white">
         <PipelineExplainerSection />
-      </SectionWrapper>
+      </ScrollReveal>
       
-      <SectionWrapper delay={300}>
+      <ScrollReveal animation="none" className="relative z-10 bg-white">
         <PersonasSection />
-      </SectionWrapper>
+      </ScrollReveal>
       
-      <SectionWrapper delay={360}>
+      <ScrollReveal animation="none" className="relative z-10 bg-white">
         <IntegrationsSection />
-      </SectionWrapper>
+      </ScrollReveal>
       
-      <SectionWrapper delay={420}>
+      <ScrollReveal animation="none" className="relative z-10 bg-white">
         <PricingSection />
-      </SectionWrapper>
+      </ScrollReveal>
       
-      <SectionWrapper delay={480}>
+      <ScrollReveal animation="none" className="relative z-10 bg-white">
         <TestimonialsSection />
-      </SectionWrapper>
+      </ScrollReveal>
       
-      <SectionWrapper delay={480}>
+      <ScrollReveal animation="stagger" className="relative z-10 bg-white">
         <FAQSection />
-      </SectionWrapper>
+      </ScrollReveal>
       
-      <SectionWrapper delay={480}>
+      <ScrollReveal animation="mask" className="relative z-10 bg-white">
         <FinalCTASection />
-      </SectionWrapper>
+      </ScrollReveal>
     </div>
   )
 }

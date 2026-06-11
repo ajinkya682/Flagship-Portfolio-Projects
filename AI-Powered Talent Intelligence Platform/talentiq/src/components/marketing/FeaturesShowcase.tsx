@@ -1,11 +1,41 @@
+'use client'
+
 import Image from 'next/image'
 import { Layers, Sparkles, Filter } from 'lucide-react'
 import FeatureCard from './FeatureCard'
+import AnimatedGrid from './AnimatedGrid'
+import React, { useRef } from 'react'
+import { useGSAP } from '@gsap/react'
+import gsap from '@/lib/gsap'
 
 export default function FeaturesShowcase() {
+  const screenshotRef = useRef<HTMLDivElement>(null)
+
+  useGSAP(() => {
+    if (!screenshotRef.current) return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      gsap.set(screenshotRef.current, { clipPath: 'inset(0% 0% 0% 0% round 12px)' })
+      return
+    }
+
+    gsap.fromTo(screenshotRef.current,
+      { clipPath: 'inset(40% 40% 40% 40% round 12px)' },
+      {
+        clipPath: 'inset(0% 0% 0% 0% round 12px)',
+        ease: 'power3.inOut',
+        scrollTrigger: {
+          trigger: screenshotRef.current,
+          start: 'top 85%',
+          end: 'top 30%',
+          scrub: true
+        }
+      }
+    )
+  }, { scope: screenshotRef })
+
   return (
     <section className="bg-white py-24">
-      <div className="max-w-[1200px] mx-auto px-5 md:px-10 lg:px-20">
+      <div className="max-w-[1440px] mx-auto px-5 md:px-10 lg:px-8 xl:px-12">
         
         {/* Header */}
         <div className="max-w-[700px] mx-auto text-center">
@@ -22,19 +52,29 @@ export default function FeaturesShowcase() {
 
         {/* Product Screenshot */}
         <div className="mt-12 max-w-[1100px] mx-auto">
-          <div className="rounded-xl shadow-xl border border-neutral-200 overflow-hidden bg-neutral-100">
-            <Image
-              src="/images/hero-product.png"
-              alt="TalentIQ Pipeline Kanban Board"
-              width={1100}
-              height={700}
-              className="w-full h-auto"
-            />
+          <div ref={screenshotRef} className="rounded-xl shadow-2xl border border-neutral-200 overflow-hidden bg-white will-change-[clip-path]">
+            {/* Browser Chrome */}
+            <div className="h-9 bg-neutral-100 flex items-center px-4 gap-1.5 border-b border-neutral-200">
+              <div className="w-2.5 h-2.5 rounded-full bg-[#EF4444]" />
+              <div className="w-2.5 h-2.5 rounded-full bg-[#F59E0B]" />
+              <div className="w-2.5 h-2.5 rounded-full bg-[#10B981]" />
+              <div className="flex-grow h-5 bg-neutral-200 rounded-full ml-3 opacity-50 max-w-[400px]" />
+            </div>
+            {/* Image Container */}
+            <div className="relative w-full aspect-[16/10] md:aspect-[16/9] bg-neutral-50">
+              <Image
+                src="/images/hero-product.png"
+                alt="TalentIQ Pipeline Kanban Board"
+                fill
+                className="object-cover object-top"
+                sizes="(max-width: 1200px) 100vw, 1100px"
+              />
+            </div>
           </div>
         </div>
 
         {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-10">
+        <AnimatedGrid animation="rise" columns={3} gap={32} className="mt-10">
           <FeatureCard
             icon={Layers}
             title="Visual pipeline management"
@@ -50,7 +90,7 @@ export default function FeaturesShowcase() {
             title="Smart filtering"
             description="Sort by score, source, or stage. Bulk actions included."
           />
-        </div>
+        </AnimatedGrid>
 
       </div>
     </section>

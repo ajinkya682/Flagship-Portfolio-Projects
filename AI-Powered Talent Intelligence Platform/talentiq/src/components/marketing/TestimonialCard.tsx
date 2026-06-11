@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import { Star } from 'lucide-react'
+import ScrambleText from './ScrambleText'
 
 interface TestimonialCardProps {
   quote: string
@@ -31,7 +32,7 @@ export default function TestimonialCard({
       </span>
       
       <p className="font-body text-[17px] text-neutral-900 italic max-w-[340px] flex-grow leading-relaxed">
-        {quote}
+        <ScrambleText text={quote.split(' ')[0]} /> {quote.split(' ').slice(1).join(' ')}
       </p>
 
       <div className="mt-6 flex items-center gap-3">

@@ -20,7 +20,7 @@ const mockApp: Application = {
     extractedSkills: ['React', 'TypeScript', 'Node.js', 'System Design'],
     extractedCompanies: ['Google', 'Stripe'],
     extractedEducation: ['BS Computer Science, Stanford'],
-    avatar: undefined 
+    avatar: 'https://randomuser.me/api/portraits/women/65.jpg'
   } as any,
   stage: 'Screening',
   aiScore: 92,

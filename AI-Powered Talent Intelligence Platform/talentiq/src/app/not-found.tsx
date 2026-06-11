@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import Link from "next/link";
 
 export default function NotFound() {
   return (
@@ -10,15 +10,16 @@ export default function NotFound() {
         Page not found
       </h2>
       <p className="font-body text-[14px] md:text-[16px] text-neutral-600 mt-[12px] max-w-[400px]">
-        Sorry, we couldn&apos;t find the page you&apos;re looking for. It might have been moved or deleted.
+        Sorry, we couldn&apos;t find the page you&apos;re looking for. It might
+        have been moved or deleted.
       </p>
-      
+
       <Link
-        href="/dashboard"
+        href="/"
         className="mt-[32px] h-[48px] px-[32px] bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-lg flex items-center justify-center transition-colors"
       >
-        Back to Dashboard
+        Back to Home
       </Link>
     </div>
-  )
+  );
 }

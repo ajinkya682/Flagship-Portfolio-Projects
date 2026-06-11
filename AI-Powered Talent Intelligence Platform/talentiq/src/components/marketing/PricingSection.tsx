@@ -3,14 +3,14 @@
 import { useState } from 'react'
 import { ShieldCheck, Globe, X } from 'lucide-react'
 import PricingToggle from './PricingToggle'
-import PricingCard from './PricingCard'
+import PremiumPricingCard from './PremiumPricingCard'
 
 export default function PricingSection() {
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'annual'>('monthly')
 
   return (
     <section className="bg-[#F9FAFB] py-24">
-      <div className="max-w-[1200px] mx-auto px-5 md:px-10 lg:px-20">
+      <div className="max-w-[1440px] mx-auto px-5 md:px-10 lg:px-8 xl:px-12">
         
         {/* Header */}
         <div className="max-w-[600px] mx-auto text-center">
@@ -28,61 +28,70 @@ export default function PricingSection() {
         </div>
 
         {/* Grid */}
-        <div className="mt-12 grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-0 max-w-[1040px] mx-auto items-center">
-          <PricingCard
-            name="Starter"
-            price={99}
-            description="Perfect for small teams hiring their first few employees."
-            billingPeriod={billingPeriod}
-            features={[
-              '3 active jobs',
-              '5 team seats',
-              '200 AI scores per month',
-              'Basic analytics dashboard',
-              'Email notifications',
-              'Candidate portal',
-              'Standard support'
-            ]}
-            ctaText="Start Free Trial"
-            ctaHref="/register"
+        <div className="mt-12 grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 max-w-[1100px] mx-auto items-stretch">
+          <PremiumPricingCard
+            isAnnual={billingPeriod === 'annual'}
+            plan={{
+              id: 'starter',
+              name: "Starter",
+              priceMonthly: 99,
+              priceAnnual: 79,
+              description: "Perfect for small teams hiring their first few employees.",
+              features: [
+                '3 active jobs',
+                '5 team seats',
+                '200 AI scores per month',
+                'Basic analytics dashboard',
+                'Email notifications',
+                'Candidate portal',
+                'Standard support'
+              ],
+              ctaText: "Start Free Trial"
+            }}
           />
           
-          <PricingCard
-            name="Growth"
-            price={299}
-            description="Everything you need to scale your hiring process reliably."
-            billingPeriod={billingPeriod}
-            featured={true}
-            features={[
-              '15 active jobs',
-              '20 team seats',
-              '1000 AI scores per month',
-              'Full AI suite with bias detection',
-              'Slack & calendar integrations',
-              'Advanced analytics',
-              'Priority support',
-              'Custom pipeline stages'
-            ]}
-            ctaText="Start Free Trial"
-            ctaHref="/register"
+          <PremiumPricingCard
+            isAnnual={billingPeriod === 'annual'}
+            plan={{
+              id: 'growth',
+              name: "Growth",
+              priceMonthly: 299,
+              priceAnnual: 249,
+              description: "Everything you need to scale your hiring process reliably.",
+              isPopular: true,
+              features: [
+                '15 active jobs',
+                '20 team seats',
+                '1000 AI scores per month',
+                'Full AI suite with bias detection',
+                'Slack & calendar integrations',
+                'Advanced analytics',
+                'Priority support',
+                'Custom pipeline stages'
+              ],
+              ctaText: "Start Free Trial"
+            }}
           />
           
-          <PricingCard
-            name="Enterprise"
-            price={999}
-            description="Advanced security and unlimited power for large organizations."
-            billingPeriod={billingPeriod}
-            features={[
-              'Unlimited jobs & seats',
-              'Unlimited AI scoring',
-              'API access with full docs',
-              'SSO & audit logs',
-              'Dedicated success manager',
-              'SLA guarantee',
-              'Custom integrations'
-            ]}
-            ctaText="Contact Sales"
-            ctaHref="/contact"
+          <PremiumPricingCard
+            isAnnual={billingPeriod === 'annual'}
+            plan={{
+              id: 'enterprise',
+              name: "Enterprise",
+              priceMonthly: 999,
+              priceAnnual: 899,
+              description: "Advanced security and unlimited power for large organizations.",
+              features: [
+                'Unlimited jobs & seats',
+                'Unlimited AI scoring',
+                'API access with full docs',
+                'SSO & audit logs',
+                'Dedicated success manager',
+                'SLA guarantee',
+                'Custom integrations'
+              ],
+              ctaText: "Contact Sales"
+            }}
           />
         </div>
 

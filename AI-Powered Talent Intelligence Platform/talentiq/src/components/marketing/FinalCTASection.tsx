@@ -1,10 +1,37 @@
+'use client'
+
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
+import React, { useRef } from 'react'
+import { useGSAP } from '@gsap/react'
+import gsap from '@/lib/gsap'
 
 export default function FinalCTASection() {
+  const ctaRef = useRef<HTMLDivElement>(null)
+
+  useGSAP(() => {
+    if (!ctaRef.current) return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+    gsap.to(ctaRef.current, {
+      backgroundPosition: '200% center',
+      duration: 10,
+      ease: 'none',
+      repeat: -1,
+      yoyo: true
+    })
+  }, { scope: ctaRef })
+
   return (
     <section className="my-16 mx-auto max-w-[900px] px-5 md:px-20">
-      <div className="bg-[var(--gradient-cta)] rounded-[24px] p-12 md:p-20 text-center relative overflow-hidden shadow-xl">
+      <div 
+        ref={ctaRef}
+        className="rounded-[24px] p-12 md:p-20 text-center relative overflow-hidden shadow-xl"
+        style={{
+          background: 'linear-gradient(270deg, #2563EB, #10B981, #2563EB, #8B5CF6)',
+          backgroundSize: '400% 400%',
+        }}
+      >
         
         {/* Decorative circle */}
         <div className="absolute -bottom-[60px] -right-[60px] w-[300px] h-[300px] rounded-full bg-white/5 pointer-events-none" />

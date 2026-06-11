@@ -1,16 +1,20 @@
-import PipelineStepDiagram from './PipelineStepDiagram'
+import AnimatedPipelineFlow from './AnimatedPipelineFlow'
+import ParticleField from './ParticleField'
 
 export default function PipelineExplainerSection() {
   return (
     <section className="bg-[#0A2540] py-24 relative overflow-hidden">
       {/* Decorative background mesh */}
       <div 
-        className="absolute inset-0 opacity-[0.03] pointer-events-none"
+        className="absolute inset-0 opacity-[0.03] pointer-events-none z-0"
         style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '32px 32px' }}
       />
-      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-[radial-gradient(ellipse_at_center,_rgba(37,99,235,0.15),_transparent_70%)] pointer-events-none" />
+      <div className="absolute inset-0 z-0">
+        <ParticleField />
+      </div>
+      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-[radial-gradient(ellipse_at_center,_rgba(37,99,235,0.15),_transparent_70%)] pointer-events-none z-0" />
 
-      <div className="max-w-[1200px] mx-auto px-5 md:px-10 lg:px-20 relative z-10">
+      <div className="max-w-[1440px] mx-auto px-5 md:px-10 lg:px-8 xl:px-12 relative z-10">
         
         {/* Header */}
         <div className="max-w-[800px] mx-auto text-center">
@@ -27,7 +31,7 @@ export default function PipelineExplainerSection() {
 
         {/* Diagram */}
         <div className="mt-14">
-          <PipelineStepDiagram />
+          <AnimatedPipelineFlow />
         </div>
 
         {/* Stat Callouts */}

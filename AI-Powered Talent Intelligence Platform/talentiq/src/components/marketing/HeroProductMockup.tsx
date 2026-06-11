@@ -1,27 +1,21 @@
-import Image from 'next/image'
+import Image from "next/image";
 
 export default function HeroProductMockup() {
   return (
-    <div className="relative rounded-[24px] shadow-2xl border border-neutral-200 overflow-hidden transform md:rotate-[1.5deg] rotate-0 transition-transform duration-300 ease-out bg-white">
-      {/* Browser Chrome */}
-      <div className="h-9 bg-neutral-100 flex items-center px-4 gap-1.5 border-b border-neutral-200">
-        <div className="w-2.5 h-2.5 rounded-full bg-[#EF4444]" />
-        <div className="w-2.5 h-2.5 rounded-full bg-[#F59E0B]" />
-        <div className="w-2.5 h-2.5 rounded-full bg-[#10B981]" />
-        <div className="flex-grow h-5 bg-neutral-200 rounded-full ml-3 opacity-50" />
-      </div>
-      
+    <div className="relative w-full rounded-[24px] shadow-[0_20px_50px_-12px_rgba(0,0,0,0.1)] border border-neutral-200/60 overflow-hidden transform transition-all duration-500 hover:duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_40px_80px_-20px_rgba(0,0,0,0.15)] bg-white group">
+      {/* Light Sheen Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none z-10" />
+
       {/* Product Image */}
-      <div className="relative w-full bg-neutral-50" style={{ aspectRatio: '800/600' }}>
-        <Image
-          src="/images/hero-product.png"
-          alt="TalentIQ Kanban Pipeline Dashboard"
-          fill
-          priority
-          className="object-cover"
-          sizes="(max-width: 768px) 100vw, 50vw"
-        />
-      </div>
+      <Image
+        src="/images/hero-product.png"
+        alt="TalentIQ Dashboard"
+        width={1200}
+        height={850}
+        priority
+        className="w-full h-auto object-contain block relative z-0"
+        sizes="(max-width: 768px) 100vw, 50vw"
+      />
     </div>
-  )
+  );
 }

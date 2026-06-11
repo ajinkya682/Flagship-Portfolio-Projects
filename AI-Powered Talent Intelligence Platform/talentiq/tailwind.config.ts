@@ -23,6 +23,22 @@ const config: Config = {
           900: '#0A2540',
           950: '#040D1A',
         },
+        obsidian: '#080C14',
+        midnight: '#0D1117',
+        'deep-navy': '#0A1628',
+        aurora: {
+          1: '#6366F1',
+          2: '#8B5CF6',
+          3: '#EC4899',
+          4: '#06B6D4',
+          5: '#10B981',
+        },
+        glass: {
+          white: 'rgba(255, 255, 255, 0.06)',
+          'white-border': 'rgba(255, 255, 255, 0.12)',
+          dark: 'rgba(0, 0, 0, 0.4)',
+          'dark-border': 'rgba(255, 255, 255, 0.08)',
+        },
         accent: {
           50: '#ECFDF5',
           100: '#D1FAE5',
@@ -154,6 +170,7 @@ const config: Config = {
   },
   plugins: [
     require('tailwindcss-animate'),
+    require('tailwindcss-motion'),
   ],
 }
 

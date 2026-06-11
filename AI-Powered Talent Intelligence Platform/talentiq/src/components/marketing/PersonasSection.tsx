@@ -1,5 +1,8 @@
+'use client'
+
 import { Users, UserCheck, BarChart2, Star } from 'lucide-react'
 import PersonaCard from './PersonaCard'
+import AnimatedGrid from './AnimatedGrid'
 
 export default function PersonasSection() {
   const personas = [
@@ -59,7 +62,7 @@ export default function PersonasSection() {
 
   return (
     <section className="bg-[#F9FAFB] py-24">
-      <div className="max-w-[1200px] mx-auto px-5 md:px-10 lg:px-20">
+      <div className="max-w-[1440px] mx-auto px-5 md:px-10 lg:px-8 xl:px-12">
         
         {/* Header */}
         <div className="max-w-[600px] mx-auto text-center">
@@ -72,11 +75,11 @@ export default function PersonasSection() {
         </div>
 
         {/* Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-12 max-w-[1100px] mx-auto">
+        <AnimatedGrid animation="cascade" columns={4} gap={24} className="mt-12 max-w-[1100px] mx-auto">
           {personas.map((p, i) => (
             <PersonaCard key={i} {...p} />
           ))}
-        </div>
+        </AnimatedGrid>
 
       </div>
     </section>

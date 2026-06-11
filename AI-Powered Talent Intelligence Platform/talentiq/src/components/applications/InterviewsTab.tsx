@@ -19,7 +19,7 @@ const mockInterviews: Interview[] = [
     locationType: 'video',
     meetingLink: 'https://zoom.us/j/123456789',
     interviewers: [
-      { id: 'u1', name: 'Alex Manager', avatar: undefined } as any,
+      { id: 'u1', name: 'Alex Manager', avatar: 'https://randomuser.me/api/portraits/men/32.jpg' } as any,
     ],
     status: 'scheduled',
     scorecards: []
@@ -34,7 +34,7 @@ const mockInterviews: Interview[] = [
     locationType: 'phone',
     meetingLink: undefined,
     interviewers: [
-      { id: 'u2', name: 'Sarah Recruiter', avatar: undefined } as any,
+      { id: 'u2', name: 'Sarah Recruiter', avatar: 'https://randomuser.me/api/portraits/women/44.jpg' } as any,
     ],
     status: 'completed',
     scorecards: []

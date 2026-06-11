@@ -47,9 +47,9 @@ const pipelineStages = [
     count: 24,
     color: '#3B82F6',
     recentCandidates: [
-      { id: 'c1', name: 'Jennifer Park', score: 92 },
-      { id: 'c2', name: 'David Chen', score: 88 },
-      { id: 'c3', name: 'Sarah Kim', score: 65 },
+      { id: 'c1', name: 'Jennifer Park', score: 92, avatar: 'https://randomuser.me/api/portraits/women/65.jpg' },
+      { id: 'c2', name: 'David Chen', score: 88, avatar: 'https://randomuser.me/api/portraits/men/32.jpg' },
+      { id: 'c3', name: 'Sarah Kim', score: 65, avatar: 'https://randomuser.me/api/portraits/women/44.jpg' },
     ]
   },
   {
@@ -57,8 +57,8 @@ const pipelineStages = [
     count: 12,
     color: '#8B5CF6',
     recentCandidates: [
-      { id: 'c4', name: 'Marcus Rodriguez', score: 95 },
-      { id: 'c5', name: 'Alex Torres', score: 82 },
+      { id: 'c4', name: 'Marcus Rodriguez', score: 95, avatar: 'https://randomuser.me/api/portraits/men/46.jpg' },
+      { id: 'c5', name: 'Alex Torres', score: 82, avatar: 'https://randomuser.me/api/portraits/men/22.jpg' },
     ]
   },
   {
@@ -66,7 +66,7 @@ const pipelineStages = [
     count: 3,
     color: '#10B981',
     recentCandidates: [
-      { id: 'c6', name: 'Michael Wong', score: 96 },
+      { id: 'c6', name: 'Michael Wong', score: 96, avatar: 'https://randomuser.me/api/portraits/men/62.jpg' },
     ]
   }
 ]

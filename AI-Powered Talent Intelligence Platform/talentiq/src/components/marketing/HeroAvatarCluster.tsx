@@ -3,9 +3,9 @@ import { Star } from 'lucide-react'
 
 export default function HeroAvatarCluster() {
   const avatars = [
-    '/images/avatars/avatar-1.jpg',
-    '/images/avatars/avatar-2.jpg',
-    '/images/avatars/avatar-3.jpg',
+    'https://randomuser.me/api/portraits/women/44.jpg',
+    'https://randomuser.me/api/portraits/men/32.jpg',
+    'https://randomuser.me/api/portraits/women/68.jpg',
   ]
 
   return (
