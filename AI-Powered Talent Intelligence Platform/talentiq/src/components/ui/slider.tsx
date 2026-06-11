@@ -50,7 +50,7 @@ const Slider = React.forwardRef<
         {localValues.map((value, index) => (
           <SliderPrimitive.Thumb
             key={index}
-            className="group relative block h-[18px] w-[18px] rounded-full border-2 border-primary-500 bg-white shadow-md transition-all duration-[120ms] ease-out hover:scale-120 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 disabled:pointer-events-none disabled:opacity-50"
+            className="group relative block h-[18px] w-[18px] rounded-full border-2 border-primary-500 bg-white shadow-md transition-all duration-150 ease-out hover:scale-120 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 disabled:pointer-events-none disabled:opacity-50"
           >
             {showTooltip && (
               <div className="absolute -top-8 left-1/2 -translate-x-1/2 rounded bg-neutral-900 px-2 py-1 text-center font-body text-[10px] font-medium text-white opacity-0 transition-opacity group-hover:opacity-100 group-focus:opacity-100 pointer-events-none">

@@ -112,7 +112,7 @@ export function AIScoreDetailCard({
             <div className="h-1.5 w-full overflow-hidden rounded-full bg-neutral-100">
               {/* Bar fill */}
               <div
-                className={cn("h-full rounded-full transition-all duration-[800ms] ease-out", fillClass)}
+                className={cn("h-full rounded-full transition-all duration-700 ease-out", fillClass)}
                 style={{ width: mounted ? `${sub.percent}%` : "0%" }}
               />
             </div>

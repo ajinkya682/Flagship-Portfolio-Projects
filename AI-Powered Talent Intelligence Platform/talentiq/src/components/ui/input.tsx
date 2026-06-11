@@ -34,7 +34,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             id={inputId}
             type={type}
             className={cn(
-              "flex h-10 w-full rounded-sm border bg-white px-[14px] py-2 font-body text-[14px] text-neutral-900 shadow-sm transition-all duration-[120ms] placeholder:text-neutral-400 focus-visible:outline-none disabled:cursor-not-allowed disabled:bg-neutral-50 disabled:text-neutral-400 disabled:border-neutral-200",
+              "flex h-10 w-full rounded-sm border bg-white px-[14px] py-2 font-body text-[14px] text-neutral-900 shadow-sm transition-all duration-150 placeholder:text-neutral-400 focus-visible:outline-none disabled:cursor-not-allowed disabled:bg-neutral-50 disabled:text-neutral-400 disabled:border-neutral-200",
               error
                 ? "border-[#EF4444] focus-visible:border-[#EF4444] focus-visible:shadow-[0_0_0_3px_rgba(239,68,68,0.15)]"
                 : "border-neutral-200 hover:border-neutral-300 focus-visible:border-primary-500 focus-visible:shadow-brand",
@@ -173,7 +173,7 @@ const PasswordInputBetter = React.forwardRef<HTMLInputElement, InputProps>(
             id={inputId}
             type={showPassword ? "text" : "password"}
             className={cn(
-              "flex h-10 w-full rounded-sm border bg-white px-[14px] pr-10 py-2 font-body text-[14px] text-neutral-900 shadow-sm transition-all duration-[120ms] placeholder:text-neutral-400 focus-visible:outline-none disabled:cursor-not-allowed disabled:bg-neutral-50 disabled:text-neutral-400 disabled:border-neutral-200",
+              "flex h-10 w-full rounded-sm border bg-white px-[14px] pr-10 py-2 font-body text-[14px] text-neutral-900 shadow-sm transition-all duration-150 placeholder:text-neutral-400 focus-visible:outline-none disabled:cursor-not-allowed disabled:bg-neutral-50 disabled:text-neutral-400 disabled:border-neutral-200",
               error
                 ? "border-[#EF4444] focus-visible:border-[#EF4444] focus-visible:shadow-[0_0_0_3px_rgba(239,68,68,0.15)]"
                 : "border-neutral-200 hover:border-neutral-300 focus-visible:border-primary-500 focus-visible:shadow-brand",

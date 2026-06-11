@@ -1,93 +1,115 @@
-"use client"
+'use client'
 
-import * as React from "react"
-import { Star } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { cn } from "@/lib/utils"
+import * as Dialog from '@radix-ui/react-dialog'
+import { X, Calendar } from 'lucide-react'
+import { useState } from 'react'
+import ScorecardForm from './ScorecardForm'
 
 interface ScorecardModalProps {
   isOpen: boolean
   onClose: () => void
+  candidateName: string
+  interviewDate: string
+  interviewerName: string
 }
 
-export function ScorecardModal({ isOpen, onClose }: ScorecardModalProps) {
-  const [overall, setOverall] = React.useState("")
-
-  const criteria = [
-    { id: 1, name: "Technical Depth" },
-    { id: 2, name: "System Architecture" },
-    { id: 3, name: "Communication" },
-    { id: 4, name: "Culture Fit" }
-  ]
-
-  const ratings = ["Strong Yes", "Yes", "No", "Strong No"]
+export default function ScorecardModal({ isOpen, onClose, candidateName, interviewDate, interviewerName }: ScorecardModalProps) {
+  const [overallRating, setOverallRating] = useState<string>('')
+  const [notes, setNotes] = useState('')
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[640px] max-h-[90vh] overflow-y-auto custom-scrollbar">
-        <DialogHeader>
-          <DialogTitle className="font-display text-[20px] font-semibold text-neutral-900">
-            Interview scorecard
-          </DialogTitle>
-          <div className="flex items-center gap-[8px] mt-[4px]">
-            <span className="font-body text-[13px] text-neutral-600">Candidate: <span className="font-semibold text-neutral-900">David Kim</span></span>
-            <span className="text-neutral-300">•</span>
-            <span className="font-body text-[13px] text-neutral-600">Interviewer: <span className="font-semibold text-neutral-900">Sarah Chen</span></span>
-            <span className="text-neutral-300">•</span>
-            <span className="font-body text-[13px] text-neutral-600">Oct 18, 2026</span>
-          </div>
-        </DialogHeader>
-
-        <div className="flex flex-col gap-[16px] py-[16px]">
-          {/* Criteria Rows */}
-          {criteria.map((crit) => (
-            <div key={crit.id} className="flex flex-col gap-[12px] rounded-[var(--radius-sm)] border border-neutral-200 bg-neutral-50 p-[16px]">
-              <div className="flex items-center justify-between">
-                <span className="font-body text-[14px] font-semibold text-neutral-900">{crit.name}</span>
-                <div className="flex gap-[4px] cursor-pointer">
-                  {[1, 2, 3, 4, 5].map(star => (
-                    <Star key={star} size={20} className="fill-neutral-200 text-neutral-200 hover:fill-[#F59E0B] hover:text-[#F59E0B] transition-colors" />
-                  ))}
-                </div>
+    <Dialog.Root open={isOpen} onOpenChange={onClose}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 bg-neutral-900/40 backdrop-blur-sm z-50 animate-in fade-in" />
+        <Dialog.Content className="fixed top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] bg-white rounded-xl shadow-xl w-[90vw] max-w-[720px] max-h-[90vh] flex flex-col z-50 overflow-hidden animate-in fade-in zoom-in-95 font-body">
+          
+          <div className="flex items-start justify-between px-[24px] py-[20px] border-b border-neutral-100 bg-neutral-50 shrink-0">
+            <div className="flex flex-col gap-[4px]">
+              <Dialog.Title className="text-[18px] font-semibold text-neutral-900">
+                Submit Scorecard for {candidateName}
+              </Dialog.Title>
+              <div className="flex items-center gap-[12px] text-[13px] text-neutral-500">
+                <span className="flex items-center gap-[4px]"><Calendar size={14} /> {interviewDate}</span>
+                <span>•</span>
+                <span>Interviewer: {interviewerName}</span>
               </div>
-              <Textarea placeholder="Add a comment on this rating..." className="min-h-[48px] bg-white text-[13px]" />
             </div>
-          ))}
+            <Dialog.Close asChild>
+              <button className="text-neutral-400 hover:text-neutral-600 transition-colors p-[4px] rounded-md">
+                <X size={20} />
+              </button>
+            </Dialog.Close>
+          </div>
 
-          {/* Overall Rating */}
-          <div className="mt-[8px] flex flex-col gap-[12px]">
-            <span className="font-body text-[14px] font-semibold text-neutral-900">Overall Recommendation</span>
-            <div className="grid grid-cols-4 gap-[8px]">
-              {ratings.map(rating => (
-                <button
-                  key={rating}
-                  onClick={() => setOverall(rating)}
-                  className={cn(
-                    "flex h-[40px] items-center justify-center rounded-[var(--radius-md)] border font-body text-[13px] font-semibold transition-all",
-                    overall === rating
-                      ? "border-primary-500 bg-primary-500 text-white"
-                      : "border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-50"
-                  )}
+          <div className="p-[24px] overflow-y-auto flex flex-col gap-[32px]">
+            <ScorecardForm />
+
+            <div className="flex flex-col gap-[12px] pt-[24px] border-t border-neutral-200">
+              <label className="text-[14px] font-semibold text-neutral-900">Overall Recommendation</label>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-[12px]">
+                <button 
+                  onClick={() => setOverallRating('strong-yes')}
+                  className={`py-[12px] rounded-md border text-[13px] font-bold uppercase tracking-wider transition-colors ${
+                    overallRating === 'strong-yes' ? 'bg-accent-500 text-white border-accent-500' : 'bg-white border-neutral-200 text-neutral-600 hover:border-accent-500 hover:text-accent-600'
+                  }`}
                 >
-                  {rating}
+                  Strong Yes
                 </button>
-              ))}
+                <button 
+                  onClick={() => setOverallRating('yes')}
+                  className={`py-[12px] rounded-md border text-[13px] font-bold uppercase tracking-wider transition-colors ${
+                    overallRating === 'yes' ? 'bg-primary-500 text-white border-primary-500' : 'bg-white border-neutral-200 text-neutral-600 hover:border-primary-500 hover:text-primary-600'
+                  }`}
+                >
+                  Yes
+                </button>
+                <button 
+                  onClick={() => setOverallRating('no')}
+                  className={`py-[12px] rounded-md border text-[13px] font-bold uppercase tracking-wider transition-colors ${
+                    overallRating === 'no' ? 'bg-amber-500 text-white border-amber-500' : 'bg-white border-neutral-200 text-neutral-600 hover:border-amber-500 hover:text-amber-600'
+                  }`}
+                >
+                  No
+                </button>
+                <button 
+                  onClick={() => setOverallRating('strong-no')}
+                  className={`py-[12px] rounded-md border text-[13px] font-bold uppercase tracking-wider transition-colors ${
+                    overallRating === 'strong-no' ? 'bg-[#DC2626] text-white border-[#DC2626]' : 'bg-white border-neutral-200 text-neutral-600 hover:border-[#DC2626] hover:text-[#DC2626]'
+                  }`}
+                >
+                  Strong No
+                </button>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-[12px]">
+              <label className="text-[14px] font-semibold text-neutral-900">Overall Notes</label>
+              <textarea 
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Final thoughts, cultural fit, overall impression..."
+                className="w-full min-h-[96px] rounded-md border border-neutral-200 p-[12px] text-[14px] focus:outline-none focus:border-primary-500 resize-y bg-white"
+              />
             </div>
           </div>
 
-          <div className="mt-[8px] flex flex-col gap-[12px]">
-            <span className="font-body text-[14px] font-semibold text-neutral-900">Additional Notes</span>
-            <Textarea placeholder="Any other general thoughts?" className="min-h-[96px] bg-white text-[13px]" />
+          <div className="flex items-center justify-end gap-[12px] px-[24px] py-[16px] border-t border-neutral-100 bg-white shrink-0">
+            <Dialog.Close asChild>
+              <button className="px-[16px] py-[8px] text-[14px] font-medium text-neutral-600 hover:text-neutral-900 transition-colors">
+                Cancel
+              </button>
+            </Dialog.Close>
+            <button 
+              disabled={!overallRating}
+              onClick={onClose}
+              className="px-[24px] py-[8px] text-[14px] font-medium text-white bg-primary-500 hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-md transition-colors shadow-sm"
+            >
+              Submit Scorecard
+            </button>
           </div>
 
-          <Button className="mt-[24px] w-full h-[44px]" onClick={onClose} disabled={!overall}>
-            Submit Scorecard
-          </Button>
-
-        </div>
-      </DialogContent>
-    </Dialog>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   )
 }

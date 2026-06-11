@@ -21,6 +21,9 @@ export default function MarketingNav() {
 
   return (
     <>
+      <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:z-[200] focus:p-4 focus:bg-white focus:text-primary-600 focus:font-bold focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-br-md">
+        Skip to main content
+      </a>
       <nav
         className={cn(
           'sticky top-0 z-[100] h-16 transition-all duration-200 ease-out',
@@ -47,7 +50,10 @@ export default function MarketingNav() {
             </Link>
 
             <Popover.Root>
-              <Popover.Trigger className="group font-body text-[14px] font-medium text-neutral-700 hover:text-neutral-900 transition duration-120 flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded-sm">
+              <Popover.Trigger 
+                className="group font-body text-[14px] font-medium text-neutral-700 hover:text-neutral-900 transition duration-120 flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded-sm"
+                aria-haspopup="menu"
+              >
                 Solutions
                 <ChevronDown className="w-3 h-3 text-neutral-400 group-hover:text-neutral-600 transition-colors" />
               </Popover.Trigger>
@@ -56,25 +62,25 @@ export default function MarketingNav() {
                   className="min-w-[220px] bg-white rounded-lg shadow-lg p-2 border border-neutral-100 z-[100] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2"
                   sideOffset={8}
                 >
-                  <Link href="/solutions#startups" className="flex items-center gap-3 p-2 h-10 rounded-md hover:bg-neutral-50 transition-colors">
+                  <Link href="/solutions#startups" role="menuitem" className="flex items-center gap-3 p-2 h-10 rounded-md hover:bg-neutral-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
                     <Building2 className="w-[18px] h-[18px] text-primary-500" />
                     <div>
                       <div className="text-[13px] font-semibold text-neutral-900 leading-none mb-1">Startups</div>
                     </div>
                   </Link>
-                  <Link href="/solutions#scaling" className="flex items-center gap-3 p-2 h-10 rounded-md hover:bg-neutral-50 transition-colors">
+                  <Link href="/solutions#scaling" role="menuitem" className="flex items-center gap-3 p-2 h-10 rounded-md hover:bg-neutral-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
                     <TrendingUp className="w-[18px] h-[18px] text-accent-500" />
                     <div>
                       <div className="text-[13px] font-semibold text-neutral-900 leading-none mb-1">Scaling Teams</div>
                     </div>
                   </Link>
-                  <Link href="/solutions#enterprise" className="flex items-center gap-3 p-2 h-10 rounded-md hover:bg-neutral-50 transition-colors">
+                  <Link href="/solutions#enterprise" role="menuitem" className="flex items-center gap-3 p-2 h-10 rounded-md hover:bg-neutral-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
                     <Briefcase className="w-[18px] h-[18px] text-purple-500" />
                     <div>
                       <div className="text-[13px] font-semibold text-neutral-900 leading-none mb-1">Enterprise</div>
                     </div>
                   </Link>
-                  <Link href="/solutions#agencies" className="flex items-center gap-3 p-2 h-10 rounded-md hover:bg-neutral-50 transition-colors">
+                  <Link href="/solutions#agencies" role="menuitem" className="flex items-center gap-3 p-2 h-10 rounded-md hover:bg-neutral-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
                     <Users className="w-[18px] h-[18px] text-amber-500" />
                     <div>
                       <div className="text-[13px] font-semibold text-neutral-900 leading-none mb-1">Agencies</div>

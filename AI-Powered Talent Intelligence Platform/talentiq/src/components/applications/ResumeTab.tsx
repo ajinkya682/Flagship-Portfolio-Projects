@@ -1,98 +1,85 @@
-"use client"
+import { Application } from '@/types/domain.types'
 
-import * as React from "react"
-import { FileText, ExternalLink } from "lucide-react"
+interface ResumeTabProps {
+  application: Application
+}
 
-export function ResumeTab() {
-  const [isLoading, setIsLoading] = React.useState(true)
-
-  React.useEffect(() => {
-    // Simulate PDF loading
-    const timer = setTimeout(() => setIsLoading(false), 1500)
-    return () => clearTimeout(timer)
-  }, [])
+export default function ResumeTab({ application }: ResumeTabProps) {
+  const hasResume = !!application.candidate.resumeUrl
 
   return (
-    <div className="flex w-full gap-[24px] animate-fade-slide-up">
-      
-      {/* PDF Viewer Area (80%) */}
-      <div className="flex-1 min-h-[600px] flex flex-col rounded-[var(--radius-lg)] border border-neutral-200 bg-neutral-50 overflow-hidden relative">
-        {/* Header bar */}
-        <div className="flex h-[48px] w-full shrink-0 items-center justify-between border-b border-neutral-200 bg-white px-[16px]">
-          <div className="flex items-center gap-[8px]">
-            <FileText size={16} className="text-neutral-400" />
-            <span className="font-body text-[13px] font-medium text-neutral-900">David_Kim_Resume_2026.pdf</span>
+    <div className="flex flex-col lg:flex-row h-[800px]">
+      {/* PDF Viewer Area - 80% */}
+      <div className="flex-[4] border-r border-[#E5E7EB] bg-neutral-100 p-[24px] flex items-center justify-center">
+        {hasResume ? (
+          <div className="w-full h-full bg-white shadow-sm border border-neutral-200 rounded-md flex items-center justify-center overflow-hidden">
+            {/* Real implementation would use iframe or react-pdf */}
+            <div className="flex flex-col items-center justify-center text-neutral-400">
+              <span className="font-display text-[24px] font-bold text-neutral-300">RESUME PDF</span>
+              <span className="font-body text-[14px] mt-[8px]">Preview of {application.candidate.name}'s Resume</span>
+            </div>
           </div>
-          <a href="#" className="flex items-center text-[12px] font-medium text-primary-600 hover:text-primary-700 hover:underline">
-            Open original <ExternalLink size={12} className="ml-1" />
-          </a>
-        </div>
-
-        {/* Content area */}
-        <div className="flex-1 p-[32px] overflow-hidden flex justify-center bg-neutral-100">
-          {isLoading ? (
-            <div className="w-full max-w-[800px] h-full bg-white shadow-sm rounded-sm animate-pulse p-[40px]">
-              <div className="h-[24px] w-[30%] bg-neutral-200 rounded mb-[16px]" />
-              <div className="h-[12px] w-[50%] bg-neutral-200 rounded mb-[40px]" />
-              <div className="h-[16px] w-[40%] bg-neutral-200 rounded mb-[16px]" />
-              <div className="h-[12px] w-full bg-neutral-200 rounded mb-[8px]" />
-              <div className="h-[12px] w-[90%] bg-neutral-200 rounded mb-[8px]" />
-              <div className="h-[12px] w-[95%] bg-neutral-200 rounded mb-[32px]" />
-              <div className="h-[16px] w-[40%] bg-neutral-200 rounded mb-[16px]" />
-              <div className="h-[12px] w-full bg-neutral-200 rounded mb-[8px]" />
-              <div className="h-[12px] w-full bg-neutral-200 rounded mb-[8px]" />
-              <div className="h-[12px] w-[85%] bg-neutral-200 rounded mb-[8px]" />
-            </div>
-          ) : (
-            <div className="w-full max-w-[800px] h-full bg-white shadow-sm rounded-sm p-[40px] border border-neutral-200 flex flex-col items-center justify-center text-neutral-400 font-body text-[14px]">
-              {/* Fake PDF rendering for mockup */}
-              [PDF Rendering Canvas Mockup]
-            </div>
-          )}
-        </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center text-neutral-500">
+            <p className="font-body text-[14px]">No resume uploaded for this candidate.</p>
+          </div>
+        )}
       </div>
 
-      {/* Extracted Entities Area (20%) */}
-      <div className="w-[240px] shrink-0 flex flex-col gap-[24px]">
-        <h5 className="font-display text-[14px] font-semibold text-neutral-900 mb-[4px]">
-          Extracted Entities
-        </h5>
+      {/* Extracted Entities Area - 20% */}
+      <div className="flex-1 min-w-[280px] bg-white p-[24px] flex flex-col gap-[32px] overflow-y-auto">
+        <div>
+          <h3 className="font-body text-[14px] font-semibold text-neutral-900 mb-[16px]">Extracted Entities</h3>
+          <p className="font-body text-[13px] text-neutral-500 mb-[16px]">
+            Data automatically extracted from the resume by AI.
+          </p>
+        </div>
 
-        <div className="flex flex-col gap-[8px]">
-          <span className="font-body text-[11px] font-bold uppercase tracking-wider text-neutral-500">Skills</span>
-          <div className="flex flex-wrap gap-[6px]">
-            {["React", "TypeScript", "Next.js", "Node.js", "GraphQL", "AWS"].map(tag => (
-              <span key={tag} className="rounded-[4px] bg-[#DCFCE7] px-[8px] py-[4px] font-body text-[12px] font-medium text-[#166534]">
-                {tag}
-              </span>
-            ))}
+        <div className="flex flex-col gap-[12px]">
+          <h4 className="font-body text-[12px] font-bold text-neutral-500 uppercase tracking-wider">Skills</h4>
+          <div className="flex flex-wrap gap-[8px]">
+            {application.candidate.extractedSkills?.length ? (
+              application.candidate.extractedSkills.map((skill, i) => (
+                <span key={i} className="bg-green-100 text-green-700 px-[10px] py-[4px] rounded-md font-body text-[12px] font-medium">
+                  {skill}
+                </span>
+              ))
+            ) : (
+              <span className="text-[13px] text-neutral-400 italic">No skills extracted</span>
+            )}
           </div>
         </div>
 
-        <div className="flex flex-col gap-[8px]">
-          <span className="font-body text-[11px] font-bold uppercase tracking-wider text-neutral-500">Companies</span>
-          <div className="flex flex-col gap-[6px]">
-            {["Google", "Stripe", "Acme Corp"].map(company => (
-              <span key={company} className="w-max rounded-[4px] bg-[#DBEAFE] px-[8px] py-[4px] font-body text-[12px] font-medium text-[#1E40AF]">
-                {company}
-              </span>
-            ))}
+        <div className="flex flex-col gap-[12px]">
+          <h4 className="font-body text-[12px] font-bold text-neutral-500 uppercase tracking-wider">Companies</h4>
+          <div className="flex flex-wrap gap-[8px]">
+            {application.candidate.extractedCompanies?.length ? (
+              application.candidate.extractedCompanies.map((company, i) => (
+                <span key={i} className="bg-blue-100 text-blue-700 px-[10px] py-[4px] rounded-md font-body text-[12px] font-medium">
+                  {company}
+                </span>
+              ))
+            ) : (
+              <span className="text-[13px] text-neutral-400 italic">No companies extracted</span>
+            )}
           </div>
         </div>
 
-        <div className="flex flex-col gap-[8px]">
-          <span className="font-body text-[11px] font-bold uppercase tracking-wider text-neutral-500">Education</span>
-          <div className="flex flex-col gap-[6px]">
-            {["Stanford University", "B.S. Computer Science"].map(edu => (
-              <span key={edu} className="w-max rounded-[4px] bg-[#F3E8FF] px-[8px] py-[4px] font-body text-[12px] font-medium text-[#6B21A8]">
-                {edu}
-              </span>
-            ))}
+        <div className="flex flex-col gap-[12px]">
+          <h4 className="font-body text-[12px] font-bold text-neutral-500 uppercase tracking-wider">Education</h4>
+          <div className="flex flex-wrap gap-[8px]">
+            {application.candidate.extractedEducation?.length ? (
+              application.candidate.extractedEducation.map((edu, i) => (
+                <span key={i} className="bg-purple-100 text-purple-700 px-[10px] py-[4px] rounded-md font-body text-[12px] font-medium">
+                  {edu}
+                </span>
+              ))
+            ) : (
+              <span className="text-[13px] text-neutral-400 italic">No education extracted</span>
+            )}
           </div>
         </div>
-
       </div>
-
     </div>
   )
 }

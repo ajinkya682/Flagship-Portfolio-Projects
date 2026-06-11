@@ -1,78 +1,79 @@
-"use client"
+'use client'
 
-import * as React from "react"
-import { Button } from "@/components/ui/button"
-import { ScorecardModal } from "./ScorecardModal"
+import { Interview } from '@/types/domain.types'
 
-export function InterviewQueue() {
-  const [isScorecardOpen, setIsScorecardOpen] = React.useState(false)
+interface InterviewQueueProps {
+  title: string
+  count: number
+  interviews: Interview[]
+  onActionClick: (interview: Interview) => void
+}
 
-  const queue = [
-    { id: 1, name: "David Kim", role: "Senior Engineer", time: "10:00 AM", date: "Today", completed: true, avatars: ["https://i.pravatar.cc/150?u=a1", "https://i.pravatar.cc/150?u=a2"] },
-    { id: 2, name: "Sarah Smith", role: "Product Designer", time: "2:00 PM", date: "Today", completed: false, avatars: ["https://i.pravatar.cc/150?u=a3"] },
-    { id: 3, name: "Jessica Chen", role: "Marketing Manager", time: "11:30 AM", date: "Tomorrow", completed: false, avatars: ["https://i.pravatar.cc/150?u=a4", "https://i.pravatar.cc/150?u=a1"] },
-    { id: 4, name: "Alex Kumar", role: "DevOps Engineer", time: "3:00 PM", date: "Tomorrow", completed: false, avatars: ["https://i.pravatar.cc/150?u=a2"] },
-  ]
-
+export default function InterviewQueue({ title, count, interviews, onActionClick }: InterviewQueueProps) {
   return (
-    <div className="flex flex-col h-full rounded-[var(--radius-lg)] border border-neutral-200 bg-white shadow-sm p-[24px]">
+    <div className="flex flex-col gap-[16px] font-body bg-white rounded-xl shadow-sm border border-[#E5E7EB] p-[20px]">
       
-      <div className="flex items-center gap-[12px] mb-[20px]">
-        <h4 className="font-display text-[16px] font-semibold text-neutral-900">Upcoming</h4>
-        <div className="flex h-[24px] items-center justify-center rounded-full bg-neutral-100 px-[10px] font-body text-[12px] font-bold text-neutral-700">
-          4
-        </div>
+      <div className="flex items-center justify-between border-b border-neutral-100 pb-[16px]">
+        <h4 className="text-[16px] font-semibold text-neutral-900">{title}</h4>
+        <span className="bg-neutral-100 text-neutral-600 px-[10px] py-[2px] rounded-full text-[12px] font-bold">
+          {count}
+        </span>
       </div>
 
-      <div className="flex flex-col gap-[12px] overflow-y-auto custom-scrollbar flex-1 pr-2">
-        {queue.map(item => (
-          <div key={item.id} className="flex flex-col p-[12px] rounded-[var(--radius-md)] border border-neutral-100 bg-neutral-50 hover:bg-neutral-100 transition-colors">
+      <div className="flex flex-col gap-[12px] overflow-y-auto max-h-[600px] thin-scrollbar">
+        {interviews.length === 0 ? (
+          <div className="text-center py-[24px] text-neutral-400 text-[13px] italic">No interviews found.</div>
+        ) : (
+          interviews.map(interview => {
+            const isCompleted = interview.status === 'completed'
             
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-[12px]">
-                <img src={`https://i.pravatar.cc/150?u=c${item.id}`} className="h-[32px] w-[32px] rounded-full object-cover" />
-                <div className="flex flex-col">
-                  <span className="font-body text-[14px] font-semibold text-neutral-900">{item.name}</span>
-                  <span className="font-body text-[12px] text-neutral-500">{item.role}</span>
+            return (
+              <div key={interview.id} className="flex items-center gap-[12px] h-[56px] hover:bg-neutral-50 p-[8px] rounded-md transition-colors group cursor-pointer border border-transparent hover:border-neutral-200">
+                <div className="w-[32px] h-[32px] rounded-full bg-neutral-200 flex items-center justify-center shrink-0 overflow-hidden border border-neutral-100">
+                  {interview.candidate?.avatar ? (
+                    <img src={interview.candidate.avatar} alt="Candidate" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-[12px] font-bold text-neutral-500">
+                      {interview.candidate?.name?.charAt(0) || 'C'}
+                    </span>
+                  )}
                 </div>
-              </div>
-              
-              <div className="flex flex-col items-end">
-                <span className="font-body text-[12px] font-medium text-neutral-900">{item.time}</span>
-                <span className="font-body text-[12px] text-neutral-500">{item.date}</span>
-              </div>
-            </div>
+                
+                <div className="flex flex-col flex-1 min-w-0">
+                  <span className="text-[14px] font-semibold text-neutral-900 truncate">
+                    {interview.candidate?.name || 'Unknown Candidate'}
+                  </span>
+                  <span className="text-[12px] text-neutral-500 truncate">
+                    {interview.job?.title || 'Role'}
+                  </span>
+                </div>
 
-            <div className="mt-[12px] flex items-center justify-between">
-              <div className="flex -space-x-2">
-                {item.avatars.map((av, idx) => (
-                  <img key={idx} src={av} className="h-[20px] w-[20px] rounded-full border-2 border-white" />
-                ))}
-              </div>
-              
-              {item.completed ? (
-                <Button 
-                  variant="ghost" 
-                  className="h-[24px] px-2 text-[11px] font-bold text-accent-600 hover:bg-accent-50 hover:text-accent-700 uppercase tracking-wider"
-                  onClick={() => setIsScorecardOpen(true)}
-                >
-                  Submit Scorecard
-                </Button>
-              ) : (
-                <Button 
-                  variant="ghost" 
-                  className="h-[24px] px-2 text-[11px] font-bold text-neutral-400 hover:text-neutral-600 uppercase tracking-wider disabled"
-                >
-                  Pending
-                </Button>
-              )}
-            </div>
+                <div className="flex flex-col items-end shrink-0">
+                  <span className="text-[12px] text-neutral-900 font-medium">
+                    {new Date(interview.scheduledAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                  </span>
+                  <div className="flex -space-x-1 mt-[2px]">
+                    {interview.interviewers.slice(0, 3).map(i => (
+                      <div key={i.id} className="w-[16px] h-[16px] rounded-full bg-primary-100 border border-white flex items-center justify-center text-[8px] font-bold text-primary-700">
+                        {i.name.charAt(0)}
+                      </div>
+                    ))}
+                  </div>
+                </div>
 
-          </div>
-        ))}
+                {isCompleted && (
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); onActionClick(interview); }}
+                    className="ml-[8px] opacity-0 group-hover:opacity-100 bg-accent-50 text-accent-700 hover:bg-accent-100 px-[12px] py-[6px] rounded-md text-[11px] font-bold uppercase tracking-wider transition-all"
+                  >
+                    Scorecard
+                  </button>
+                )}
+              </div>
+            )
+          })
+        )}
       </div>
-
-      <ScorecardModal isOpen={isScorecardOpen} onClose={() => setIsScorecardOpen(false)} />
 
     </div>
   )

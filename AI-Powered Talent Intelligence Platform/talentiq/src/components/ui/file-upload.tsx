@@ -123,7 +123,7 @@ const FileUploadZone = React.forwardRef<HTMLInputElement, FileUploadZoneProps>(
           onDragLeave={onDragLeave}
           onDrop={onDrop}
           className={cn(
-            "relative flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-[32px] py-[40px] text-center transition-all duration-[120ms]",
+            "relative flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-[32px] py-[40px] text-center transition-all duration-150",
             isDragOver
               ? "border-primary-400 bg-primary-50"
               : displayError

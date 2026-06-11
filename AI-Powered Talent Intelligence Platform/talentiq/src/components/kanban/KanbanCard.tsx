@@ -38,6 +38,7 @@ export default function KanbanCard({ application, onOpenPanel }: KanbanCardProps
 
   return (
     <div
+      id={`kanban-card-${application.id}`}
       ref={setNodeRef}
       style={style}
       {...attributes}

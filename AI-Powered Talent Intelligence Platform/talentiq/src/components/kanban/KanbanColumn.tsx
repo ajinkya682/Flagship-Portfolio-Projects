@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { MoreHorizontal, Plus } from 'lucide-react'
@@ -17,12 +18,24 @@ interface KanbanColumnProps {
 }
 
 export default function KanbanColumn({ stage, applications, onOpenPanel, isOver = false }: KanbanColumnProps) {
+  const [isBouncing, setIsBouncing] = useState(false)
+  const count = applications.length
+
+  useEffect(() => {
+    setIsBouncing(true)
+    const timer = setTimeout(() => setIsBouncing(false), 300)
+    return () => clearTimeout(timer)
+  }, [count])
+
   const { setNodeRef } = useDroppable({
     id: stage.name,
   })
 
   return (
-    <div className="w-[280px] shrink-0 flex flex-col h-full rounded-md overflow-hidden">
+    <div 
+      className="w-[280px] shrink-0 flex flex-col h-full rounded-md overflow-hidden"
+      aria-label={`${stage.name} - ${count} candidates`}
+    >
       
       {/* Header */}
       <div className="h-[44px] bg-white rounded-md flex items-center px-[12px] gap-[8px] mb-[8px] border border-[#E5E7EB] shadow-sm relative shrink-0">
@@ -33,10 +46,10 @@ export default function KanbanColumn({ stage, applications, onOpenPanel, isOver 
         <h5 className="font-body text-[15px] font-semibold text-neutral-900 ml-[4px]">
           {stage.name}
         </h5>
-        <div className="bg-neutral-100 text-neutral-700 text-[10px] font-bold px-[8px] py-[2px] rounded-full ml-auto">
-          {applications.length}
+        <div className={`bg-neutral-100 text-neutral-700 text-[10px] font-bold px-[8px] py-[2px] rounded-full ml-auto ${isBouncing ? 'animate-spring-in' : ''}`}>
+          {count}
         </div>
-        <button className="text-neutral-400 hover:text-neutral-600 transition-colors cursor-pointer">
+        <button className="text-neutral-400 hover:text-neutral-600 transition-colors cursor-pointer" aria-label="Column options">
           <MoreHorizontal size={16} />
         </button>
       </div>
@@ -45,7 +58,7 @@ export default function KanbanColumn({ stage, applications, onOpenPanel, isOver 
       <div 
         ref={setNodeRef}
         className={`flex-grow overflow-y-auto p-[8px] flex flex-col gap-[8px] rounded-md transition-colors duration-100 min-h-[150px] thin-scrollbar ${
-          isOver ? 'bg-[#ECFDF5] border border-accent-200' : 'bg-neutral-100'
+          isOver ? 'bg-accent-50 border border-accent-200' : 'bg-neutral-100'
         }`}
       >
         <SortableContext items={applications.map(app => app.id)} strategy={verticalListSortingStrategy}>

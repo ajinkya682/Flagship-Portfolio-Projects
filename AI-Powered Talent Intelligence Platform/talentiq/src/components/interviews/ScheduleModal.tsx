@@ -1,206 +1,168 @@
-"use client"
+'use client'
 
-import * as React from "react"
-import { Search, Calendar, Clock, Video, Phone, Building2, Sparkles, ChevronDown } from "lucide-react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { AIProcessingIndicator } from "@/components/ui/ai-processing"
-import { cn } from "@/lib/utils"
+import * as Dialog from '@radix-ui/react-dialog'
+import { X, Search, Video, Phone, Building2, Sparkles, ChevronDown } from 'lucide-react'
+import { useState } from 'react'
+import InterviewerPicker from './InterviewerPicker'
+import InterviewKitSelector from './InterviewKitSelector'
 
 interface ScheduleModalProps {
   isOpen: boolean
   onClose: () => void
+  initialDate?: Date
 }
 
-export function ScheduleModal({ isOpen, onClose }: ScheduleModalProps) {
-  const [locationType, setLocationType] = React.useState("video")
-  const [isGenerating, setIsGenerating] = React.useState(false)
-  const [questionsGenerated, setQuestionsGenerated] = React.useState(false)
-  const [emailPreviewOpen, setEmailPreviewOpen] = React.useState(false)
-
-  const handleGenerate = () => {
-    setIsGenerating(true)
-    setTimeout(() => {
-      setIsGenerating(false)
-      setQuestionsGenerated(true)
-    }, 3000)
-  }
+export default function ScheduleModal({ isOpen, onClose, initialDate }: ScheduleModalProps) {
+  const [locationType, setLocationType] = useState('video')
+  const [interviewers, setInterviewers] = useState<any[]>([])
+  const [kit, setKit] = useState('')
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[720px] max-h-[90vh] overflow-y-auto custom-scrollbar">
-        <DialogHeader>
-          <DialogTitle className="font-display text-[20px] font-semibold text-neutral-900">
-            Schedule an interview
-          </DialogTitle>
-        </DialogHeader>
-
-        <div className="flex flex-col gap-[24px] py-[16px]">
+    <Dialog.Root open={isOpen} onOpenChange={onClose}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 bg-neutral-900/40 backdrop-blur-sm z-50 animate-in fade-in" />
+        <Dialog.Content className="fixed top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] bg-white rounded-xl shadow-xl w-[90vw] max-w-[720px] max-h-[90vh] flex flex-col z-50 overflow-hidden animate-in fade-in zoom-in-95 font-body">
           
-          {/* Candidate Search */}
-          <div className="flex flex-col gap-[8px]">
-            <Label>Candidate & Role</Label>
-            <div className="relative">
-              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
-              <Input placeholder="Search applications..." className="pl-9" defaultValue="David Kim - Senior React Engineer" />
-            </div>
+          <div className="flex items-center justify-between px-[24px] py-[20px] border-b border-neutral-100 shrink-0">
+            <Dialog.Title className="text-[18px] font-semibold text-neutral-900">
+              Schedule Interview
+            </Dialog.Title>
+            <Dialog.Close asChild>
+              <button className="text-neutral-400 hover:text-neutral-600 transition-colors p-[4px] rounded-md">
+                <X size={20} />
+              </button>
+            </Dialog.Close>
           </div>
 
-          {/* Date / Time / Duration */}
-          <div className="grid grid-cols-3 gap-[16px]">
-            <div className="flex flex-col gap-[8px]">
-              <Label>Date</Label>
-              <div className="relative">
-                <Calendar size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
-                <Input type="date" className="pl-9" defaultValue="2026-10-20" />
-              </div>
-            </div>
-            <div className="flex flex-col gap-[8px]">
-              <Label>Time</Label>
-              <div className="relative">
-                <Clock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
-                <Input type="time" className="pl-9" defaultValue="14:00" />
-              </div>
-            </div>
-            <div className="flex flex-col gap-[8px]">
-              <Label>Duration</Label>
-              <Select defaultValue="60">
-                <SelectTrigger>
-                  <SelectValue placeholder="Duration" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="30">30 minutes</SelectItem>
-                  <SelectItem value="45">45 minutes</SelectItem>
-                  <SelectItem value="60">60 minutes</SelectItem>
-                  <SelectItem value="90">90 minutes</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* Location Type */}
-          <div className="flex flex-col gap-[8px]">
-            <Label>Location Type</Label>
-            <div className="grid grid-cols-3 gap-[12px]">
-              {[
-                { id: "video", label: "Video Call", icon: Video },
-                { id: "phone", label: "Phone Screen", icon: Phone },
-                { id: "onsite", label: "Onsite", icon: Building2 },
-              ].map(type => (
-                <button
-                  key={type.id}
-                  onClick={() => setLocationType(type.id)}
-                  className={cn(
-                    "flex flex-col items-center justify-center gap-[8px] rounded-[var(--radius-md)] border h-[80px] transition-all",
-                    locationType === type.id 
-                      ? "border-primary-500 bg-primary-50 text-primary-700 shadow-sm ring-1 ring-primary-500" 
-                      : "border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-50"
-                  )}
-                >
-                  <type.icon size={20} />
-                  <span className="font-body text-[13px] font-medium">{type.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {locationType === "video" && (
-            <div className="flex flex-col gap-[8px]">
-              <Label>Meeting Link</Label>
-              <Input defaultValue="https://zoom.us/j/1234567890" />
-            </div>
-          )}
-
-          {/* Interviewers */}
-          <div className="flex flex-col gap-[8px]">
-            <Label>Interviewers</Label>
-            <Input placeholder="Search team members..." defaultValue="Sarah Chen (Engineering Manager)" />
-          </div>
-
-          {/* Interview Kit & AI */}
-          <div className="flex flex-col gap-[8px] border-t border-neutral-200 pt-[24px]">
-            <Label>Interview Kit</Label>
-            <div className="flex gap-[12px]">
-              <Select defaultValue="technical">
-                <SelectTrigger className="flex-1">
-                  <SelectValue placeholder="Select a template" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="technical">Technical Screen (Default)</SelectItem>
-                  <SelectItem value="system">System Design</SelectItem>
-                  <SelectItem value="culture">Culture Fit</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button 
-                className="bg-accent-500 text-white hover:bg-accent-600"
-                iconLeft={<Sparkles size={16} />}
-                onClick={handleGenerate}
-                disabled={isGenerating || questionsGenerated}
-              >
-                Generate Custom Kit
-              </Button>
-            </div>
-
-            {isGenerating && (
-              <div className="mt-[16px] py-[32px] rounded-[var(--radius-lg)] border border-accent-100 bg-accent-50">
-                <AIProcessingIndicator message="Generating tailored interview questions based on resume..." />
-              </div>
-            )}
-
-            {questionsGenerated && (
-              <div className="mt-[16px] rounded-[var(--radius-lg)] border border-neutral-200 bg-white p-[16px] max-h-[200px] overflow-y-auto custom-scrollbar">
-                <h5 className="font-display text-[14px] font-semibold text-neutral-900 mb-[12px]">AI Generated Questions</h5>
-                <div className="flex flex-col gap-[12px]">
-                  <div className="flex flex-col gap-[4px]">
-                    <span className="font-body text-[13px] font-bold text-neutral-700">1. Architecture Experience</span>
-                    <span className="font-body text-[13px] text-neutral-600">"I noticed you led the migration from REST to GraphQL at Stripe. Can you walk me through the hardest technical challenge you faced there?"</span>
-                  </div>
-                  <div className="flex flex-col gap-[4px]">
-                    <span className="font-body text-[13px] font-bold text-neutral-700">2. Performance Optimization</span>
-                    <span className="font-body text-[13px] text-neutral-600">"How do you approach identifying and resolving memory leaks in long-running React SPA applications?"</span>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Email Preview */}
-          <div className="flex flex-col border-t border-neutral-200 pt-[24px]">
-            <button 
-              className="flex items-center gap-[8px] font-body text-[14px] font-medium text-neutral-900 hover:text-primary-600"
-              onClick={() => setEmailPreviewOpen(!emailPreviewOpen)}
-            >
-              <ChevronDown size={16} className={cn("transition-transform", emailPreviewOpen && "rotate-180")} />
-              Preview invite email
-            </button>
+          <div className="p-[24px] overflow-y-auto flex flex-col gap-[24px]">
             
-            {emailPreviewOpen && (
-              <div className="mt-[16px] rounded-[var(--radius-lg)] border border-neutral-200 bg-neutral-50 p-[16px]">
-                <div className="font-body text-[13px] text-neutral-600 mb-[8px]">
-                  <span className="font-semibold text-neutral-900">Subject:</span> Interview with TalentIQ - Senior React Engineer
+            {/* Candidate Search */}
+            <div className="flex flex-col gap-[6px]">
+              <label className="text-[13px] font-semibold text-neutral-700">Candidate / Application</label>
+              <div className="relative">
+                <Search size={16} className="absolute left-[12px] top-[12px] text-neutral-400" />
+                <input 
+                  type="text" 
+                  placeholder="Search candidates by name..." 
+                  className="w-full h-[40px] pl-[36px] pr-[12px] rounded-md border border-neutral-200 text-[14px] focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-[24px]">
+              {/* Date & Time */}
+              <div className="flex flex-col gap-[16px]">
+                <div className="flex flex-col gap-[6px]">
+                  <label className="text-[13px] font-semibold text-neutral-700">Date</label>
+                  <input 
+                    type="date" 
+                    defaultValue={initialDate ? initialDate.toISOString().split('T')[0] : ''}
+                    className="w-full h-[40px] rounded-md border border-neutral-200 px-[12px] text-[14px] focus:outline-none focus:border-primary-500"
+                  />
                 </div>
-                <div className="h-px w-full bg-neutral-200 my-[12px]" />
-                <div className="font-body text-[13px] text-neutral-700 whitespace-pre-wrap leading-relaxed">
-                  Hi David,<br/><br/>
-                  We're excited to move forward with your application. Sarah Chen would like to schedule a 60-minute video interview with you.<br/><br/>
-                  Date: Oct 20, 2026<br/>
-                  Time: 2:00 PM PST<br/>
-                  Link: https://zoom.us/j/1234567890<br/><br/>
-                  Looking forward to speaking with you!
+                
+                <div className="flex gap-[12px]">
+                  <div className="flex flex-col gap-[6px] flex-1">
+                    <label className="text-[13px] font-semibold text-neutral-700">Time</label>
+                    <select className="w-full h-[40px] rounded-md border border-neutral-200 px-[12px] text-[14px] focus:outline-none focus:border-primary-500 bg-white">
+                      <option>09:00 AM</option>
+                      <option>09:30 AM</option>
+                      <option>10:00 AM</option>
+                      <option>10:30 AM</option>
+                      <option>11:00 AM</option>
+                    </select>
+                  </div>
+                  <div className="flex flex-col gap-[6px] w-[100px]">
+                    <label className="text-[13px] font-semibold text-neutral-700">Duration</label>
+                    <select className="w-full h-[40px] rounded-md border border-neutral-200 px-[12px] text-[14px] focus:outline-none focus:border-primary-500 bg-white">
+                      <option>30m</option>
+                      <option>45m</option>
+                      <option>60m</option>
+                      <option>90m</option>
+                    </select>
+                  </div>
                 </div>
               </div>
-            )}
+
+              {/* Location */}
+              <div className="flex flex-col gap-[16px]">
+                <div className="flex flex-col gap-[6px]">
+                  <label className="text-[13px] font-semibold text-neutral-700">Location Type</label>
+                  <div className="grid grid-cols-3 gap-[8px]">
+                    {[
+                      { id: 'video', icon: Video, label: 'Video' },
+                      { id: 'phone', icon: Phone, label: 'Phone' },
+                      { id: 'onsite', icon: Building2, label: 'Onsite' }
+                    ].map(type => (
+                      <button
+                        key={type.id}
+                        onClick={() => setLocationType(type.id)}
+                        className={`flex flex-col items-center justify-center gap-[4px] h-[64px] rounded-md border transition-colors ${
+                          locationType === type.id 
+                            ? 'bg-primary-50 border-primary-500 text-primary-700' 
+                            : 'bg-white border-neutral-200 text-neutral-500 hover:bg-neutral-50'
+                        }`}
+                      >
+                        <type.icon size={18} />
+                        <span className="text-[12px] font-medium">{type.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {locationType === 'video' && (
+                  <div className="flex flex-col gap-[6px]">
+                    <label className="text-[13px] font-semibold text-neutral-700">Meeting Link</label>
+                    <input 
+                      type="text" 
+                      placeholder="https://zoom.us/j/..." 
+                      className="w-full h-[40px] rounded-md border border-neutral-200 px-[12px] text-[14px] focus:outline-none focus:border-primary-500"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="h-[1px] bg-neutral-100 w-full" />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-[24px]">
+              <InterviewerPicker selected={interviewers} onChange={setInterviewers} />
+              
+              <div className="flex flex-col gap-[12px]">
+                <InterviewKitSelector value={kit} onChange={setKit} />
+                <button className="flex items-center justify-center gap-[8px] bg-accent-50 text-accent-700 hover:bg-accent-100 border border-accent-200 px-[16px] py-[8px] rounded-md text-[13px] font-medium transition-colors w-full">
+                  <Sparkles size={14} /> Generate with AI
+                </button>
+              </div>
+            </div>
+
+            <div className="h-[1px] bg-neutral-100 w-full" />
+
+            {/* Email Preview Accordion Mock */}
+            <div className="border border-neutral-200 rounded-md overflow-hidden bg-white">
+              <button className="w-full px-[16px] py-[12px] flex items-center justify-between bg-neutral-50 hover:bg-neutral-100 transition-colors">
+                <span className="text-[13px] font-semibold text-neutral-700">Candidate Email Preview</span>
+                <ChevronDown size={16} className="text-neutral-500" />
+              </button>
+            </div>
+
           </div>
 
-          <Button className="mt-[16px] w-full h-[44px]" onClick={onClose}>
-            Schedule Interview
-          </Button>
+          <div className="flex items-center justify-end gap-[12px] px-[24px] py-[16px] border-t border-neutral-100 bg-neutral-50 shrink-0">
+            <Dialog.Close asChild>
+              <button className="px-[16px] py-[8px] text-[14px] font-medium text-neutral-600 hover:text-neutral-900 transition-colors">
+                Cancel
+              </button>
+            </Dialog.Close>
+            <button 
+              className="px-[24px] py-[8px] text-[14px] font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-md transition-colors shadow-sm"
+            >
+              Schedule Interview
+            </button>
+          </div>
 
-        </div>
-      </DialogContent>
-    </Dialog>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   )
 }

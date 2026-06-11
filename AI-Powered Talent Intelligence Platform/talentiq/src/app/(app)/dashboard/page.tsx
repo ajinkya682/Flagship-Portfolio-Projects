@@ -1,3 +1,5 @@
+'use client'
+
 import WelcomeGreeting from '@/components/dashboard/WelcomeGreeting'
 import StatCard from '@/components/dashboard/StatCard'
 import KanbanOverview from '@/components/dashboard/KanbanOverview'

@@ -55,7 +55,7 @@ export function DateRangePicker({
             id={triggerId}
             disabled={disabled}
             className={cn(
-              "flex h-10 w-full items-center justify-start rounded-sm border bg-white px-[14px] py-2 font-body text-[14px] shadow-sm transition-all duration-[120ms] focus-visible:outline-none disabled:cursor-not-allowed disabled:bg-neutral-50 disabled:text-neutral-400 disabled:border-neutral-200",
+              "flex h-10 w-full items-center justify-start rounded-sm border bg-white px-[14px] py-2 font-body text-[14px] shadow-sm transition-all duration-150 focus-visible:outline-none disabled:cursor-not-allowed disabled:bg-neutral-50 disabled:text-neutral-400 disabled:border-neutral-200",
               error
                 ? "border-[#EF4444] text-[#EF4444] focus-visible:border-[#EF4444] focus-visible:shadow-[0_0_0_3px_rgba(239,68,68,0.15)]"
                 : "border-neutral-200 text-neutral-900 hover:border-neutral-300 focus-visible:border-primary-500 focus-visible:shadow-brand",

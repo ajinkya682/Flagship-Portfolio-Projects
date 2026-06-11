@@ -1,190 +1,130 @@
-"use client"
+'use client'
 
-import * as React from "react"
-import { X, AlertCircle } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { useState } from 'react'
+import { Calendar, MessageSquare, XCircle, Plus } from 'lucide-react'
+import { Application } from '@/types/domain.types'
+import RejectModal from './RejectModal'
 
-export function ActionSidebar() {
-  const [isRejectModalOpen, setIsRejectModalOpen] = React.useState(false)
-  const [rejectReason, setRejectReason] = React.useState("")
-  const [rejectNote, setRejectNote] = React.useState("")
-  const [tagInput, setTagInput] = React.useState("")
-  const [tags, setTags] = React.useState(["React", "Fast Learner"])
+interface ActionSidebarProps {
+  application: Application
+}
 
-  const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && tagInput.trim()) {
-      e.preventDefault()
-      if (!tags.includes(tagInput.trim())) {
-        setTags([...tags, tagInput.trim()])
-      }
-      setTagInput("")
-    }
-  }
-
-  const handleRemoveTag = (tag: string) => {
-    setTags(tags.filter(t => t !== tag))
-  }
-
-  const handleRejectSubmit = () => {
-    setIsRejectModalOpen(false)
-  }
+export default function ActionSidebar({ application }: ActionSidebarProps) {
+  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false)
+  const [stage, setStage] = useState(application.stage || 'Screening')
 
   return (
-    <>
-      <div className="static lg:sticky top-[88px] flex flex-col rounded-[var(--radius-lg)] border border-neutral-200 bg-neutral-50 p-[20px] shadow-sm">
+    <div className="w-full lg:w-[320px] shrink-0 sticky top-[88px] flex flex-col gap-[20px]">
+      
+      {/* Primary Actions */}
+      <div className="bg-white rounded-xl shadow-sm border border-[#E5E7EB] p-[20px] flex flex-col gap-[16px]">
         
-        {/* MOVE STAGE */}
-        <div className="flex flex-col gap-[8px]">
-          <span className="font-body text-[12px] font-semibold text-neutral-700">Current stage</span>
-          <Select defaultValue="interview">
-            <SelectTrigger className="bg-white">
-              <SelectValue placeholder="Stage" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="screening">Screening</SelectItem>
-              <SelectItem value="phone">Phone Screen</SelectItem>
-              <SelectItem value="interview">Interview</SelectItem>
-              <SelectItem value="assessment">Assessment</SelectItem>
-              <SelectItem value="offer">Offer</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button className="h-[32px] w-full text-[13px]">Move</Button>
-        </div>
-
-        {/* PRIMARY ACTIONS */}
-        <div className="mt-[20px] flex flex-col gap-[12px]">
-          <Button className="w-full">Schedule Interview</Button>
-          <Button variant="secondary" className="w-full">Send Message</Button>
-          <Button 
-            variant="ghost" 
-            className="w-full text-[#EF4444] hover:bg-red-50 hover:text-[#DC2626] border border-transparent hover:border-red-100"
-            onClick={() => setIsRejectModalOpen(true)}
-          >
-            Reject Candidate
-          </Button>
-        </div>
-
-        {/* TAGS */}
-        <div className="mt-[20px] border-t border-neutral-200 pt-[20px] flex flex-col gap-[12px]">
-          <label htmlFor="tag-input" className="font-display text-[14px] font-semibold text-neutral-900 m-0">Tags</label>
-          
-          <Input 
-            id="tag-input"
-            placeholder="Add tag..." 
-            value={tagInput}
-            onChange={(e) => setTagInput(e.target.value)}
-            onKeyDown={handleAddTag}
-            className="bg-white text-[13px] h-[32px]"
-          />
-          
-          <div className="flex flex-wrap gap-[6px]">
-            {tags.map(tag => (
-              <span key={tag} className="flex h-[24px] items-center gap-[4px] rounded-full bg-neutral-200 pl-[10px] pr-[4px] font-body text-[11px] font-medium text-neutral-700">
-                {tag}
-                <button 
-                  onClick={() => handleRemoveTag(tag)}
-                  className="flex h-[16px] w-[16px] items-center justify-center rounded-full hover:bg-neutral-300"
-                  aria-label={`Remove tag ${tag}`}
-                >
-                  <X size={10} />
-                </button>
-              </span>
-            ))}
-          </div>
-        </div>
-
-        {/* ASSIGNED TO */}
-        <div className="mt-[16px] flex flex-col gap-[8px]">
-          <h5 className="font-display text-[14px] font-semibold text-neutral-900 m-0">Assigned to</h5>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-[8px]">
-              <img src="https://i.pravatar.cc/150?u=a4" alt="Recruiter" className="h-[28px] w-[28px] rounded-full object-cover" />
-              <span className="font-body text-[13px] font-medium text-neutral-900">Sarah Chen</span>
-            </div>
-            <button className="font-body text-[12px] font-medium text-primary-600 hover:text-primary-700 hover:underline">
-              Change
+        <div className="flex flex-col gap-[6px]">
+          <label className="font-body text-[12px] font-semibold text-neutral-500 uppercase tracking-wider">Current Stage</label>
+          <div className="flex gap-[8px]">
+            <select 
+              value={stage}
+              onChange={(e) => setStage(e.target.value)}
+              className="flex-grow h-[36px] rounded-md border border-neutral-200 px-[12px] font-body text-[13px] focus:outline-none focus:border-primary-500 bg-white"
+            >
+              <option value="Screening">Screening</option>
+              <option value="Phone Screen">Phone Screen</option>
+              <option value="Interview">Interview</option>
+              <option value="Assessment">Assessment</option>
+              <option value="Offer">Offer</option>
+              <option value="Hired">Hired</option>
+            </select>
+            <button className="bg-primary-50 hover:bg-primary-100 text-primary-700 font-body text-[13px] font-medium px-[16px] rounded-md transition-colors h-[36px]">
+              Move
             </button>
           </div>
         </div>
 
-        {/* QUICK STATS */}
-        <div className="mt-[16px] border-t border-neutral-200 pt-[16px] flex flex-col gap-[12px]">
-          <div className="flex flex-col">
-            <span className="font-body text-[16px] font-semibold text-neutral-900">4 days</span>
-            <span className="font-body text-[12px] text-neutral-500">Days in stage</span>
+        <div className="h-[1px] bg-neutral-100 w-full" />
+
+        <button className="w-full bg-primary-500 hover:bg-primary-600 text-white font-body text-[14px] font-medium py-[10px] rounded-md transition-colors shadow-sm flex items-center justify-center gap-[8px]">
+          <Calendar size={16} />
+          Schedule Interview
+        </button>
+
+        <button className="w-full bg-white border border-[#E5E7EB] hover:bg-neutral-50 text-neutral-700 font-body text-[14px] font-medium py-[10px] rounded-md transition-colors flex items-center justify-center gap-[8px]">
+          <MessageSquare size={16} />
+          Send Message
+        </button>
+
+        <button 
+          onClick={() => setIsRejectModalOpen(true)}
+          className="w-full bg-transparent hover:bg-red-50 text-[#DC2626] font-body text-[14px] font-medium py-[10px] rounded-md transition-colors flex items-center justify-center gap-[8px]"
+        >
+          <XCircle size={16} />
+          Reject Candidate
+        </button>
+
+      </div>
+
+      {/* Metadata */}
+      <div className="bg-white rounded-xl shadow-sm border border-[#E5E7EB] p-[20px] flex flex-col gap-[20px]">
+        
+        <div className="flex flex-col gap-[10px]">
+          <label className="font-body text-[12px] font-semibold text-neutral-500 uppercase tracking-wider">Tags</label>
+          <div className="flex flex-wrap gap-[6px]">
+            {application.tags && application.tags.length > 0 ? (
+              application.tags.map(tag => (
+                <span key={tag} className="bg-neutral-100 text-neutral-700 px-[10px] py-[4px] rounded-full text-[12px] font-medium flex items-center gap-[4px]">
+                  {tag}
+                  <button className="hover:text-neutral-900 transition-colors">×</button>
+                </span>
+              ))
+            ) : (
+              <span className="text-[13px] text-neutral-400 italic">No tags added</span>
+            )}
+            <button className="border border-dashed border-neutral-300 text-neutral-500 hover:text-neutral-700 hover:border-neutral-400 px-[10px] py-[4px] rounded-full text-[12px] font-medium flex items-center gap-[4px] transition-colors">
+              <Plus size={12} /> Add Tag
+            </button>
           </div>
-          <div className="flex flex-col">
-            <span className="font-body text-[16px] font-semibold text-neutral-900">24</span>
-            <span className="font-body text-[12px] text-neutral-500">Total in pipeline</span>
+        </div>
+
+        <div className="h-[1px] bg-neutral-100 w-full" />
+
+        <div className="flex flex-col gap-[10px]">
+          <div className="flex justify-between items-center">
+            <label className="font-body text-[12px] font-semibold text-neutral-500 uppercase tracking-wider">Assigned To</label>
+            <button className="text-[12px] font-medium text-primary-500 hover:text-primary-600 transition-colors">Change</button>
           </div>
-          <div className="flex flex-col">
-            <span className="font-body text-[16px] font-semibold text-neutral-900">Oct 18, 4:30 PM</span>
-            <span className="font-body text-[12px] text-neutral-500">Last activity</span>
+          <div className="flex items-center gap-[10px]">
+            <div className="w-[32px] h-[32px] rounded-full bg-primary-100 text-primary-700 flex items-center justify-center font-bold text-[12px]">
+              {application.assignedTo?.name?.charAt(0) || 'R'}
+            </div>
+            <span className="font-body text-[13px] font-medium text-neutral-900">{application.assignedTo?.name || 'Unassigned'}</span>
+          </div>
+        </div>
+
+        <div className="h-[1px] bg-neutral-100 w-full" />
+
+        <div className="flex flex-col gap-[12px]">
+          <label className="font-body text-[12px] font-semibold text-neutral-500 uppercase tracking-wider">Quick Stats</label>
+          <div className="flex justify-between items-center">
+            <span className="font-body text-[13px] text-neutral-600">Total days active</span>
+            <span className="font-body text-[13px] font-medium text-neutral-900">14</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="font-body text-[13px] text-neutral-600">Interviews completed</span>
+            <span className="font-body text-[13px] font-medium text-neutral-900">1</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="font-body text-[13px] text-neutral-600">Emails sent</span>
+            <span className="font-body text-[13px] font-medium text-neutral-900">3</span>
           </div>
         </div>
 
       </div>
 
-      {/* Reject Modal */}
-      <Dialog open={isRejectModalOpen} onOpenChange={setIsRejectModalOpen}>
-        <DialogContent className="sm:max-w-[440px]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-[12px] font-display text-[20px] font-semibold text-neutral-900">
-              <div className="flex h-[40px] w-[40px] items-center justify-center rounded-full bg-[#FEF2F2]">
-                <AlertCircle size={20} className="text-[#EF4444]" />
-              </div>
-              Reject Candidate
-            </DialogTitle>
-          </DialogHeader>
-          
-          <div className="py-[16px] flex flex-col gap-[20px]">
-            <div className="flex flex-col gap-[6px]">
-              <span id="rejection-reason-label" className="font-body text-[13px] font-medium text-neutral-700">Rejection Reason</span>
-              <Select value={rejectReason} onValueChange={setRejectReason} aria-labelledby="rejection-reason-label">
-                <SelectTrigger aria-labelledby="rejection-reason-label">
-                  <SelectValue placeholder="Select reason" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="skills">Lacking required skills</SelectItem>
-                  <SelectItem value="experience">Insufficient experience</SelectItem>
-                  <SelectItem value="culture">Culture fit</SelectItem>
-                  <SelectItem value="comp">Compensation mismatch</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+      <RejectModal 
+        isOpen={isRejectModalOpen} 
+        onClose={() => setIsRejectModalOpen(false)} 
+        candidateName={application.candidate.name} 
+      />
 
-            <div className="flex flex-col gap-[6px]">
-              <label htmlFor="reject-note" className="font-body text-[13px] font-medium text-neutral-700">Internal Note (Optional)</label>
-              <Textarea 
-                id="reject-note"
-                placeholder="Add context for this rejection..." 
-                className="min-h-[80px]"
-                value={rejectNote}
-                onChange={(e) => setRejectNote(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-[12px] mt-[8px]">
-            <Button variant="ghost" onClick={() => setIsRejectModalOpen(false)}>
-              Cancel
-            </Button>
-            <Button 
-              variant="primary" 
-              className="bg-[#EF4444] text-white hover:bg-[#DC2626]" 
-              onClick={handleRejectSubmit}
-              disabled={!rejectReason}
-            >
-              Confirm Rejection
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </>
+    </div>
   )
 }

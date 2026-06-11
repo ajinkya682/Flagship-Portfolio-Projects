@@ -1,101 +1,80 @@
-"use client"
+'use client'
 
-import * as React from "react"
-import { CheckCircle2, Download, ExternalLink } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { UsageBar } from "@/components/settings/UsageBar"
+import { useState } from 'react'
+import PlanCard from '@/components/billing/PlanCard'
+import UsageBar from '@/components/billing/UsageBar'
+import InvoiceTable from '@/components/billing/InvoiceTable'
+import UpgradeModal from '@/components/billing/UpgradeModal'
 
-export default function BillingSettingsPage() {
-  const invoices = [
-    { date: "Oct 1, 2026", amount: "$299.00", status: "Paid", statusColor: "bg-[#DCFCE7] text-[#166534]" },
-    { date: "Sep 1, 2026", amount: "$299.00", status: "Paid", statusColor: "bg-[#DCFCE7] text-[#166534]" },
-    { date: "Aug 1, 2026", amount: "$299.00", status: "Paid", statusColor: "bg-[#DCFCE7] text-[#166534]" },
-    { date: "Jul 1, 2026", amount: "$299.00", status: "Paid", statusColor: "bg-[#DCFCE7] text-[#166534]" },
-  ]
+const MOCK_INVOICES = [
+  { id: '1', date: 'Oct 1, 2023', amount: '$199.00', status: 'paid' as const, pdfUrl: '#' },
+  { id: '2', date: 'Sep 1, 2023', amount: '$199.00', status: 'paid' as const, pdfUrl: '#' },
+  { id: '3', date: 'Aug 1, 2023', amount: '$199.00', status: 'paid' as const, pdfUrl: '#' },
+]
+
+export default function BillingPage() {
+  const [isUpgradeOpen, setIsUpgradeOpen] = useState(false)
 
   return (
-    <div className="flex flex-col w-full animate-fade-in">
-      <h1 className="font-display text-[24px] font-bold text-neutral-900 mb-[32px]">Billing & Usage</h1>
-      
-      {/* Plan Card */}
-      <div className="flex flex-col rounded-[var(--radius-lg)] border border-primary-200 bg-primary-50 p-[32px] mb-[32px]">
-        <div className="flex justify-between items-start mb-[24px]">
-          <div className="flex flex-col">
-            <h4 className="font-display text-[16px] font-semibold text-primary-900">Growth Plan</h4>
-            <div className="flex items-baseline gap-[8px] mt-[4px]">
-              <h2 className="font-display text-[32px] font-bold text-neutral-900">$299</h2>
-              <span className="font-body text-[14px] text-neutral-600">/ month</span>
-            </div>
-            <span className="font-body text-[13px] text-neutral-500 mt-[4px]">Renews on Nov 1, 2026</span>
-          </div>
-          
-          <div className="flex flex-col gap-[12px]">
-            <div className="flex items-center gap-[8px]">
-              <CheckCircle2 size={16} className="text-primary-600" />
-              <span className="font-body text-[13px] font-medium text-neutral-700">Unlimited users</span>
-            </div>
-            <div className="flex items-center gap-[8px]">
-              <CheckCircle2 size={16} className="text-primary-600" />
-              <span className="font-body text-[13px] font-medium text-neutral-700">1,000 AI scorecards/mo</span>
-            </div>
-            <div className="flex items-center gap-[8px]">
-              <CheckCircle2 size={16} className="text-primary-600" />
-              <span className="font-body text-[13px] font-medium text-neutral-700">Custom pipelines</span>
-            </div>
+    <div className="pb-[40px]">
+      <div className="flex justify-between items-center mb-[32px]">
+        <div>
+          <h1 className="font-display text-[28px] font-bold text-neutral-900 tracking-tight">Billing & Plans</h1>
+          <p className="font-body text-[14px] text-neutral-500 mt-[4px]">Manage your subscription, usage, and invoices.</p>
+        </div>
+        <button 
+          onClick={() => setIsUpgradeOpen(true)}
+          className="bg-accent-500 hover:bg-accent-600 text-white font-body text-[14px] font-medium px-[16px] py-[8px] rounded-md transition-colors shadow-sm"
+        >
+          Upgrade Plan
+        </button>
+      </div>
+
+      <div className="flex flex-col gap-[32px]">
+        
+        {/* Usage Section */}
+        <div className="bg-white rounded-xl shadow-sm border border-[#E5E7EB] p-[32px]">
+          <h3 className="font-display text-[18px] font-semibold text-neutral-900 mb-[24px]">Current Usage</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-[32px]">
+            <UsageBar label="Active Jobs" current={12} limit={15} />
+            <UsageBar label="AI Screenings (Monthly)" current={450} limit={500} />
           </div>
         </div>
 
-        <div className="flex items-center gap-[12px] pt-[24px] border-t border-primary-200/50">
-          <Button iconRight={<ExternalLink size={16} />}>Manage Plan in Stripe</Button>
-          <Button variant="secondary" className="bg-white">View Invoices</Button>
+        {/* Plans Section */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-[24px]">
+          <PlanCard 
+            name="Starter"
+            price="$99"
+            renewalDate="N/A"
+            features={['3 Active Jobs', '100 AI Screenings', 'Basic Analytics']}
+          />
+          <PlanCard 
+            name="Pro"
+            price="$199"
+            renewalDate="Nov 1, 2023"
+            features={['15 Active Jobs', '500 AI Screenings', 'Advanced Analytics', 'Custom Pipelines']}
+            isCurrent={true}
+          />
+          <PlanCard 
+            name="Enterprise"
+            price="Custom"
+            renewalDate="N/A"
+            features={['Unlimited Jobs', 'Unlimited Screenings', 'SSO / SAML', 'Dedicated Support']}
+          />
         </div>
+
+        {/* Invoices Section */}
+        <div className="bg-white rounded-xl shadow-sm border border-[#E5E7EB] overflow-hidden">
+          <div className="p-[24px] border-b border-neutral-100">
+            <h3 className="font-display text-[18px] font-semibold text-neutral-900">Billing History</h3>
+          </div>
+          <InvoiceTable invoices={MOCK_INVOICES} />
+        </div>
+
       </div>
 
-      {/* Usage */}
-      <div className="flex flex-col mb-[48px]">
-        <h3 className="font-display text-[18px] font-semibold text-neutral-900 mb-[24px]">Current Usage</h3>
-        <div className="flex flex-col gap-[24px]">
-          <UsageBar label="Active Jobs" current={8} limit={10} />
-          <UsageBar label="AI Scorecards Generated" current={845} limit={1000} />
-          <UsageBar label="Storage (Resumes & Files)" current={4.2} limit={50} />
-        </div>
-      </div>
-
-      {/* Invoices */}
-      <div className="flex flex-col">
-        <h3 className="font-display text-[18px] font-semibold text-neutral-900 mb-[16px]">Invoice History</h3>
-        <div className="flex flex-col rounded-[var(--radius-lg)] border border-neutral-200 bg-white overflow-hidden shadow-sm">
-          <table className="w-full text-left font-body">
-            <thead className="bg-neutral-50 border-b border-neutral-200">
-              <tr>
-                <th className="py-[12px] px-[20px] text-[12px] font-medium text-neutral-500">Date</th>
-                <th className="py-[12px] px-[16px] text-[12px] font-medium text-neutral-500">Amount</th>
-                <th className="py-[12px] px-[16px] text-[12px] font-medium text-neutral-500">Status</th>
-                <th className="py-[12px] px-[20px] text-[12px] font-medium text-neutral-500 text-right">Invoice</th>
-              </tr>
-            </thead>
-            <tbody>
-              {invoices.map((inv, idx) => (
-                <tr key={idx} className="border-b border-neutral-100 last:border-0 hover:bg-neutral-50">
-                  <td className="py-[16px] px-[20px] text-[14px] font-medium text-neutral-900">{inv.date}</td>
-                  <td className="py-[16px] px-[16px] text-[14px] text-neutral-600">{inv.amount}</td>
-                  <td className="py-[16px] px-[16px]">
-                    <span className={`inline-flex items-center rounded-full px-[10px] py-[2px] text-[11px] font-bold uppercase tracking-wider ${inv.statusColor}`}>
-                      {inv.status}
-                    </span>
-                  </td>
-                  <td className="py-[16px] px-[20px] text-right">
-                    <Button variant="ghost" className="h-[32px] px-2 text-[13px] font-medium text-neutral-700" iconLeft={<Download size={14} />}>
-                      PDF
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
+      <UpgradeModal isOpen={isUpgradeOpen} onClose={() => setIsUpgradeOpen(false)} />
     </div>
   )
 }

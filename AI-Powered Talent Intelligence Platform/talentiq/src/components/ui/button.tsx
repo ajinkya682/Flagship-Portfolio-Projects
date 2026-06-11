@@ -52,7 +52,7 @@ const buttonVariants = cva(
     // Interaction
     'select-none cursor-pointer',
     // Transition (120ms --ease-out per spec)
-    'transition-all duration-[120ms] ease-[cubic-bezier(0,0,0.2,1)]',
+    'transition-all duration-150 ease-out',
     // Focus ring — shadow-brand on ALL buttons (spec: "No outline:none without replacement")
     'focus-visible:outline-none focus-visible:shadow-brand',
     // Disabled — cursor + lock out hover effects
@@ -295,7 +295,7 @@ const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
         'relative inline-flex items-center justify-center',
         'h-9 w-9 rounded-sm shrink-0',
         'cursor-pointer select-none',
-        'transition-all duration-[120ms] ease-[cubic-bezier(0,0,0.2,1)]',
+        'transition-all duration-150 ease-out',
         'focus-visible:outline-none focus-visible:shadow-brand',
         'disabled:pointer-events-none disabled:opacity-40 disabled:cursor-not-allowed',
         // Icon size forced to 18px per spec
@@ -337,7 +337,7 @@ const pillVariants = cva(
     'h-7 rounded-full',
     'font-body font-medium text-[12px] leading-none',
     'select-none cursor-pointer',
-    'transition-colors duration-[120ms] ease-out',
+    'transition-colors duration-150 ease-out',
     'focus-visible:outline-none focus-visible:shadow-brand',
     'disabled:pointer-events-none disabled:opacity-50',
   ].join(' '),
@@ -414,7 +414,7 @@ const PillButton = React.forwardRef<HTMLButtonElement, PillButtonProps>(
           className={cn(
             'ml-1 inline-flex items-center justify-center',
             'w-[18px] h-[18px] rounded-full shrink-0',
-            'transition-colors duration-[80ms]',
+            'transition-colors duration-75',
             'hover:bg-black/10',
             'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-current',
             'disabled:pointer-events-none'

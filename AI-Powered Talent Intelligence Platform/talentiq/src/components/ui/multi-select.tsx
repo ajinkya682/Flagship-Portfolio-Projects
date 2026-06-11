@@ -91,7 +91,7 @@ const MultiSelect = React.forwardRef<HTMLInputElement, MultiSelectProps>(
         <div className="relative">
           <div
             className={cn(
-              "flex min-h-10 w-full flex-wrap items-center gap-1.5 rounded-sm border bg-white px-2 py-1.5 shadow-sm transition-all duration-[120ms] cursor-text",
+              "flex min-h-10 w-full flex-wrap items-center gap-1.5 rounded-sm border bg-white px-2 py-1.5 shadow-sm transition-all duration-150 cursor-text",
               error
                 ? "border-[#EF4444] focus-within:border-[#EF4444] focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.15)]"
                 : "border-neutral-200 hover:border-neutral-300 focus-within:border-primary-500 focus-within:shadow-brand",

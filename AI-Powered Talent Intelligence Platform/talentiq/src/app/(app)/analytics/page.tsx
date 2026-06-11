@@ -1,155 +1,105 @@
-"use client"
+import dynamic from 'next/dynamic'
+import AnalyticsHeader from '@/components/analytics/AnalyticsHeader'
+import MetricsRow from '@/components/analytics/MetricsRow'
+import ChartCard from '@/components/analytics/ChartCard'
+import TeamPerformanceTable from '@/components/analytics/TeamPerformanceTable'
+import JobPerformanceTable from '@/components/analytics/JobPerformanceTable'
 
-import * as React from "react"
-import { Download, Users, Clock, CheckCircle2, TrendingUp } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { DateRangePicker } from "@/components/ui/date-range-picker"
-import { ChartCard } from "@/components/analytics/ChartCard"
-import { PipelineFunnelChart } from "@/components/analytics/PipelineFunnelChart"
-import { TimeToHireChart } from "@/components/analytics/TimeToHireChart"
-import { SourceQualityChart } from "@/components/analytics/SourceQualityChart"
-import { SourceVolumeDonut } from "@/components/analytics/SourceVolumeDonut"
-import { TeamPerformanceTable } from "@/components/analytics/TeamPerformanceTable"
-import { JobPerformanceTable } from "@/components/analytics/JobPerformanceTable"
+const PipelineFunnelChart = dynamic(() => import('@/components/analytics/PipelineFunnelChart'), { ssr: false })
+const TimeToHireChart = dynamic(() => import('@/components/analytics/TimeToHireChart'), { ssr: false })
+const SourceVolumeDonut = dynamic(() => import('@/components/analytics/SourceVolumeDonut'), { ssr: false })
+const SourceQualityChart = dynamic(() => import('@/components/analytics/SourceQualityChart'), { ssr: false })
 
-function StatCard({ title, value, icon, trend, positive }: { title: string, value: string, icon: React.ReactNode, trend: string, positive: boolean }) {
-  return (
-    <div className="flex flex-col rounded-[var(--radius-lg)] border border-neutral-200 bg-white p-[24px] shadow-sm">
-      <div className="flex items-center justify-between mb-[16px]">
-        <span className="font-body text-[14px] font-medium text-neutral-500">{title}</span>
-        <div className="flex h-[32px] w-[32px] items-center justify-center rounded-full bg-primary-50 text-primary-600">
-          {icon}
-        </div>
-      </div>
-      <span className="font-display text-[28px] font-bold text-neutral-900">{value}</span>
-      <div className="mt-[8px] flex items-center gap-[4px] font-body text-[12px]">
-        <span className={positive ? "text-[#10B981] font-semibold" : "text-[#EF4444] font-semibold"}>
-          {trend}
-        </span>
-        <span className="text-neutral-400">vs last period</span>
-      </div>
-    </div>
-  )
-}
+// Mock Data
+const funnelData = [
+  { stage: 'Screening', value: 347, conversion: 100 },
+  { stage: 'Phone Screen', value: 189, conversion: 54 },
+  { stage: 'Interview', value: 92, conversion: 48 },
+  { stage: 'Assessment', value: 44, conversion: 47 },
+  { stage: 'Offer', value: 18, conversion: 40 },
+  { stage: 'Hired', value: 12, conversion: 66 },
+]
 
-function CompactTable() {
-  const data = [
-    { stage: "Applied", count: 1245, days: "-", conv: "100%" },
-    { stage: "Screening", count: 850, days: "3.2", conv: "68%" },
-    { stage: "Interview", count: 320, days: "5.5", conv: "37%" },
-    { stage: "Assessment", count: 145, days: "4.1", conv: "45%" },
-    { stage: "Offer", count: 42, days: "2.0", conv: "28%" },
-  ]
-  return (
-    <div className="flex flex-col rounded-[var(--radius-lg)] border border-neutral-200 bg-white shadow-sm overflow-hidden h-full">
-      <table className="w-full text-left font-body">
-        <thead className="bg-neutral-50 border-b border-neutral-200">
-          <tr>
-            <th className="py-[12px] px-[16px] text-[12px] font-medium text-neutral-500">Stage</th>
-            <th className="py-[12px] px-[16px] text-[12px] font-medium text-neutral-500">Count</th>
-            <th className="py-[12px] px-[16px] text-[12px] font-medium text-neutral-500">Avg Days</th>
-            <th className="py-[12px] px-[16px] text-[12px] font-medium text-neutral-500">Conv %</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((row, idx) => (
-            <tr key={idx} className="border-b border-neutral-100 last:border-0 hover:bg-neutral-50">
-              <td className="py-[12px] px-[16px] text-[13px] font-medium text-neutral-900">{row.stage}</td>
-              <td className="py-[12px] px-[16px] text-[13px] text-neutral-600">{row.count}</td>
-              <td className="py-[12px] px-[16px] text-[13px] text-neutral-600">{row.days}</td>
-              <td className="py-[12px] px-[16px] text-[13px] font-semibold text-neutral-900">{row.conv}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  )
-}
+const timeToHireData = [
+  { week: 'W1', current: 32, previous: 40 },
+  { week: 'W2', current: 30, previous: 38 },
+  { week: 'W3', current: 28, previous: 35 },
+  { week: 'W4', current: 29, previous: 36 },
+  { week: 'W5', current: 25, previous: 34 },
+  { week: 'W6', current: 26, previous: 33 },
+  { week: 'W7', current: 24, previous: 32 },
+  { week: 'W8', current: 22, previous: 30 },
+  { week: 'W9', current: 23, previous: 29 },
+  { week: 'W10', current: 20, previous: 28 },
+  { week: 'W11', current: 19, previous: 26 },
+  { week: 'W12', current: 18, previous: 25 },
+]
+
+const sourceVolumeData = [
+  { name: 'LinkedIn', value: 42 },
+  { name: 'Indeed', value: 28 },
+  { name: 'Referral', value: 15 },
+  { name: 'Direct', value: 10 },
+  { name: 'Other', value: 5 },
+]
+
+const sourceQualityData = [
+  { source: 'Referral', quality: 78 },
+  { source: 'Direct', quality: 52 },
+  { source: 'LinkedIn', quality: 45 },
+  { source: 'Other', quality: 31 },
+  { source: 'Indeed', quality: 28 },
+]
+
+const teamData = [
+  { id: '1', name: 'Sarah Recruiter', reviewed: 450, avgResponseHours: 12, interviews: 85, offers: 15, hireRate: 68 },
+  { id: '2', name: 'Alex Manager', reviewed: 320, avgResponseHours: 24, interviews: 45, offers: 12, hireRate: 75 },
+  { id: '3', name: 'Jordan Lee', reviewed: 510, avgResponseHours: 8, interviews: 110, offers: 22, hireRate: 65 },
+]
+
+const jobData = [
+  { id: '1', title: 'Senior Software Engineer', applications: 245, avgScore: 82, convRate: 4.5, daysOpen: 45, status: 'active' as const },
+  { id: '2', title: 'Product Manager', applications: 180, avgScore: 78, convRate: 3.2, daysOpen: 30, status: 'active' as const },
+  { id: '3', title: 'UX Designer', applications: 320, avgScore: 85, convRate: 2.8, daysOpen: 60, status: 'paused' as const },
+  { id: '4', title: 'Data Scientist', applications: 150, avgScore: 88, convRate: 6.0, daysOpen: 15, status: 'closed' as const },
+]
 
 export default function AnalyticsPage() {
   return (
-    <div className="flex flex-col p-[32px] w-full max-w-[1600px] mx-auto animate-fade-in">
+    <div className="flex flex-col w-full max-w-[1400px] mx-auto">
+      <AnalyticsHeader />
       
-      {/* HEADER */}
-      <div className="flex items-center justify-between mb-[32px]">
-        <h1 className="font-display text-[28px] font-bold text-neutral-900">Analytics</h1>
-        <div className="flex items-center gap-[12px]">
-          <DateRangePicker />
-          <Button variant="ghost" className="h-[36px] bg-white text-neutral-600 border border-neutral-200">
-            Export CSV <Download size={14} className="ml-2" />
-          </Button>
-        </div>
-      </div>
+      <div className="flex flex-col gap-[24px]">
+        <MetricsRow />
 
-      {/* SEC 1: KEY METRICS */}
-      <div className="grid grid-cols-12 gap-[24px] mb-[24px]">
-        <div className="col-span-12 md:col-span-6 lg:col-span-3">
-          <StatCard title="Total Applications" value="1,245" icon={<Users size={16} />} trend="+12.5%" positive={true} />
-        </div>
-        <div className="col-span-12 md:col-span-6 lg:col-span-3">
-          <StatCard title="Time to Hire" value="18 Days" icon={<Clock size={16} />} trend="-2.4 days" positive={true} />
-        </div>
-        <div className="col-span-12 md:col-span-6 lg:col-span-3">
-          <StatCard title="Offer Acceptance" value="82%" icon={<CheckCircle2 size={16} />} trend="-4.1%" positive={false} />
-        </div>
-        <div className="col-span-12 md:col-span-6 lg:col-span-3">
-          <StatCard title="Pipeline Conversion" value="3.4%" icon={<TrendingUp size={16} />} trend="+0.8%" positive={true} />
-        </div>
-      </div>
-
-      {/* SEC 2: PIPELINE FUNNEL */}
-      <div className="grid grid-cols-12 gap-[24px] mb-[24px]">
-        <div className="col-span-12 lg:col-span-8">
-          <ChartCard title="Conversion Funnel" period="Last 30 Days">
-            <PipelineFunnelChart />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-[24px]">
+          <ChartCard title="Pipeline Funnel" period="Last 30 Days">
+            <PipelineFunnelChart data={funnelData} />
+          </ChartCard>
+          
+          <ChartCard title="Time to Hire Trend" period="Last 12 Weeks">
+            <TimeToHireChart data={timeToHireData} />
           </ChartCard>
         </div>
-        <div className="col-span-12 lg:col-span-4">
-          <CompactTable />
-        </div>
-      </div>
 
-      {/* SEC 3: TIME TO HIRE TREND */}
-      <div className="grid grid-cols-12 gap-[24px] mb-[24px]">
-        <div className="col-span-12">
-          <ChartCard title="Time to Hire Trend" period="Quarter over Quarter">
-            <TimeToHireChart />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-[24px]">
+          <ChartCard title="Source Volume" period="Last 30 Days">
+            <SourceVolumeDonut data={sourceVolumeData} />
+          </ChartCard>
+          
+          <ChartCard title="Source Quality (Conversion Rate)" period="Last 30 Days">
+            <SourceQualityChart data={sourceQualityData} />
           </ChartCard>
         </div>
-      </div>
 
-      {/* SEC 4: SOURCE QUALITY */}
-      <div className="grid grid-cols-12 gap-[24px] mb-[24px]">
-        <div className="col-span-12 lg:col-span-6">
-          <ChartCard title="Conversion by Source" period="Last 30 Days">
-            <SourceQualityChart />
-          </ChartCard>
-        </div>
-        <div className="col-span-12 lg:col-span-6">
-          <ChartCard title="Application Volume by Source" period="Last 30 Days">
-            <SourceVolumeDonut />
-          </ChartCard>
-        </div>
-      </div>
+        <ChartCard title="Team Performance">
+          <TeamPerformanceTable data={teamData} />
+        </ChartCard>
 
-      {/* SEC 5: TEAM PERFORMANCE */}
-      <div className="grid grid-cols-12 gap-[24px] mb-[24px]">
-        <div className="col-span-12">
-          <ChartCard title="Recruiter Performance" period="Last 30 Days">
-            <TeamPerformanceTable />
-          </ChartCard>
-        </div>
+        <ChartCard title="Job Performance">
+          <JobPerformanceTable data={jobData} />
+        </ChartCard>
       </div>
-
-      {/* SEC 6: JOB PERFORMANCE */}
-      <div className="grid grid-cols-12 gap-[24px] mb-[32px]">
-        <div className="col-span-12">
-          <ChartCard title="Job Performance" period="Active Jobs Only">
-            <JobPerformanceTable />
-          </ChartCard>
-        </div>
-      </div>
-
     </div>
   )
 }

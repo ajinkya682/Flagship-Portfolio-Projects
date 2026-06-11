@@ -1,86 +1,67 @@
-"use client"
+import { Application } from '@/types/domain.types'
+import { Sparkles, Calendar, ArrowRightLeft, FileText, Gift, UserPlus } from 'lucide-react'
+import { formatDate } from '@/lib/utils'
 
-import * as React from "react"
-import { Briefcase, ArrowRightLeft, Sparkles, Video, FileText, CheckCircle2 } from "lucide-react"
+interface ActivityTabProps {
+  application: Application
+}
 
-export function ActivityTab() {
-  const activities = [
-    {
-      id: "act_1",
-      type: "note",
-      actor: "Alex Kumar",
-      action: "left a note",
-      timestamp: "Oct 18, 2026 at 4:30 PM",
-    },
-    {
-      id: "act_2",
-      type: "interview",
-      actor: "System",
-      action: "scheduled Technical Screen with Sarah Chen",
-      timestamp: "Oct 12, 2026 at 9:00 AM",
-    },
-    {
-      id: "act_3",
-      type: "stage",
-      actor: "Sarah Chen",
-      action: "moved candidate to Phone Screen",
-      timestamp: "Oct 11, 2026 at 2:15 PM",
-    },
-    {
-      id: "act_4",
-      type: "ai_score",
-      actor: "TalentIQ AI",
-      action: "scored candidate at 88% Match",
-      timestamp: "Oct 10, 2026 at 10:02 AM",
-    },
-    {
-      id: "act_5",
-      type: "application",
-      actor: "David Kim",
-      action: "applied via Website",
-      timestamp: "Oct 10, 2026 at 10:00 AM",
+// Mock activity feed
+const mockActivities = [
+  { id: '1', type: 'offer', text: 'Offer sent to candidate', actor: 'Sarah Recruiter', timestamp: new Date(Date.now() - 3600000).toISOString() },
+  { id: '2', type: 'stage_moved', text: 'Moved to Offer stage', actor: 'Sarah Recruiter', timestamp: new Date(Date.now() - 7200000).toISOString() },
+  { id: '3', type: 'interview', text: 'Interview completed: Technical Screen', actor: 'Alex Manager', timestamp: new Date(Date.now() - 86400000 * 2).toISOString() },
+  { id: '4', type: 'note', text: 'Added a note', actor: 'Sarah Recruiter', timestamp: new Date(Date.now() - 86400000 * 3).toISOString() },
+  { id: '5', type: 'ai_scored', text: 'AI generated match score: 92/100', actor: 'TalentIQ System', timestamp: new Date(Date.now() - 86400000 * 5).toISOString() },
+  { id: '6', type: 'submitted', text: 'Application submitted', actor: 'Candidate', timestamp: new Date(Date.now() - 86400000 * 5).toISOString() },
+]
+
+export default function ActivityTab({ application }: ActivityTabProps) {
+  const getIcon = (type: string) => {
+    switch (type) {
+      case 'offer': return <Gift size={16} className="text-emerald-600" />
+      case 'stage_moved': return <ArrowRightLeft size={16} className="text-primary-600" />
+      case 'interview': return <Calendar size={16} className="text-purple-600" />
+      case 'note': return <FileText size={16} className="text-amber-600" />
+      case 'ai_scored': return <Sparkles size={16} className="text-accent-600" />
+      case 'submitted': return <UserPlus size={16} className="text-blue-600" />
+      default: return <div className="w-[8px] h-[8px] rounded-full bg-neutral-400" />
     }
-  ]
+  }
 
-  const getTypeStyles = (type: string) => {
-    switch(type) {
-      case "application": return { icon: <Briefcase size={14} />, bg: "bg-blue-100 text-blue-600" }
-      case "stage": return { icon: <ArrowRightLeft size={14} />, bg: "bg-purple-100 text-purple-600" }
-      case "ai_score": return { icon: <Sparkles size={14} />, bg: "bg-accent-100 text-accent-600" }
-      case "interview": return { icon: <Video size={14} />, bg: "bg-warning-100 text-warning-600" }
-      case "note": return { icon: <FileText size={14} />, bg: "bg-neutral-100 text-neutral-600" }
-      case "offer": return { icon: <CheckCircle2 size={14} />, bg: "bg-primary-100 text-primary-600" }
-      default: return { icon: <Briefcase size={14} />, bg: "bg-neutral-100 text-neutral-600" }
+  const getIconBg = (type: string) => {
+    switch (type) {
+      case 'offer': return 'bg-emerald-100'
+      case 'stage_moved': return 'bg-primary-100'
+      case 'interview': return 'bg-purple-100'
+      case 'note': return 'bg-amber-100'
+      case 'ai_scored': return 'bg-accent-100'
+      case 'submitted': return 'bg-blue-100'
+      default: return 'bg-neutral-100'
     }
   }
 
   return (
-    <div className="flex flex-col pl-[16px] animate-fade-slide-up">
-      <div className="relative border-l-2 border-neutral-200 ml-[16px] py-[8px] flex flex-col gap-[32px]">
-        
-        {activities.map(activity => {
-          const styles = getTypeStyles(activity.type)
-          
-          return (
-            <div key={activity.id} className="relative flex items-start gap-[24px]">
-              {/* Timeline dot/icon */}
-              <div className={`absolute -left-[17px] flex h-[32px] w-[32px] items-center justify-center rounded-full border-[4px] border-white ${styles.bg}`}>
-                {styles.icon}
-              </div>
-              
-              <div className="ml-[40px] flex flex-col mt-[4px]">
-                <div className="flex flex-wrap items-baseline gap-[4px] font-body text-[14px]">
-                  <span className="font-semibold text-neutral-900">{activity.actor}</span>
-                  <span className="text-neutral-600">{activity.action}</span>
-                </div>
-                <span className="font-body text-[12px] text-neutral-400 mt-[4px]">
-                  {activity.timestamp}
+    <div className="p-[32px] max-w-[800px]">
+      <div className="relative border-l border-neutral-200 ml-[16px] flex flex-col gap-[32px]">
+        {mockActivities.map((activity, index) => (
+          <div key={activity.id} className="flex gap-[20px] relative">
+            <div className={`absolute -left-[16px] w-[32px] h-[32px] rounded-full border-4 border-white flex items-center justify-center ${getIconBg(activity.type)}`}>
+              {getIcon(activity.type)}
+            </div>
+            
+            <div className="flex flex-col ml-[28px] bg-white border border-[#E5E7EB] rounded-lg p-[16px] shadow-sm w-full">
+              <div className="flex justify-between items-start gap-[16px]">
+                <p className="font-body text-[14px] text-neutral-800 leading-snug">
+                  <span className="font-semibold text-neutral-900">{activity.actor}</span> {activity.text.toLowerCase()}
+                </p>
+                <span className="font-body text-[12px] text-neutral-400 shrink-0 whitespace-nowrap">
+                  {formatDate(activity.timestamp)}
                 </span>
               </div>
             </div>
-          )
-        })}
-
+          </div>
+        ))}
       </div>
     </div>
   )

@@ -1,123 +1,156 @@
-"use client"
+import { Application, Scorecard } from '@/types/domain.types'
+import { EmptyState } from '@/components/shared/EmptyState'
+import { FileText, Star } from 'lucide-react'
+import { formatDate } from '@/lib/utils'
 
-import * as React from "react"
-import { Star, MessageSquare } from "lucide-react"
+interface ScorecardsTabProps {
+  application: Application
+}
 
-export function ScorecardsTab() {
-  const ratings = [
-    { label: "Strong Yes", count: 2, color: "bg-accent-500", percent: 66 },
-    { label: "Yes", count: 1, color: "bg-primary-500", percent: 33 },
-    { label: "Mixed", count: 0, color: "bg-neutral-300", percent: 0 },
-    { label: "No", count: 0, color: "bg-warning-500", percent: 0 },
-    { label: "Strong No", count: 0, color: "bg-[#EF4444]", percent: 0 },
-  ]
+// Mock scorecards
+const mockScorecards: Scorecard[] = [
+  {
+    id: 'sc_1',
+    interviewId: 'int_2',
+    interviewer: { id: 'u2', name: 'Sarah Recruiter', avatar: undefined } as any,
+    overallRating: 'yes',
+    criteria: [
+      { name: 'Technical Skills', rating: 4, comment: 'Strong understanding of React concepts.' },
+      { name: 'Communication', rating: 5, comment: 'Very clear and articulate.' }
+    ],
+    notes: 'I think she would be a great fit for the team. Very collaborative mindset.',
+    submittedAt: new Date(Date.now() - 86400000 * 2).toISOString()
+  }
+]
 
-  const scorecards = [
-    {
-      id: "sc_1",
-      author: "Sarah Chen",
-      avatar: "https://i.pravatar.cc/150?u=a1",
-      date: "Oct 15, 2026",
-      rating: "Strong Yes",
-      notes: "David was exceptional in the technical screen. His deep understanding of React's rendering lifecycle and Next.js App Router is exactly what we need. Code was clean and he communicated his thought process perfectly.",
-      criteria: [
-        { name: "Technical Depth", score: 5 },
-        { name: "Communication", score: 5 },
-        { name: "Problem Solving", score: 4 }
-      ]
-    },
-    {
-      id: "sc_2",
-      author: "Alex Kumar",
-      avatar: "https://i.pravatar.cc/150?u=a2",
-      date: "Oct 18, 2026",
-      rating: "Yes",
-      notes: "Solid system design chops. He mapped out the architecture clearly, though he struggled slightly when we discussed scaling the websocket service. Overall, a very strong candidate.",
-      criteria: [
-        { name: "System Architecture", score: 4 },
-        { name: "Scalability", score: 3 },
-        { name: "Communication", score: 4 }
-      ]
+export default function ScorecardsTab({ application }: ScorecardsTabProps) {
+  const scorecards = mockScorecards
+
+  if (!scorecards || scorecards.length === 0) {
+    return (
+      <EmptyState
+        icon={FileText}
+        title="No scorecards submitted"
+        description="Scorecards will appear here after interviews are completed."
+      />
+    )
+  }
+
+  // Aggregation logic
+  const ratingCounts = {
+    'strong-yes': 0,
+    'yes': 0,
+    'no': 0,
+    'strong-no': 0
+  }
+  scorecards.forEach(sc => {
+    if (sc.overallRating in ratingCounts) {
+      ratingCounts[sc.overallRating as keyof typeof ratingCounts]++
     }
+  })
+  const total = scorecards.length
+
+  const ratingConfig = [
+    { key: 'strong-yes', label: 'Strong Yes', color: 'bg-accent-500' },
+    { key: 'yes', label: 'Yes', color: 'bg-primary-500' },
+    { key: 'no', label: 'No', color: 'bg-amber-500' },
+    { key: 'strong-no', label: 'Strong No', color: 'bg-red-500' }
   ]
 
-  const getRatingColor = (rating: string) => {
-    switch(rating) {
-      case "Strong Yes": return "bg-accent-100 text-accent-700"
-      case "Yes": return "bg-primary-100 text-primary-700"
-      case "No": return "bg-warning-100 text-warning-700"
-      case "Strong No": return "bg-[#FEF2F2] text-[#EF4444]"
-      default: return "bg-neutral-100 text-neutral-700"
+  const getRatingBadgeClass = (rating: string) => {
+    switch (rating) {
+      case 'strong-yes': return 'bg-accent-100 text-accent-700'
+      case 'yes': return 'bg-primary-100 text-primary-700'
+      case 'no': return 'bg-amber-100 text-amber-700'
+      case 'strong-no': return 'bg-red-100 text-red-700'
+      default: return 'bg-neutral-100 text-neutral-700'
     }
   }
 
+  const getRatingLabel = (rating: string) => {
+    return rating.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+  }
+
   return (
-    <div className="flex flex-col animate-fade-slide-up">
+    <div className="p-[24px] flex flex-col gap-[32px]">
       
-      {/* Aggregated Ratings */}
-      <div className="mb-[32px] flex flex-col rounded-[var(--radius-lg)] border border-neutral-200 bg-white p-[24px] shadow-sm">
-        <h5 className="font-display text-[16px] font-semibold text-neutral-900 mb-[16px]">
-          Aggregated Ratings
-        </h5>
-        <div className="flex flex-col gap-[12px]">
-          {ratings.map((rating, idx) => (
-            <div key={idx} className="flex items-center gap-[16px]">
-              <span className="w-[80px] font-body text-[13px] font-medium text-neutral-600">
-                {rating.label}
-              </span>
-              <div className="flex-1 h-[12px] bg-neutral-100 rounded-full overflow-hidden">
-                <div 
-                  className={`h-full ${rating.color} transition-all duration-500`}
-                  style={{ width: `${rating.percent}%` }}
-                />
+      {/* Aggregated Rating Bar Chart */}
+      <div className="bg-white border border-[#E5E7EB] rounded-lg p-[24px] flex flex-col gap-[16px]">
+        <h3 className="font-display text-[16px] font-semibold text-neutral-900">Overall Ratings</h3>
+        <div className="flex flex-col gap-[12px] max-w-[500px]">
+          {ratingConfig.map(config => {
+            const count = ratingCounts[config.key as keyof typeof ratingCounts]
+            const percent = total > 0 ? (count / total) * 100 : 0
+            
+            return (
+              <div key={config.key} className="flex items-center gap-[16px]">
+                <span className="w-[80px] font-body text-[13px] text-neutral-600 shrink-0">{config.label}</span>
+                <div className="flex-1 h-[8px] bg-neutral-100 rounded-full overflow-hidden flex items-center">
+                  <div 
+                    className={`h-full rounded-full transition-all duration-1000 ${config.color}`} 
+                    style={{ width: `${percent}%` }}
+                  />
+                </div>
+                <span className="w-[20px] font-body text-[13px] font-medium text-neutral-900 text-right">{count}</span>
               </div>
-              <span className="w-[20px] font-body text-[13px] font-bold text-neutral-900 text-right">
-                {rating.count}
-              </span>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </div>
 
-      {/* Scorecards List */}
-      <div className="flex flex-col gap-[16px]">
-        {scorecards.map(sc => (
-          <div key={sc.id} className="flex flex-col rounded-[var(--radius-lg)] border border-neutral-200 bg-white p-[24px] shadow-sm">
-            
-            <div className="flex items-start justify-between mb-[16px]">
+      {/* Individual Scorecards */}
+      <div className="flex flex-col gap-[20px]">
+        <h3 className="font-display text-[18px] font-semibold text-neutral-900">Submitted Scorecards</h3>
+        
+        {scorecards.map(scorecard => (
+          <div key={scorecard.id} className="bg-white border border-[#E5E7EB] rounded-lg p-[24px] flex flex-col gap-[20px]">
+            <div className="flex justify-between items-start">
               <div className="flex items-center gap-[12px]">
-                <img src={sc.avatar} alt={sc.author} className="h-[40px] w-[40px] rounded-full object-cover" />
+                <div className="w-[40px] h-[40px] rounded-full bg-primary-100 text-primary-700 flex items-center justify-center font-bold text-[14px]">
+                  {scorecard.interviewer.name.charAt(0)}
+                </div>
                 <div className="flex flex-col">
-                  <span className="font-body text-[15px] font-semibold text-neutral-900">{sc.author}</span>
-                  <span className="font-body text-[12px] text-neutral-500">{sc.date}</span>
+                  <span className="font-body text-[15px] font-semibold text-neutral-900">{scorecard.interviewer.name}</span>
+                  <span className="font-body text-[12px] text-neutral-500">Submitted {formatDate(scorecard.submittedAt)}</span>
                 </div>
               </div>
-              <div className={`flex h-[28px] items-center rounded-full px-[12px] font-body text-[13px] font-bold ${getRatingColor(sc.rating)}`}>
-                {sc.rating}
-              </div>
+              
+              <span className={`px-[12px] py-[4px] rounded-full text-[12px] font-bold uppercase tracking-wider ${getRatingBadgeClass(scorecard.overallRating)}`}>
+                {getRatingLabel(scorecard.overallRating)}
+              </span>
             </div>
 
-            <p className="font-body text-[14px] leading-relaxed text-neutral-700 mb-[20px]">
-              {sc.notes}
-            </p>
+            <div className="flex flex-col gap-[8px]">
+              <h4 className="font-body text-[13px] font-semibold text-neutral-700">Overall Notes</h4>
+              <p className="font-body text-[14px] text-neutral-700 leading-relaxed bg-neutral-50 p-[16px] rounded-md border border-neutral-100">
+                {scorecard.notes}
+              </p>
+            </div>
 
-            <div className="flex flex-col gap-[12px] border-t border-neutral-100 pt-[16px]">
-              {sc.criteria.map((crit, idx) => (
-                <div key={idx} className="flex items-center justify-between">
-                  <span className="font-body text-[13px] text-neutral-600">{crit.name}</span>
-                  <div className="flex items-center gap-[2px]">
-                    {[1,2,3,4,5].map(star => (
-                      <Star 
-                        key={star} 
-                        size={14} 
-                        className={star <= crit.score ? "fill-[#F59E0B] text-[#F59E0B]" : "fill-neutral-100 text-neutral-200"} 
-                      />
-                    ))}
+            <div className="flex flex-col gap-[16px]">
+              <h4 className="font-body text-[13px] font-semibold text-neutral-700">Criteria Ratings</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-[16px]">
+                {scorecard.criteria.map((c, i) => (
+                  <div key={i} className="flex flex-col gap-[8px] p-[16px] border border-neutral-200 rounded-md">
+                    <div className="flex justify-between items-center">
+                      <span className="font-body text-[14px] font-medium text-neutral-900">{c.name}</span>
+                      <div className="flex gap-[2px]">
+                        {[1, 2, 3, 4, 5].map(star => (
+                          <Star 
+                            key={star} 
+                            size={14} 
+                            className={star <= c.rating ? "fill-amber-400 text-amber-400" : "fill-neutral-200 text-neutral-200"} 
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    {c.comment && (
+                      <p className="font-body text-[13px] text-neutral-600 mt-[4px] italic">{c.comment}</p>
+                    )}
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-
           </div>
         ))}
       </div>

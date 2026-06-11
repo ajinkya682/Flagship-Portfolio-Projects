@@ -1,48 +1,56 @@
-"use client"
+'use client'
 
-import * as React from "react"
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts"
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 
-const data = [
-  { source: "Referral", rate: 18, color: "#10B981" }, // Green
-  { source: "Outbound", rate: 12, color: "#10B981" }, // Green
-  { source: "Website", rate: 8, color: "#F59E0B" }, // Amber
-  { source: "LinkedIn", rate: 5, color: "#EF4444" }, // Red
-  { source: "Agency", rate: 3, color: "#EF4444" }, // Red
-]
+interface SourceQualityChartProps {
+  data: { source: string; quality: number }[]
+}
 
-export function SourceQualityChart() {
+const getBarColor = (quality: number) => {
+  if (quality >= 30) return '#6366F1' // accent-500
+  if (quality >= 15) return '#F59E0B' // amber-500
+  return '#EF4444' // red-500
+}
+
+const CustomTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload
+    return (
+      <div className="bg-white shadow-md border border-neutral-100 rounded-md p-[12px] font-body">
+        <p className="text-[13px] font-bold text-neutral-900 mb-[4px]">{data.source}</p>
+        <p className="text-[13px] text-neutral-600">Conv. Rate: <span className="font-semibold" style={{ color: getBarColor(data.quality) }}>{data.quality}%</span></p>
+      </div>
+    )
+  }
+  return null
+}
+
+export default function SourceQualityChart({ data }: SourceQualityChartProps) {
   return (
-    <div className="h-[260px] w-full mt-[16px]">
+    <div className="h-[240px] w-full">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={data}
-          margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+          margin={{ top: 20, right: 0, left: -20, bottom: 0 }}
         >
-          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F5F5F5" />
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F3F4F6" />
           <XAxis 
             dataKey="source" 
             axisLine={false} 
-            tickLine={false} 
-            tick={{ fill: '#737373', fontSize: 12, fontFamily: 'var(--font-body)' }} 
+            tickLine={false}
+            tick={{ fontSize: 12, fill: '#6B7280', fontFamily: 'Inter, sans-serif' }}
             dy={10}
           />
           <YAxis 
             axisLine={false} 
-            tickLine={false} 
-            tick={{ fill: '#737373', fontSize: 12, fontFamily: 'var(--font-body)' }} 
+            tickLine={false}
+            tick={{ fontSize: 12, fill: '#6B7280', fontFamily: 'Inter, sans-serif' }}
             tickFormatter={(value) => `${value}%`}
           />
-          <Tooltip
-            cursor={{ fill: '#F5F5F5' }}
-            contentStyle={{ borderRadius: '6px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontFamily: 'var(--font-body)' }}
-            itemStyle={{ fontSize: '13px', fontWeight: 600, color: '#171717' }}
-            labelStyle={{ fontSize: '12px', color: '#737373', marginBottom: '4px' }}
-            formatter={(value: number) => [`${value}%`, 'Conversion Rate']}
-          />
-          <Bar dataKey="rate" radius={[4, 4, 0, 0]}>
+          <Tooltip cursor={{ fill: '#F9FAFB' }} content={<CustomTooltip />} />
+          <Bar dataKey="quality" radius={[4, 4, 0, 0]} barSize={40}>
             {data.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={entry.color} />
+              <Cell key={`cell-${index}`} fill={getBarColor(entry.quality)} />
             ))}
           </Bar>
         </BarChart>

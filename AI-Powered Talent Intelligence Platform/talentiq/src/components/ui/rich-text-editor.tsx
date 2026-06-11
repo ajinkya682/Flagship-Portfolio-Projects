@@ -76,7 +76,7 @@ const RichTextEditor = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
         )}
         <div
           className={cn(
-            "flex flex-col rounded-sm border bg-white shadow-sm transition-all duration-[120ms]",
+            "flex flex-col rounded-sm border bg-white shadow-sm transition-all duration-150",
             error
               ? "border-[#EF4444] shadow-[0_0_0_3px_rgba(239,68,68,0.15)]"
               : isFocused

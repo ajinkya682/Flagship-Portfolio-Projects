@@ -5,6 +5,9 @@ import { Copy, AlertTriangle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { toast } from "sonner"
+import { useRouter } from "next/navigation"
+import { fireConfetti } from "@/lib/confetti"
 import type { JobData } from "./StepBasicInfo"
 
 interface StepReviewProps {
@@ -17,13 +20,24 @@ interface StepReviewProps {
 export function StepReview({ data, onEditStep, onPublish, onSaveDraft }: StepReviewProps) {
   const [isWarningModalOpen, setIsWarningModalOpen] = React.useState(false)
 
-  const handlePublishClick = () => {
+  const router = useRouter()
+
+  const handlePublishClick = async () => {
     // Simulate detecting an un-fixed bias issue
     if (data.description.includes("rockstar")) {
       setIsWarningModalOpen(true)
     } else {
-      onPublish()
+      await handleActualPublish()
     }
+  }
+
+  const handleActualPublish = async () => {
+    onPublish()
+    await fireConfetti()
+    toast.success("Job published — candidates can now find and apply")
+    setTimeout(() => {
+      router.push(`/jobs/new-job-123/pipeline`)
+    }, 1500)
   }
 
   return (
@@ -166,7 +180,7 @@ export function StepReview({ data, onEditStep, onPublish, onSaveDraft }: StepRev
           </div>
 
           <div className="flex justify-end gap-[12px] mt-[16px]">
-            <Button variant="ghost" className="text-[#EF4444] hover:bg-red-50 hover:text-[#DC2626]" onClick={onPublish}>
+            <Button variant="ghost" className="text-[#EF4444] hover:bg-red-50 hover:text-[#DC2626]" onClick={handleActualPublish}>
               Publish Anyway
             </Button>
             <Button variant="primary" onClick={() => { setIsWarningModalOpen(false); onEditStep(2) }}>

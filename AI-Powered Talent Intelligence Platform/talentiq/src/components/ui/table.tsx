@@ -47,7 +47,7 @@ const TableRow = React.forwardRef<
   <tr
     ref={ref}
     className={cn(
-      "group relative border-b border-neutral-100 bg-white transition-colors duration-[80ms] hover:bg-neutral-50",
+      "group relative border-b border-neutral-100 bg-white transition-colors duration-75 hover:bg-neutral-50",
       isSelected && "bg-primary-50 hover:bg-primary-50",
       className
     )}

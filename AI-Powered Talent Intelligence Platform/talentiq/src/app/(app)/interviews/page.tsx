@@ -1,52 +1,118 @@
-"use client"
+'use client'
 
-import * as React from "react"
-import { InterviewCalendar } from "@/components/interviews/InterviewCalendar"
-import { InterviewQueue } from "@/components/interviews/InterviewQueue"
+import { useState } from 'react'
+import InterviewCalendar from '@/components/interviews/InterviewCalendar'
+import InterviewQueue from '@/components/interviews/InterviewQueue'
+import ScheduleModal from '@/components/interviews/ScheduleModal'
+import ScorecardModal from '@/components/interviews/ScorecardModal'
+import { Plus } from 'lucide-react'
+import { Interview } from '@/types/domain.types'
 
-// We need a tiny global override for the react-big-calendar to match our design system
-// without writing a massive raw CSS file if we can avoid it.
-const rbcStyles = `
-  .rbc-custom-wrapper .rbc-toolbar { display: none; } /* We built a custom toolbar */
-  .rbc-custom-wrapper .rbc-header { padding: 12px 0; font-family: var(--font-body); font-size: 13px; font-weight: 600; color: #525252; border-bottom: 1px solid #E5E5E5; }
-  .rbc-custom-wrapper .rbc-month-view { border-radius: var(--radius-md); border: 1px solid #E5E5E5; overflow: hidden; border-top: none; }
-  .rbc-custom-wrapper .rbc-day-bg + .rbc-day-bg { border-left: 1px solid #E5E5E5; }
-  .rbc-custom-wrapper .rbc-month-row + .rbc-month-row { border-top: 1px solid #E5E5E5; }
-  .rbc-custom-wrapper .rbc-date-cell { padding: 4px 8px; font-family: var(--font-body); font-size: 12px; font-weight: 500; color: #737373; }
-  .rbc-custom-wrapper .rbc-off-range-bg { background-color: #FAFAFA; }
-  .rbc-custom-wrapper .rbc-today { background-color: #EFF6FF; }
-  .rbc-custom-wrapper .rbc-event { padding: 0; background: transparent; }
-  .rbc-custom-wrapper .rbc-time-view { border: 1px solid #E5E5E5; border-radius: var(--radius-md); overflow: hidden; border-top: none; }
-  .rbc-custom-wrapper .rbc-time-header.rbc-overflowing { border-right: none; }
-  .rbc-custom-wrapper .rbc-time-content { border-top: 1px solid #E5E5E5; }
-  .rbc-custom-wrapper .rbc-timeslot-group { border-bottom: 1px solid #E5E5E5; }
-  .rbc-custom-wrapper .rbc-day-slot .rbc-time-slot { border-top: 1px solid #F5F5F5; }
-  .rbc-custom-wrapper .rbc-time-gutter .rbc-timeslot-group { font-family: var(--font-body); font-size: 11px; color: #A3A3A3; padding: 0 8px; text-align: right; }
-`
+const mockInterviews: Interview[] = [
+  {
+    id: 'int_1',
+    applicationId: 'app_1',
+    candidate: { name: 'Jennifer Park' } as any,
+    job: { title: 'Senior Software Engineer' } as any,
+    scheduledAt: new Date(Date.now() + 86400000).toISOString(),
+    duration: 60,
+    locationType: 'video',
+    meetingLink: 'https://zoom.us/j/1234567890',
+    interviewers: [{ id: '1', name: 'Alex Manager' } as any],
+    status: 'scheduled',
+    scorecards: []
+  },
+  {
+    id: 'int_2',
+    applicationId: 'app_2',
+    candidate: { name: 'David Chen' } as any,
+    job: { title: 'Product Manager' } as any,
+    scheduledAt: new Date(Date.now() - 3600000).toISOString(),
+    duration: 45,
+    locationType: 'video',
+    meetingLink: 'https://zoom.us/j/0987654321',
+    interviewers: [{ id: '1', name: 'Sarah Recruiter' } as any],
+    status: 'completed',
+    scorecards: []
+  }
+]
 
 export default function InterviewsPage() {
+  const [isScheduleOpen, setIsScheduleOpen] = useState(false)
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
+  
+  const [activeScorecardInterview, setActiveScorecardInterview] = useState<Interview | null>(null)
+
+  const handleSelectSlot = (slotInfo: { start: Date }) => {
+    setSelectedDate(slotInfo.start)
+    setIsScheduleOpen(true)
+  }
+
+  const handleSelectEvent = (event: Interview) => {
+    if (event.status === 'completed') {
+      setActiveScorecardInterview(event)
+    }
+  }
+
   return (
-    <div className="flex flex-col p-[32px] w-full max-w-[1600px] mx-auto animate-fade-in">
-      <style dangerouslySetInnerHTML={{ __html: rbcStyles }} />
+    <div className="flex flex-col h-full -mx-[16px] md:-mx-[32px] -mt-[16px] md:-mt-[32px] bg-neutral-50/50">
       
-      {/* HEADER */}
-      <div className="flex items-center justify-between mb-[32px]">
-        <h1 className="font-display text-[28px] font-bold text-neutral-900">Interviews</h1>
+      {/* Header Area */}
+      <div className="px-[16px] md:px-[32px] py-[24px] border-b border-[#E5E7EB] bg-white shrink-0 flex justify-between items-center">
+        <div>
+          <h1 className="font-display text-[28px] font-bold text-neutral-900 tracking-tight">
+            Interviews
+          </h1>
+          <p className="font-body text-[14px] text-neutral-500 mt-[4px]">
+            Manage your schedule and submit scorecards.
+          </p>
+        </div>
+        <button 
+          onClick={() => { setSelectedDate(undefined); setIsScheduleOpen(true); }}
+          className="bg-primary-500 hover:bg-primary-600 text-white font-body text-[14px] font-medium px-[16px] py-[8px] rounded-md transition-colors flex items-center gap-[6px] shadow-sm"
+        >
+          <Plus size={16} /> Schedule
+        </button>
       </div>
 
-      <div className="grid grid-cols-12 gap-[24px]">
+      {/* Main Content Area */}
+      <div className="p-[16px] md:p-[32px] flex-grow overflow-auto flex flex-col lg:flex-row gap-[24px]">
         
-        {/* CALENDAR (8 Cols) */}
-        <div className="col-span-8 h-full">
-          <InterviewCalendar />
+        <div className="flex-[2] min-w-[600px]">
+          <InterviewCalendar 
+            events={mockInterviews} 
+            onSelectSlot={handleSelectSlot}
+            onSelectEvent={handleSelectEvent}
+          />
         </div>
 
-        {/* QUEUE (4 Cols) */}
-        <div className="col-span-4 h-full">
-          <InterviewQueue />
+        <div className="flex-1 w-full lg:w-[400px] shrink-0">
+          <InterviewQueue 
+            title="Upcoming & Pending" 
+            count={mockInterviews.length} 
+            interviews={mockInterviews} 
+            onActionClick={setActiveScorecardInterview}
+          />
         </div>
 
       </div>
+
+      <ScheduleModal 
+        isOpen={isScheduleOpen} 
+        onClose={() => setIsScheduleOpen(false)} 
+        initialDate={selectedDate}
+      />
+
+      {activeScorecardInterview && (
+        <ScorecardModal 
+          isOpen={true} 
+          onClose={() => setActiveScorecardInterview(null)}
+          candidateName={activeScorecardInterview.candidate.name}
+          interviewDate={new Date(activeScorecardInterview.scheduledAt).toLocaleDateString()}
+          interviewerName={activeScorecardInterview.interviewers[0]?.name || 'You'}
+        />
+      )}
+
     </div>
   )
 }

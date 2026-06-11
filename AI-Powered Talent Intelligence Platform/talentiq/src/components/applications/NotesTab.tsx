@@ -1,89 +1,80 @@
-"use client"
+'use client'
 
-import * as React from "react"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
+import { useState } from 'react'
+import { Application } from '@/types/domain.types'
+import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { formatDate } from '@/lib/utils'
 
-export function NotesTab() {
-  const [newNote, setNewNote] = React.useState("")
-  const [notes, setNotes] = React.useState([
-    {
-      id: "note_1",
-      author: "Alex Kumar",
-      avatar: "https://i.pravatar.cc/150?u=a2",
-      timestamp: "Oct 18, 2026 at 4:30 PM",
-      content: "Reached out regarding compensation expectations. He's looking for $150k base, which is within our range. I'll pass him to the hiring manager round."
-    },
-    {
-      id: "note_2",
-      author: "Sarah Chen",
-      avatar: "https://i.pravatar.cc/150?u=a1",
-      timestamp: "Oct 15, 2026 at 11:15 AM",
-      content: "Passed initial technical screen with flying colors. Very strong React fundamentals."
-    }
-  ])
+interface NotesTabProps {
+  application: Application
+}
+
+export default function NotesTab({ application }: NotesTabProps) {
+  const { user } = useCurrentUser()
+  const [newNote, setNewNote] = useState('')
+  const [notes, setNotes] = useState(application.recruiterNotes || [])
 
   const handlePostNote = () => {
     if (!newNote.trim()) return
-
-    const newEntry = {
-      id: `note_${Date.now()}`,
-      author: "Current User",
-      avatar: "https://i.pravatar.cc/150?u=current", // Placeholder
-      timestamp: new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' }),
-      content: newNote
-    }
-
-    setNotes([newEntry, ...notes])
-    setNewNote("")
+    setNotes([newNote, ...notes])
+    setNewNote('')
+    // In a real app, make API call here
   }
 
   return (
-    <div className="flex flex-col animate-fade-slide-up">
+    <div className="p-[24px] max-w-[800px] flex flex-col gap-[32px]">
       
-      {/* New Note Composer */}
-      <div className="mb-[32px] flex flex-col rounded-[var(--radius-lg)] border border-neutral-200 bg-neutral-50 p-[16px]">
-        <Textarea 
-          placeholder="Leave a note about this candidate..." 
-          className="min-h-[96px] bg-white text-[14px]"
+      {/* Input Area */}
+      <div className="flex flex-col gap-[12px]">
+        <textarea 
+          placeholder="Leave a note about this candidate..."
           value={newNote}
           onChange={(e) => setNewNote(e.target.value)}
+          className="w-full min-h-[96px] rounded-md border border-neutral-200 p-[16px] font-body text-[14px] focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 resize-y transition-all shadow-sm"
         />
-        <div className="mt-[12px] flex items-center justify-end gap-[8px]">
-          {newNote.length > 0 && (
-            <Button variant="ghost" className="h-[32px] px-3 text-[13px]" onClick={() => setNewNote("")}>
+        <div className="flex justify-end gap-[8px]">
+          {newNote && (
+            <button 
+              onClick={() => setNewNote('')}
+              className="px-[16px] py-[8px] rounded-md text-[13px] font-medium text-neutral-500 hover:text-neutral-700 hover:bg-neutral-100 transition-colors"
+            >
               Cancel
-            </Button>
+            </button>
           )}
-          <Button 
-            variant="primary" 
-            className="h-[32px] px-4 text-[13px]"
-            disabled={!newNote.trim()}
+          <button 
             onClick={handlePostNote}
+            disabled={!newNote.trim()}
+            className="px-[16px] py-[8px] bg-primary-500 hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-[13px] font-medium rounded-md transition-colors shadow-sm"
           >
             Post Note
-          </Button>
+          </button>
         </div>
       </div>
 
-      {/* Note List */}
-      <div className="flex flex-col gap-[16px]">
-        {notes.map(note => (
-          <div key={note.id} className="flex gap-[16px]">
-            <img src={note.avatar} alt={note.author} className="h-[32px] w-[32px] shrink-0 rounded-full object-cover" />
-            <div className="flex flex-col w-full">
-              <div className="flex items-center gap-[8px] mb-[4px]">
-                <span className="font-body text-[13px] font-semibold text-neutral-900">{note.author}</span>
-                <span className="font-body text-[11px] text-neutral-400">{note.timestamp}</span>
+      {/* Notes List */}
+      <div className="flex flex-col gap-[20px]">
+        {notes.length === 0 ? (
+          <div className="text-center py-[40px] text-neutral-400 font-body text-[14px] italic">
+            No notes yet. Be the first to add one.
+          </div>
+        ) : (
+          notes.map((note, idx) => (
+            <div key={idx} className="flex gap-[16px] bg-white border border-[#E5E7EB] rounded-lg p-[20px] shadow-sm">
+              <div className="w-[32px] h-[32px] rounded-full bg-primary-100 text-primary-700 flex items-center justify-center font-bold text-[12px] shrink-0">
+                {user?.name?.charAt(0) || 'R'}
               </div>
-              <div className="rounded-[var(--radius-md)] border border-neutral-200 bg-white p-[12px] shadow-sm">
-                <p className="font-body text-[14px] leading-relaxed text-neutral-700 whitespace-pre-wrap">
-                  {note.content}
+              <div className="flex flex-col gap-[4px] w-full">
+                <div className="flex justify-between items-center">
+                  <span className="font-body text-[13px] font-semibold text-neutral-900">{user?.name || 'Recruiter'}</span>
+                  <span className="font-body text-[11px] text-neutral-400">{formatDate(new Date().toISOString())}</span>
+                </div>
+                <p className="font-body text-[14px] text-neutral-700 leading-relaxed mt-[4px] whitespace-pre-wrap">
+                  {note}
                 </p>
               </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
 
     </div>

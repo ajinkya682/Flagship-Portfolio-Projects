@@ -37,6 +37,7 @@ export default function KanbanBoard({ applications: initialApplications, jobId }
   const [activeId, setActiveId] = useState<string | null>(null)
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null)
   const [activeColumn, setActiveColumn] = useState<string | null>(null)
+  const [announcement, setAnnouncement] = useState<string>('')
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -85,6 +86,8 @@ export default function KanbanBoard({ applications: initialApplications, jobId }
     const activeApp = applications.find(app => app.id === activeAppId)
     if (!activeApp || activeApp.stage === destinationStageName) return
 
+    setAnnouncement(`${activeApp.candidate.name} moved from ${activeApp.stage} to ${destinationStageName} stage.`)
+
     // Optimistic update
     setApplications(prev => prev.map(app => {
       if (app.id === activeAppId) {
@@ -92,6 +95,24 @@ export default function KanbanBoard({ applications: initialApplications, jobId }
       }
       return app
     }))
+
+    if (destinationStageName === 'Hired') {
+      setTimeout(() => {
+        const cardEl = document.getElementById(`kanban-card-${activeAppId}`)
+        if (cardEl) {
+          cardEl.classList.add('animate-pulse-accent')
+          setTimeout(() => cardEl.classList.remove('animate-pulse-accent'), 600)
+          
+          const rect = cardEl.getBoundingClientRect()
+          const x = (rect.left + rect.width / 2) / window.innerWidth
+          const y = (rect.top + rect.height / 2) / window.innerHeight
+          
+          import('@/lib/confetti').then(({ fireMiniConfetti }) => {
+            fireMiniConfetti({ x, y })
+          })
+        }
+      }, 50)
+    }
   }
 
   const handleOpenPanel = (app: Application) => {
@@ -100,6 +121,9 @@ export default function KanbanBoard({ applications: initialApplications, jobId }
 
   return (
     <div className="flex flex-col h-full overflow-hidden w-full flex-grow">
+      <div aria-live="polite" className="sr-only">
+        {announcement}
+      </div>
       <div className="flex-grow overflow-x-auto overflow-y-hidden p-[24px] flex gap-[16px] items-start bg-neutral-50 min-h-0">
         <DndContext
           sensors={sensors}

@@ -1,67 +1,108 @@
-"use client"
+'use client'
 
-import * as React from "react"
-import { ArrowUpDown } from "lucide-react"
+import { useState } from 'react'
+import { ChevronDown, ChevronUp, ChevronsUpDown } from 'lucide-react'
 
-export function TeamPerformanceTable() {
-  const data = [
-    { name: "Sarah Chen", avatar: "https://i.pravatar.cc/150?u=a1", reviewed: 420, response: "24h", interviews: 45, offers: 12, hireRate: "26%" },
-    { name: "Alex Kumar", avatar: "https://i.pravatar.cc/150?u=a2", reviewed: 380, response: "18h", interviews: 32, offers: 8, hireRate: "25%" },
-    { name: "Jessica Smith", avatar: "https://i.pravatar.cc/150?u=a3", reviewed: 512, response: "36h", interviews: 58, offers: 14, hireRate: "24%" },
-    { name: "David Kim", avatar: "https://i.pravatar.cc/150?u=a4", reviewed: 290, response: "12h", interviews: 28, offers: 9, hireRate: "32%" },
-  ]
+interface TeamPerformanceTableProps {
+  data: {
+    id: string
+    name: string
+    avatar?: string
+    reviewed: number
+    avgResponseHours: number
+    interviews: number
+    offers: number
+    hireRate: number
+  }[]
+}
+
+type SortField = 'name' | 'reviewed' | 'avgResponseHours' | 'interviews' | 'offers' | 'hireRate'
+type SortDir = 'asc' | 'desc'
+
+export default function TeamPerformanceTable({ data }: TeamPerformanceTableProps) {
+  const [sortField, setSortField] = useState<SortField>('reviewed')
+  const [sortDir, setSortDir] = useState<SortDir>('desc')
+
+  const toggleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDir(prev => prev === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortField(field)
+      setSortDir('desc')
+    }
+  }
+
+  const SortIcon = ({ field }: { field: SortField }) => {
+    if (sortField !== field) return <ChevronsUpDown size={14} className="text-neutral-300" />
+    return sortDir === 'asc' ? <ChevronUp size={14} className="text-neutral-700" /> : <ChevronDown size={14} className="text-neutral-700" />
+  }
+
+  const sortedData = [...data].sort((a, b) => {
+    const modifier = sortDir === 'asc' ? 1 : -1
+    if (a[sortField] < b[sortField]) return -1 * modifier
+    if (a[sortField] > b[sortField]) return 1 * modifier
+    return 0
+  })
 
   return (
     <div className="w-full overflow-x-auto">
-      <table className="w-full text-left font-body">
+      <table className="w-full text-left border-collapse">
         <thead>
-          <tr className="border-b border-neutral-200">
-            <th className="py-[12px] pr-[16px] text-[12px] font-medium text-neutral-500 min-w-[200px]">
-              <div className="flex items-center gap-[4px] cursor-pointer hover:text-neutral-900">
-                Recruiter <ArrowUpDown size={12} />
-              </div>
+          <tr className="border-b border-neutral-100">
+            <th 
+              className="px-[16px] py-[12px] font-body text-[12px] font-bold text-neutral-500 uppercase tracking-wider cursor-pointer hover:bg-neutral-50 transition-colors group"
+              onClick={() => toggleSort('name')}
+            >
+              <div className="flex items-center gap-[6px]">Recruiter <SortIcon field="name" /></div>
             </th>
-            <th className="py-[12px] px-[16px] text-[12px] font-medium text-neutral-500">
-              <div className="flex items-center gap-[4px] cursor-pointer hover:text-neutral-900">
-                Reviewed <ArrowUpDown size={12} />
-              </div>
+            <th 
+              className="px-[16px] py-[12px] font-body text-[12px] font-bold text-neutral-500 uppercase tracking-wider cursor-pointer hover:bg-neutral-50 transition-colors group text-right"
+              onClick={() => toggleSort('reviewed')}
+            >
+              <div className="flex items-center justify-end gap-[6px]"><SortIcon field="reviewed" /> Reviewed</div>
             </th>
-            <th className="py-[12px] px-[16px] text-[12px] font-medium text-neutral-500">
-              <div className="flex items-center gap-[4px] cursor-pointer hover:text-neutral-900">
-                Avg Response <ArrowUpDown size={12} />
-              </div>
+            <th 
+              className="px-[16px] py-[12px] font-body text-[12px] font-bold text-neutral-500 uppercase tracking-wider cursor-pointer hover:bg-neutral-50 transition-colors group text-right"
+              onClick={() => toggleSort('avgResponseHours')}
+            >
+              <div className="flex items-center justify-end gap-[6px]"><SortIcon field="avgResponseHours" /> Avg Response</div>
             </th>
-            <th className="py-[12px] px-[16px] text-[12px] font-medium text-neutral-500">
-              <div className="flex items-center gap-[4px] cursor-pointer hover:text-neutral-900">
-                Interviews <ArrowUpDown size={12} />
-              </div>
+            <th 
+              className="px-[16px] py-[12px] font-body text-[12px] font-bold text-neutral-500 uppercase tracking-wider cursor-pointer hover:bg-neutral-50 transition-colors group text-right"
+              onClick={() => toggleSort('interviews')}
+            >
+              <div className="flex items-center justify-end gap-[6px]"><SortIcon field="interviews" /> Interviews</div>
             </th>
-            <th className="py-[12px] px-[16px] text-[12px] font-medium text-neutral-500">
-              <div className="flex items-center gap-[4px] cursor-pointer hover:text-neutral-900">
-                Offers <ArrowUpDown size={12} />
-              </div>
+            <th 
+              className="px-[16px] py-[12px] font-body text-[12px] font-bold text-neutral-500 uppercase tracking-wider cursor-pointer hover:bg-neutral-50 transition-colors group text-right"
+              onClick={() => toggleSort('offers')}
+            >
+              <div className="flex items-center justify-end gap-[6px]"><SortIcon field="offers" /> Offers</div>
             </th>
-            <th className="py-[12px] pl-[16px] text-[12px] font-medium text-neutral-500 text-right">
-              <div className="flex items-center justify-end gap-[4px] cursor-pointer hover:text-neutral-900">
-                Hire Rate <ArrowUpDown size={12} />
-              </div>
+            <th 
+              className="px-[16px] py-[12px] font-body text-[12px] font-bold text-neutral-500 uppercase tracking-wider cursor-pointer hover:bg-neutral-50 transition-colors group text-right"
+              onClick={() => toggleSort('hireRate')}
+            >
+              <div className="flex items-center justify-end gap-[6px]"><SortIcon field="hireRate" /> Hire Rate</div>
             </th>
           </tr>
         </thead>
         <tbody>
-          {data.map((row, idx) => (
-            <tr key={idx} className="border-b border-neutral-100 hover:bg-neutral-50">
-              <td className="py-[16px] pr-[16px]">
-                <div className="flex items-center gap-[12px]">
-                  <img src={row.avatar} alt={row.name} className="h-[32px] w-[32px] rounded-full object-cover" />
-                  <span className="text-[14px] font-semibold text-neutral-900">{row.name}</span>
+          {sortedData.map((row, i) => (
+            <tr key={row.id} className="border-b border-neutral-50 hover:bg-neutral-50/50 transition-colors">
+              <td className="px-[16px] py-[12px]">
+                <div className="flex items-center gap-[10px]">
+                  <div className="w-[32px] h-[32px] rounded-full bg-primary-100 text-primary-700 flex items-center justify-center font-bold text-[12px]">
+                    {row.name.charAt(0)}
+                  </div>
+                  <span className="font-body text-[14px] font-semibold text-neutral-900">{row.name}</span>
                 </div>
               </td>
-              <td className="py-[16px] px-[16px] text-[14px] text-neutral-700">{row.reviewed}</td>
-              <td className="py-[16px] px-[16px] text-[14px] text-neutral-700">{row.response}</td>
-              <td className="py-[16px] px-[16px] text-[14px] text-neutral-700">{row.interviews}</td>
-              <td className="py-[16px] px-[16px] text-[14px] text-neutral-700">{row.offers}</td>
-              <td className="py-[16px] pl-[16px] text-[14px] font-semibold text-neutral-900 text-right">{row.hireRate}</td>
+              <td className="px-[16px] py-[12px] text-right font-body text-[14px] text-neutral-700">{row.reviewed}</td>
+              <td className="px-[16px] py-[12px] text-right font-body text-[14px] text-neutral-700">{row.avgResponseHours}h</td>
+              <td className="px-[16px] py-[12px] text-right font-body text-[14px] text-neutral-700">{row.interviews}</td>
+              <td className="px-[16px] py-[12px] text-right font-body text-[14px] text-neutral-700">{row.offers}</td>
+              <td className="px-[16px] py-[12px] text-right font-body text-[14px] text-neutral-700 font-medium">{row.hireRate}%</td>
             </tr>
           ))}
         </tbody>

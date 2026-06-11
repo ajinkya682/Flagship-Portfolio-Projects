@@ -5,8 +5,10 @@ import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import JobStatusBadge from '@/components/jobs/JobStatusBadge'
 import FilterBar, { FiltersState } from '@/components/kanban/FilterBar'
-import KanbanBoard from '@/components/kanban/KanbanBoard'
 import { useState } from 'react'
+import dynamic from 'next/dynamic'
+
+const KanbanBoard = dynamic(() => import('@/components/kanban/KanbanBoard'), { ssr: false })
 
 // Mock Applications Data
 const mockApplications: any[] = [

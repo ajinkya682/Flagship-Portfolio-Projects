@@ -46,7 +46,7 @@ export function MarketingNav() {
             <a href="#" className="font-body text-[14px] font-medium text-neutral-900 relative after:absolute after:-bottom-5 after:left-0 after:h-[2px] after:w-full after:bg-primary-500">
               Features
             </a>
-            <div className="group relative flex cursor-pointer items-center gap-1 font-body text-[14px] font-medium text-neutral-700 transition-colors duration-[120ms] hover:text-neutral-900">
+            <div className="group relative flex cursor-pointer items-center gap-1 font-body text-[14px] font-medium text-neutral-700 transition-colors duration-150 hover:text-neutral-900">
               Solutions
               <ChevronDown size={12} className="transition-transform duration-200 group-hover:rotate-180" />
               
@@ -61,10 +61,10 @@ export function MarketingNav() {
                 ))}
               </div>
             </div>
-            <a href="#" className="font-body text-[14px] font-medium text-neutral-700 transition-colors duration-[120ms] hover:text-neutral-900">
+            <a href="#" className="font-body text-[14px] font-medium text-neutral-700 transition-colors duration-150 hover:text-neutral-900">
               Pricing
             </a>
-            <a href="#" className="font-body text-[14px] font-medium text-neutral-700 transition-colors duration-[120ms] hover:text-neutral-900">
+            <a href="#" className="font-body text-[14px] font-medium text-neutral-700 transition-colors duration-150 hover:text-neutral-900">
               Customers
             </a>
           </nav>
