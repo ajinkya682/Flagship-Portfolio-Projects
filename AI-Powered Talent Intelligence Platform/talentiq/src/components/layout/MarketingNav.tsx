@@ -71,18 +71,16 @@ export default function MarketingNav() {
       >
         <nav className="max-w-[1200px] mx-auto px-6 md:px-10 h-20 flex justify-between items-center transition-all duration-300">
           {/* Left: Logo */}
-          <Link href="/" className="flex items-center group">
-            <Image
-              src="/images/logo-name.png"
-              alt="TalentOS Logo"
-              width={160}
-              height={40}
-              // Improved Logo Hover: Smooth opacity fade instead of scaling
-              className="w-auto h-8 md:h-[34px] transition-opacity duration-300 group-hover:opacity-80"
-              priority
-            />
+          <Link href="/" className="flex items-center group select-none">
+            <div className="font-display text-[22px] md:text-[26px] font-extrabold tracking-tight text-[#0A101D] flex items-baseline transition-all duration-300 group-hover:opacity-80">
+              Talent
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#3B58F6] to-[#8B5CF6]">
+                IQ
+              </span>
+              {/* Premium glowing dot to give it a "tech startup" feel */}
+              <span className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-[#10B981] ml-0.5 md:ml-1 mb-0.5 shadow-[0_0_10px_rgba(16,185,129,0.6)] transition-transform duration-300 group-hover:scale-110" />
+            </div>
           </Link>
-
           {/* Center: Desktop Links with Dynamic Active States */}
           <div className="hidden lg:flex items-center gap-9">
             {/* Features Link */}

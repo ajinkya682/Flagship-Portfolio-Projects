@@ -17,7 +17,7 @@ export default function IntegrationGrid() {
   ]
 
   return (
-    <AnimatedGrid animation="flip" columns={6} gap={16} className="max-w-[1000px] mx-auto">
+    <AnimatedGrid animation="flip" columns={6} gap={16} className="max-w-[1000px] mx-auto grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
       {integrations.map((int, i) => (
         <div 
           key={i}

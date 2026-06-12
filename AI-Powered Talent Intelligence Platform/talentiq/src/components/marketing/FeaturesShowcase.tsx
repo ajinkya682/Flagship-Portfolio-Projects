@@ -110,7 +110,7 @@ export default function FeaturesShowcase() {
         </div>
 
         {/* Features Grid */}
-        <AnimatedGrid animation="rise" columns={3} gap={32} className="mt-16">
+        <AnimatedGrid animation="rise" columns={3} gap={32} className="mt-16 grid-cols-1 md:grid-cols-3">
           <FeatureCard
             icon={Layers}
             title="Visual pipeline management"
