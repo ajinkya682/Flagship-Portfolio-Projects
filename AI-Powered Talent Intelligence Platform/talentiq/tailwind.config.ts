@@ -117,6 +117,7 @@ const config: Config = {
         'dot-pulse': 'dotPulse 400ms ease-in-out infinite',
         'bell-shake': 'bellShake 200ms ease-in-out',
         'twinkle': 'twinkle 600ms ease-in-out',
+        'marquee': 'marquee 40s linear infinite',
       },
       keyframes: {
         fadeSlideUp: {
@@ -160,6 +161,10 @@ const config: Config = {
         twinkle: {
           '0%, 100%': { transform: 'scale(1)', opacity: '1' },
           '50%': { transform: 'scale(1.3)', opacity: '0.6' },
+        },
+        marquee: {
+          '0%': { transform: 'translateX(0%)' },
+          '100%': { transform: 'translateX(-50%)' },
         },
       },
       transitionTimingFunction: {

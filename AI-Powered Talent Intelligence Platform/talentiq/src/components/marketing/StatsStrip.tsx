@@ -3,7 +3,7 @@ import PremiumStatCounter from './PremiumStatCounter'
 export default function StatsStrip() {
   return (
     <section className="bg-white py-20">
-      <div className="max-w-[1440px] mx-auto px-5 md:px-10 lg:px-8 xl:px-12">
+      <div className="max-w-[1200px] mx-auto px-5 md:px-10 lg:px-8 xl:px-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-y-12 md:gap-y-16 relative">
           
           {/* Desktop Dividers */}

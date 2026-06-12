@@ -4,7 +4,7 @@ import IntegrationGrid from './IntegrationGrid'
 export default function IntegrationsSection() {
   return (
     <section className="bg-white py-20">
-      <div className="max-w-[1440px] mx-auto px-5 md:px-10 lg:px-8 xl:px-12">
+      <div className="max-w-[1200px] mx-auto px-5 md:px-10 lg:px-8 xl:px-12">
         
         {/* Header */}
         <div className="max-w-[600px] mx-auto text-center">

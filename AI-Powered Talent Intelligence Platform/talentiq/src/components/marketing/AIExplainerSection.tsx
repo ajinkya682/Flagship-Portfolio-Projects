@@ -8,7 +8,7 @@ export default function AIExplainerSection() {
       {/* Decorative gradient */}
       <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[radial-gradient(ellipse_at_top_right,_rgba(16,185,129,0.08),_transparent_70%)] pointer-events-none" />
 
-      <div className="max-w-[1440px] mx-auto px-5 md:px-10 lg:px-8 xl:px-12">
+      <div className="max-w-[1200px] mx-auto px-5 md:px-10 lg:px-8 xl:px-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-8 items-center">
           
           {/* Left Column */}

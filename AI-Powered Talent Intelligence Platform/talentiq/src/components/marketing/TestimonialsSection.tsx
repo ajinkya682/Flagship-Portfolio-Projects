@@ -47,7 +47,7 @@ export default function TestimonialsSection() {
       <div className="absolute inset-0 z-0">
         <ParticleField />
       </div>
-      <div className="max-w-[1440px] mx-auto px-5 md:px-10 lg:px-8 xl:px-12 relative z-10">
+      <div className="max-w-[1200px] mx-auto px-5 md:px-10 lg:px-8 xl:px-12 relative z-10">
         
         {/* Header */}
         <div className="max-w-[600px] mx-auto text-center">

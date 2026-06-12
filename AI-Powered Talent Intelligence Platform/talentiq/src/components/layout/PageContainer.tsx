@@ -9,7 +9,7 @@ export default function PageContainer({
   className?: string
 }) {
   return (
-    <div className={cn('max-w-[1440px] mx-auto px-5 md:px-10 lg:px-8 xl:px-12', className)}>
+    <div className={cn('max-w-[1200px] mx-auto px-5 md:px-10 lg:px-8 xl:px-12', className)}>
       {children}
     </div>
   )

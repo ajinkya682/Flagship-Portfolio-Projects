@@ -69,7 +69,7 @@ export default function MarketingNav() {
           isVisible ? "translate-y-0" : "-translate-y-full",
         )}
       >
-        <nav className="max-w-[1440px] mx-auto px-6 md:px-10 h-20 flex justify-between items-center transition-all duration-300">
+        <nav className="max-w-[1200px] mx-auto px-6 md:px-10 h-20 flex justify-between items-center transition-all duration-300">
           {/* Left: Logo */}
           <Link href="/" className="flex items-center group">
             <Image

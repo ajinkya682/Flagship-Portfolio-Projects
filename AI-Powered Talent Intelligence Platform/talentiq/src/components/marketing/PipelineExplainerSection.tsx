@@ -14,7 +14,7 @@ export default function PipelineExplainerSection() {
       </div>
       <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-[radial-gradient(ellipse_at_center,_rgba(37,99,235,0.15),_transparent_70%)] pointer-events-none z-0" />
 
-      <div className="max-w-[1440px] mx-auto px-5 md:px-10 lg:px-8 xl:px-12 relative z-10">
+      <div className="max-w-[1200px] mx-auto px-5 md:px-10 lg:px-8 xl:px-12 relative z-10">
         
         {/* Header */}
         <div className="max-w-[800px] mx-auto text-center">

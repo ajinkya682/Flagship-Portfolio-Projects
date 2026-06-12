@@ -35,7 +35,7 @@ export default function FeaturesShowcase() {
 
   return (
     <section className="bg-white py-24">
-      <div className="max-w-[1440px] mx-auto px-5 md:px-10 lg:px-8 xl:px-12">
+      <div className="max-w-[1200px] mx-auto px-5 md:px-10 lg:px-8 xl:px-12">
         
         {/* Header */}
         <div className="max-w-[700px] mx-auto text-center">

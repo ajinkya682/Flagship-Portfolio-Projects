@@ -27,7 +27,7 @@ export function MarketingNav() {
             : "border-b-transparent bg-[rgba(255,255,255,0.92)] shadow-none backdrop-blur-none"
         )}
       >
-        <div className="flex w-full max-w-[1440px] items-center justify-between px-6 lg:px-8">
+        <div className="flex w-full max-w-[1200px] items-center justify-between px-6 lg:px-8">
           {/* Left: Logo */}
           <div className="flex items-center gap-2 cursor-pointer select-none">
             {/* Simulated Logo */}
