@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -14,6 +14,7 @@ import {
   ChevronDown,
   LogIn,
   ArrowRight,
+  MessageSquare,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -26,6 +27,9 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
   const pathname = usePathname() || "";
   const isActive = (path: string) =>
     pathname === path || pathname.startsWith(`${path}/`);
+  const isSolutionsActive = ['/startups', '/scaling', '/enterprise', '/agencies'].some(isActive);
+
+  const [solutionsOpen, setSolutionsOpen] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -104,38 +108,92 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
             )}
           </Link>
 
-          <Link
-            href="/solutions"
-            onClick={onClose}
-            className={cn(
-              "flex items-center justify-between p-3 rounded-xl transition-colors group",
-              isActive("/solutions") ? "bg-[#EEF2FF]" : "hover:bg-neutral-50",
-            )}
-          >
-            <div className="flex items-center gap-3">
-              <Users
+          <div>
+            <button
+              onClick={() => setSolutionsOpen(!solutionsOpen)}
+              className={cn(
+                "w-full flex items-center justify-between p-3 rounded-xl transition-colors group",
+                isSolutionsActive || solutionsOpen ? "bg-[#EEF2FF]" : "hover:bg-neutral-50",
+              )}
+            >
+              <div className="flex items-center gap-3">
+                <Users
+                  className={cn(
+                    "w-5 h-5",
+                    isSolutionsActive || solutionsOpen ? "text-[#3B58F6]" : "text-blue-500",
+                  )}
+                />
+                <span
+                  className={cn(
+                    "font-body text-[15px]",
+                    isSolutionsActive || solutionsOpen
+                      ? "font-semibold text-[#3B58F6]"
+                      : "font-medium text-neutral-800",
+                  )}
+                >
+                  Solutions
+                </span>
+              </div>
+              <ChevronDown
                 className={cn(
-                  "w-5 h-5",
-                  isActive("/solutions") ? "text-[#3B58F6]" : "text-blue-500",
+                  "w-4 h-4 transition-transform duration-200",
+                  solutionsOpen ? "rotate-180 text-[#3B58F6]" : "text-neutral-400 group-hover:text-neutral-600",
+                  isSolutionsActive && !solutionsOpen ? "text-[#3B58F6]" : ""
                 )}
               />
-              <span
-                className={cn(
-                  "font-body text-[15px]",
-                  isActive("/solutions")
-                    ? "font-semibold text-[#3B58F6]"
-                    : "font-medium text-neutral-800",
-                )}
-              >
-                Solutions
-              </span>
+            </button>
+            
+            {/* Expanded Solutions Links */}
+            <div
+              className={cn(
+                "overflow-hidden transition-all duration-300 ease-in-out",
+                solutionsOpen ? "max-h-[240px] opacity-100 mt-1" : "max-h-0 opacity-0"
+              )}
+            >
+              <div className="pl-11 pr-3 flex flex-col gap-1 pb-1">
+                <Link
+                  href="/startups"
+                  onClick={onClose}
+                  className={cn(
+                    "py-2 px-3 rounded-lg text-[14px] font-medium transition-colors",
+                    isActive("/startups") ? "text-[#3B58F6] bg-blue-50" : "text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50"
+                  )}
+                >
+                  Startups
+                </Link>
+                <Link
+                  href="/scaling"
+                  onClick={onClose}
+                  className={cn(
+                    "py-2 px-3 rounded-lg text-[14px] font-medium transition-colors",
+                    isActive("/scaling") ? "text-[#3B58F6] bg-blue-50" : "text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50"
+                  )}
+                >
+                  Scaling Teams
+                </Link>
+                <Link
+                  href="/enterprise"
+                  onClick={onClose}
+                  className={cn(
+                    "py-2 px-3 rounded-lg text-[14px] font-medium transition-colors",
+                    isActive("/enterprise") ? "text-[#3B58F6] bg-blue-50" : "text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50"
+                  )}
+                >
+                  Enterprise
+                </Link>
+                <Link
+                  href="/agencies"
+                  onClick={onClose}
+                  className={cn(
+                    "py-2 px-3 rounded-lg text-[14px] font-medium transition-colors",
+                    isActive("/agencies") ? "text-[#3B58F6] bg-blue-50" : "text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50"
+                  )}
+                >
+                  Agencies
+                </Link>
+              </div>
             </div>
-            {isActive("/solutions") ? (
-              <ChevronDown className="w-4 h-4 text-[#3B58F6]" />
-            ) : (
-              <ChevronRight className="w-4 h-4 text-neutral-400 group-hover:text-neutral-600" />
-            )}
-          </Link>
+          </div>
 
           <Link
             href="/pricing"
@@ -232,6 +290,41 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
               </span>
             </div>
             {isActive("/resources") ? (
+              <ChevronRight className="w-4 h-4 text-[#3B58F6]" />
+            ) : (
+              <ChevronRight className="w-4 h-4 text-neutral-400 group-hover:text-neutral-600" />
+            )}
+          </Link>
+
+          <Link
+            href="/contact"
+            onClick={onClose}
+            className={cn(
+              "flex items-center justify-between p-3 rounded-xl transition-colors group",
+              isActive("/contact") ? "bg-[#EEF2FF]" : "hover:bg-neutral-50",
+            )}
+          >
+            <div className="flex items-center gap-3">
+              <MessageSquare
+                className={cn(
+                  "w-5 h-5",
+                  isActive("/contact")
+                    ? "text-[#3B58F6]"
+                    : "text-indigo-400",
+                )}
+              />
+              <span
+                className={cn(
+                  "font-body text-[15px]",
+                  isActive("/contact")
+                    ? "font-semibold text-[#3B58F6]"
+                    : "font-medium text-neutral-800",
+                )}
+              >
+                Contact
+              </span>
+            </div>
+            {isActive("/contact") ? (
               <ChevronRight className="w-4 h-4 text-[#3B58F6]" />
             ) : (
               <ChevronRight className="w-4 h-4 text-neutral-400 group-hover:text-neutral-600" />

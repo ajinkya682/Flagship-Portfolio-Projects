@@ -28,6 +28,8 @@ export default function MarketingNav() {
   const isActive = (path: any) =>
     pathname === path || pathname.startsWith(`${path}/`);
 
+  const isSolutionsActive = ['/startups', '/scaling', '/enterprise', '/agencies'].some(path => isActive(path));
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       lastScrollY.current = window.scrollY;
@@ -102,7 +104,7 @@ export default function MarketingNav() {
               <Popover.Trigger
                 className={cn(
                   "group relative font-body text-[15px] flex items-center gap-1.5 focus-visible:outline-none transition-colors hover:text-[#3B58F6]",
-                  isActive("/solutions")
+                  isSolutionsActive
                     ? "text-[#3B58F6] font-semibold"
                     : "text-neutral-600 font-medium",
                 )}
@@ -112,12 +114,12 @@ export default function MarketingNav() {
                 <ChevronDown
                   className={cn(
                     "w-4 h-4 transition-transform duration-200 group-data-[state=open]:rotate-180",
-                    isActive("/solutions")
+                    isSolutionsActive
                       ? "text-[#3B58F6]"
                       : "text-neutral-400 group-hover:text-[#3B58F6]",
                   )}
                 />
-                {isActive("/solutions") && (
+                {isSolutionsActive && (
                   <span className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-[#3B58F6] rounded-full shadow-[0_0_8px_rgba(59,88,246,0.6)] animate-in fade-in zoom-in duration-300" />
                 )}
               </Popover.Trigger>
@@ -127,7 +129,7 @@ export default function MarketingNav() {
                   sideOffset={0}
                 >
                   <Link
-                    href="/solutions#startups"
+                    href="/startups"
                     className="flex items-start gap-3.5 p-3 rounded-xl hover:bg-neutral-50 transition-colors group/item"
                   >
                     <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center group-hover/item:bg-blue-100 transition-colors">
@@ -143,7 +145,7 @@ export default function MarketingNav() {
                     </div>
                   </Link>
                   <Link
-                    href="/solutions#scaling"
+                    href="/scaling"
                     className="flex items-start gap-3.5 p-3 rounded-xl hover:bg-neutral-50 transition-colors group/item"
                   >
                     <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center group-hover/item:bg-emerald-100 transition-colors">
@@ -159,7 +161,7 @@ export default function MarketingNav() {
                     </div>
                   </Link>
                   <Link
-                    href="/solutions#enterprise"
+                    href="/enterprise"
                     className="flex items-start gap-3.5 p-3 rounded-xl hover:bg-neutral-50 transition-colors group/item"
                   >
                     <div className="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center group-hover/item:bg-purple-100 transition-colors">
@@ -175,7 +177,7 @@ export default function MarketingNav() {
                     </div>
                   </Link>
                   <Link
-                    href="/solutions#agencies"
+                    href="/agencies"
                     className="flex items-start gap-3.5 p-3 rounded-xl hover:bg-neutral-50 transition-colors group/item"
                   >
                     <div className="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center group-hover/item:bg-amber-100 transition-colors">
@@ -232,6 +234,20 @@ export default function MarketingNav() {
             >
               Resources
               {isActive("/resources") && (
+                <span className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-[#3B58F6] rounded-full shadow-[0_0_8px_rgba(59,88,246,0.6)] animate-in fade-in zoom-in duration-300" />
+              )}
+            </Link>
+
+            {/* Contact Link */}
+            <Link
+              href="/contact"
+              className={cn(
+                "relative font-body text-[15px] font-medium transition-colors hover:text-[#3B58F6]",
+                isActive("/contact") ? "text-[#3B58F6]" : "text-neutral-600",
+              )}
+            >
+              Contact
+              {isActive("/contact") && (
                 <span className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-[#3B58F6] rounded-full shadow-[0_0_8px_rgba(59,88,246,0.6)] animate-in fade-in zoom-in duration-300" />
               )}
             </Link>
