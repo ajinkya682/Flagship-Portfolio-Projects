@@ -1,48 +1,16 @@
-import { Application, Interview } from '@/types/domain.types'
+import { Application } from '@/types/domain.types'
 import { Calendar, Video, Phone, Building2 } from 'lucide-react'
 import { EmptyState } from '@/components/shared/EmptyState'
-import { formatDate } from '@/lib/utils'
+import { useDomainStore } from '@/store/domain.store'
+import Link from 'next/link'
 
 interface InterviewsTabProps {
   application: Application
 }
 
-// Mock interviews for demonstration
-const mockInterviews: Interview[] = [
-  {
-    id: 'int_1',
-    applicationId: 'app_1',
-    candidate: {} as any,
-    job: {} as any,
-    scheduledAt: new Date(Date.now() + 86400000).toISOString(), // tomorrow
-    duration: 60,
-    locationType: 'video',
-    meetingLink: 'https://zoom.us/j/123456789',
-    interviewers: [
-      { id: 'u1', name: 'Alex Manager', avatar: 'https://randomuser.me/api/portraits/men/32.jpg' } as any,
-    ],
-    status: 'scheduled',
-    scorecards: []
-  },
-  {
-    id: 'int_2',
-    applicationId: 'app_1',
-    candidate: {} as any,
-    job: {} as any,
-    scheduledAt: new Date(Date.now() - 86400000 * 3).toISOString(), // 3 days ago
-    duration: 30,
-    locationType: 'phone',
-    meetingLink: undefined,
-    interviewers: [
-      { id: 'u2', name: 'Sarah Recruiter', avatar: 'https://randomuser.me/api/portraits/women/44.jpg' } as any,
-    ],
-    status: 'completed',
-    scorecards: []
-  }
-]
-
 export default function InterviewsTab({ application }: InterviewsTabProps) {
-  const interviews = mockInterviews // Use real ones if available
+  const { interviews: allInterviews } = useDomainStore()
+  const interviews = allInterviews.filter(i => i.candidateId === application.candidate.id)
 
   if (!interviews || interviews.length === 0) {
     return (
@@ -74,17 +42,17 @@ export default function InterviewsTab({ application }: InterviewsTabProps) {
               
               <div className="flex flex-col items-center justify-center w-[64px] h-[64px] bg-neutral-50 rounded-md border border-neutral-100 shrink-0">
                 <span className="font-display text-[12px] font-bold text-neutral-500 uppercase tracking-wider">
-                  {new Date(interview.scheduledAt).toLocaleDateString('en-US', { month: 'short' })}
+                  {interview.date}
                 </span>
-                <span className="font-display text-[24px] font-bold text-neutral-900 leading-none mt-[2px]">
-                  {new Date(interview.scheduledAt).getDate()}
+                <span className="font-display text-[20px] font-bold text-neutral-900 leading-none mt-[2px]">
+                  <Calendar size={20} className="text-neutral-400" />
                 </span>
               </div>
 
               <div className="flex flex-col gap-[6px]">
                 <div className="flex items-center gap-[12px]">
                   <h4 className="font-body text-[15px] font-semibold text-neutral-900">
-                    {new Date(interview.scheduledAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })} ({interview.duration}m)
+                    {interview.time} ({interview.duration})
                   </h4>
                   <span className={`px-[8px] py-[2px] rounded-full text-[10px] font-bold uppercase tracking-wider ${
                     isUpcoming ? 'bg-accent-100 text-accent-700' : 'bg-neutral-100 text-neutral-600'
@@ -95,22 +63,20 @@ export default function InterviewsTab({ application }: InterviewsTabProps) {
                 
                 <div className="flex items-center gap-[16px]">
                   <div className="flex items-center gap-[6px] text-[13px] text-neutral-500 font-body">
-                    {interview.locationType === 'video' && <Video size={14} />}
-                    {interview.locationType === 'phone' && <Phone size={14} />}
-                    {interview.locationType === 'onsite' && <Building2 size={14} />}
-                    <span className="capitalize">{interview.locationType}</span>
+                    {interview.type === 'Video' && <Video size={14} />}
+                    {interview.type === 'Phone' && <Phone size={14} />}
+                    {interview.type === 'Onsite' && <Building2 size={14} />}
+                    <span className="capitalize">{interview.type}</span>
                   </div>
                   
                   <div className="flex items-center gap-[6px] text-[13px] text-neutral-500 font-body">
                     <div className="flex -space-x-2">
-                      {interview.interviewers.map(i => (
-                        <div key={i.id} className="w-[20px] h-[20px] rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-[10px] font-bold border border-white z-10">
-                          {i.name.charAt(0)}
-                        </div>
-                      ))}
+                      <div className="w-[20px] h-[20px] rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-[10px] font-bold border border-white z-10">
+                        {interview.interviewer.charAt(0)}
+                      </div>
                     </div>
                     <span>
-                      {interview.interviewers.map(i => i.name.split(' ')[0]).join(', ')}
+                      {interview.interviewer}
                     </span>
                   </div>
                 </div>
@@ -119,12 +85,12 @@ export default function InterviewsTab({ application }: InterviewsTabProps) {
 
             <div className="flex items-center">
               {isUpcoming ? (
-                <button 
-                  disabled={!interview.meetingLink}
-                  className="bg-primary-500 hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-body text-[13px] font-medium px-[16px] py-[8px] rounded-md transition-colors"
+                <Link 
+                  href={`/meet/${interview.id}`}
+                  className="bg-primary-500 hover:bg-primary-600 text-white font-body text-[13px] font-medium px-[16px] py-[8px] rounded-md transition-colors"
                 >
-                  Join Meeting
-                </button>
+                  Start Meeting
+                </Link>
               ) : (
                 <button className="border border-neutral-200 hover:bg-neutral-50 text-neutral-700 font-body text-[13px] font-medium px-[16px] py-[8px] rounded-md transition-colors">
                   View Scorecard

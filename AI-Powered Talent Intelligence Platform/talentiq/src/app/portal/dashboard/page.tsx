@@ -3,11 +3,12 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useDomainStore } from '@/store/domain.store'
-import { LogOut, Send, CheckCircle2, Clock, User, Briefcase, FileText } from 'lucide-react'
+import { LogOut, Send, CheckCircle2, Clock, User, Briefcase, FileText, Video } from 'lucide-react'
+import Link from 'next/link'
 
 export default function CandidateDashboard() {
   const router = useRouter()
-  const { candidates, messages, addMessage, settings, jobs } = useDomainStore()
+  const { candidates, messages, addMessage, settings, jobs, interviews } = useDomainStore()
   const [candidateId, setCandidateId] = useState<string | null>(null)
   const [newMessage, setNewMessage] = useState('')
 
@@ -31,6 +32,7 @@ export default function CandidateDashboard() {
 
   const job = jobs.find(j => j.id === candidate.jobId)
   const candidateMessages = messages.filter(m => m.candidateId === candidate.id)
+  const upcomingInterview = interviews.find(i => i.candidateId === candidate.id && i.status === 'scheduled')
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault()
@@ -113,6 +115,24 @@ export default function CandidateDashboard() {
                 )
               })}
             </div>
+
+            {upcomingInterview && (
+              <div className="mt-[24px] p-[16px] bg-blue-50 rounded-[12px] border border-blue-100">
+                <div className="flex items-center gap-[8px] mb-[8px]">
+                  <Video size={16} className="text-blue-600" />
+                  <h4 className="font-display font-bold text-[14px] text-blue-900">Upcoming Interview</h4>
+                </div>
+                <p className="font-body text-[13px] text-blue-800 mb-[16px]">
+                  {upcomingInterview.date} at {upcomingInterview.time} ({upcomingInterview.type})
+                </p>
+                <Link 
+                  href={`/meet/${upcomingInterview.id}`}
+                  className="w-full h-[40px] bg-blue-600 hover:bg-blue-700 text-white font-semibold text-[13px] rounded-[8px] flex items-center justify-center transition-colors"
+                >
+                  Join Interview Now
+                </Link>
+              </div>
+            )}
           </div>
 
           {/* Timeline Card */}
