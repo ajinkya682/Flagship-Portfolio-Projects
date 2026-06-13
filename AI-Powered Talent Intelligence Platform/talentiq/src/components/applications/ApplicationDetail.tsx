@@ -11,6 +11,7 @@ import ScorecardsTab from './ScorecardsTab'
 import NotesTab from './NotesTab'
 import ActivityTab from './ActivityTab'
 import ActionSidebar from './ActionSidebar'
+import MessagesTab from './MessagesTab'
 
 interface ApplicationDetailProps {
   application: Application
@@ -40,11 +41,7 @@ export default function ApplicationDetail({ application }: ApplicationDetailProp
           {activeTab === 'Scorecards' && <ScorecardsTab application={application} />}
           {activeTab === 'Notes' && <NotesTab application={application} />}
           {activeTab === 'Activity' && <ActivityTab application={application} />}
-          {activeTab === 'Emails' && (
-            <div className="p-[24px] font-body text-[14px] text-neutral-600">
-              Email history component rendering here...
-            </div>
-          )}
+          {activeTab === 'Messages' && <MessagesTab application={application} />}
         </div>
       </div>
 

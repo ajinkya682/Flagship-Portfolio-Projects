@@ -8,7 +8,7 @@ export const TABS = [
   'Scorecards',
   'Notes',
   'Activity',
-  'Emails'
+  'Messages'
 ] as const
 
 export type ApplicationTab = typeof TABS[number]

@@ -10,6 +10,7 @@ export interface Company {
   currency: string
   careerPageUrl: string
   subdomain: string
+  slug: string
 }
 
 // ── User ────────────────────────────────────────────────────────
@@ -56,6 +57,13 @@ export interface Job {
   closedAt: string | undefined
   createdAt: string
   scoringWeights: ScoringWeights
+  slug?: string
+  applicationFormConfig?: {
+    requireResume?: boolean
+    requireLinkedin?: boolean
+    requirePortfolio?: boolean
+    customQuestions?: string[]
+  }
 }
 
 // ── Candidate ───────────────────────────────────────────────────
@@ -71,6 +79,8 @@ export interface Candidate {
   extractedSkills: string[]
   extractedCompanies: string[]
   extractedEducation: string[]
+  portalToken?: string
+  hasPortalAccess?: boolean
 }
 
 // ── Application ─────────────────────────────────────────────────

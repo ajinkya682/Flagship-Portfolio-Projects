@@ -15,6 +15,12 @@ export interface Company {
   plan: string
 }
 
+export interface Settings {
+  companyName: string
+  companySlug: string
+  portalThemeColor: string
+}
+
 export interface Job {
   id: string
   title: string
@@ -30,6 +36,13 @@ export interface Job {
   skills?: string[]
   hiringTeam?: { name: string, role: string, avatar: string }[]
   postedAt: string
+  slug?: string
+  applicationFormConfig?: {
+    requireResume?: boolean
+    requireLinkedin?: boolean
+    requirePortfolio?: boolean
+    customQuestions?: string[]
+  }
 }
 
 export interface Candidate {
@@ -59,6 +72,8 @@ export interface Candidate {
   appliedAt: string
   notes: { id: string, author: string, text: string, createdAt: string, avatar: string }[]
   timeline: { event: string, date: string, type: 'applied' | 'ai' | 'stage' | 'interview' }[]
+  portalToken?: string
+  hasPortalAccess?: boolean
 }
 
 export interface Interview {
@@ -97,6 +112,7 @@ export interface Offer {
 }
 
 interface DomainState {
+  settings: Settings
   jobs: Job[]
   candidates: Candidate[]
   interviews: Interview[]
@@ -108,6 +124,7 @@ interface DomainState {
   updateJob: (id: string, updates: Partial<Job>) => void
   
   addCandidate: (candidate: Candidate) => void
+  updateCandidate: (id: string, updates: Partial<Candidate>) => void
   moveCandidateStage: (candidateId: string, newStage: string) => void
   addCandidateNote: (candidateId: string, note: any) => void
   
@@ -119,20 +136,28 @@ interface DomainState {
   addOffer: (offer: Offer) => void
   updateOffer: (id: string, updates: Partial<Offer>) => void
 
+  updateSettings: (updates: Partial<Settings>) => void
+
   resetStore: () => void
+}
+
+const INITIAL_SETTINGS: Settings = {
+  companyName: 'Acme Corp',
+  companySlug: 'acme',
+  portalThemeColor: '#0ea5e9'
 }
 
 // Initial mock data to seed the store so it's not empty for demo purposes
 const INITIAL_JOBS: Job[] = [
-  { id: 'job_1', title: 'Senior Software Engineer', department: 'Engineering', location: 'San Francisco, CA', type: 'Full-time', remote: 'Hybrid', status: 'published', salaryMin: 150000, salaryMax: 190000, description: '...', postedAt: new Date(Date.now() - 86400000 * 3).toISOString() },
-  { id: 'job_2', title: 'Product Manager', department: 'Product', location: 'New York, NY', type: 'Full-time', remote: 'Onsite', status: 'published', salaryMin: 140000, salaryMax: 170000, description: '...', postedAt: new Date(Date.now() - 86400000 * 5).toISOString() },
+  { id: 'job_1', title: 'Senior Software Engineer', slug: 'senior-software-engineer', department: 'Engineering', location: 'San Francisco, CA', type: 'Full-time', remote: 'Hybrid', status: 'published', salaryMin: 150000, salaryMax: 190000, description: '...', postedAt: new Date(Date.now() - 86400000 * 3).toISOString() },
+  { id: 'job_2', title: 'Product Manager', slug: 'product-manager', department: 'Product', location: 'New York, NY', type: 'Full-time', remote: 'Onsite', status: 'published', salaryMin: 140000, salaryMax: 170000, description: '...', postedAt: new Date(Date.now() - 86400000 * 5).toISOString() },
 ]
 
 const INITIAL_CANDIDATES: Candidate[] = [
   {
     id: 'c_1', name: 'Jennifer Park', email: 'jen@example.com', phone: '555-0101', avatar: 'https://randomuser.me/api/portraits/women/65.jpg',
     role: 'Senior Software Engineer', jobId: 'job_1', stage: 'Screening', source: 'LinkedIn', aiScore: 92, daysInStage: 2, appliedAt: new Date(Date.now() - 86400000 * 4).toISOString(),
-    notes: [], timeline: [{ event: 'Applied via LinkedIn', date: '4d ago', type: 'applied' }]
+    notes: [], timeline: [{ event: 'Applied via LinkedIn', date: '4d ago', type: 'applied' }], portalToken: 'DEMO123', hasPortalAccess: true
   },
   {
     id: 'c_2', name: 'David Chen', email: 'david@example.com', phone: '555-0102', avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
@@ -173,11 +198,14 @@ const INITIAL_INTERVIEWS: Interview[] = [
 export const useDomainStore = create<DomainState>()(
   persist(
     (set) => ({
+      settings: INITIAL_SETTINGS,
       jobs: INITIAL_JOBS,
       candidates: INITIAL_CANDIDATES,
       interviews: INITIAL_INTERVIEWS,
       messages: INITIAL_MESSAGES,
       offers: INITIAL_OFFERS,
+
+      updateSettings: (updates) => set((state) => ({ settings: { ...state.settings, ...updates } })),
 
       addJob: (job) => set((state) => ({ jobs: [...state.jobs, job] })),
       updateJob: (id, updates) => set((state) => ({
@@ -185,6 +213,9 @@ export const useDomainStore = create<DomainState>()(
       })),
 
       addCandidate: (candidate) => set((state) => ({ candidates: [...state.candidates, candidate] })),
+      updateCandidate: (id, updates) => set((state) => ({
+        candidates: state.candidates.map(c => c.id === id ? { ...c, ...updates } : c)
+      })),
       moveCandidateStage: (candidateId, newStage) => set((state) => ({
         candidates: state.candidates.map(c => 
           c.id === candidateId ? { 
@@ -214,7 +245,7 @@ export const useDomainStore = create<DomainState>()(
       })),
 
       resetStore: () => set({
-        jobs: [], candidates: [], interviews: [], messages: [], offers: []
+        jobs: [], candidates: [], interviews: [], messages: [], offers: [], settings: INITIAL_SETTINGS
       })
     }),
     {

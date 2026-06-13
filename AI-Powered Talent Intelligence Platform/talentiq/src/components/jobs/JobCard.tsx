@@ -1,9 +1,11 @@
 'use client'
 
 import Link from 'next/link'
-import { MapPin, Users, Calendar, Sparkles, MoreHorizontal, ArrowRight, TrendingUp } from 'lucide-react'
+import { MapPin, Users, Calendar, Sparkles, MoreHorizontal, ArrowRight, TrendingUp, Link as LinkIcon, CheckCircle2 } from 'lucide-react'
 import { Job } from '@/types/domain.types'
 import JobStatusBadge from './JobStatusBadge'
+import { useState } from 'react'
+import ShareJobModal from './ShareJobModal'
 
 const deptColors: Record<string, { bar: string; badge: string; text: string }> = {
   Engineering: { bar: 'from-blue-500 to-indigo-600', badge: 'bg-blue-50 text-blue-700', text: 'text-blue-600' },
@@ -29,8 +31,16 @@ interface JobCardProps {
 import { useDomainStore } from '@/store/domain.store'
 
 export default function JobCard({ job }: JobCardProps) {
-  const { candidates } = useDomainStore()
+  const { candidates, settings } = useDomainStore()
+  const [copied, setCopied] = useState(false)
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false)
   const jobCandidates = candidates.filter(c => c.jobId === job.id)
+  
+  const handleCopyLink = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsShareModalOpen(true)
+  }
   
   const daysOpen = Math.floor((new Date().getTime() - new Date(job.postedAt || job.createdAt || new Date()).getTime()) / (1000 * 3600 * 24))
   const dept = deptColors[job.department] ?? deptColors.default
@@ -59,6 +69,16 @@ export default function JobCard({ job }: JobCardProps) {
             </div>
           </div>
           <div className="flex items-center gap-[6px] shrink-0">
+            {job.status === 'published' && (
+              <button 
+                onClick={handleCopyLink}
+                className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-[4px] px-[8px] py-[3px] bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 text-neutral-600 rounded-[6px] text-[11px] font-medium"
+                title="Copy public link"
+              >
+                {copied ? <CheckCircle2 size={12} className="text-emerald-500" /> : <LinkIcon size={12} />}
+                {copied ? 'Copied' : 'Share'}
+              </button>
+            )}
             <JobStatusBadge status={job.status} />
             <button className="opacity-0 group-hover:opacity-100 transition-opacity text-neutral-300 hover:text-neutral-600 p-[2px] rounded">
               <MoreHorizontal size={15} />
@@ -134,6 +154,14 @@ export default function JobCard({ job }: JobCardProps) {
           </div>
         </div>
       </div>
+
+      {isShareModalOpen && (
+        <ShareJobModal
+          job={job}
+          companySlug={settings.companySlug}
+          onClose={() => setIsShareModalOpen(false)}
+        />
+      )}
     </div>
   )
 }

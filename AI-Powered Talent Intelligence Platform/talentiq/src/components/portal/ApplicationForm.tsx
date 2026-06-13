@@ -1,17 +1,47 @@
 'use client'
 
 import { useState } from 'react'
-import { UploadCloud, CheckCircle } from 'lucide-react'
+import { UploadCloud, CheckCircle, ArrowRight } from 'lucide-react'
 import { useForm } from 'react-hook-form'
+import { useDomainStore } from '@/store/domain.store'
+import { Job } from '@/types/domain.types'
+import Link from 'next/link'
 
-export default function ApplicationForm() {
+export default function ApplicationForm({ job, companySlug }: { job?: Job, companySlug?: string }) {
   const { register, handleSubmit } = useForm()
+  const { addCandidate, settings } = useDomainStore()
   const [submitted, setSubmitted] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [candidateToken, setCandidateToken] = useState('')
 
   const onSubmit = (data: any) => {
     setIsSubmitting(true)
     setTimeout(() => {
+      const newToken = Math.random().toString(36).substring(2, 10).toUpperCase()
+      
+      addCandidate({
+        id: `c_${Date.now()}`,
+        name: `${data.firstName} ${data.lastName}`,
+        email: data.email,
+        phone: '',
+        avatar: undefined,
+        role: job?.title || 'Unknown Role',
+        jobId: job?.id || '',
+        stage: 'Screening',
+        source: 'Career Site',
+        aiScore: 0,
+        daysInStage: 0,
+        appliedAt: new Date().toISOString(),
+        notes: [],
+        timeline: [{ event: 'Applied via Career Site', date: 'Just now', type: 'applied' }],
+        portalToken: newToken,
+        hasPortalAccess: false,
+        extractedSkills: [],
+        extractedCompanies: [],
+        extractedEducation: []
+      })
+      
+      setCandidateToken(newToken)
       setIsSubmitting(false)
       setSubmitted(true)
     }, 1500)
@@ -20,19 +50,25 @@ export default function ApplicationForm() {
   if (submitted) {
     return (
       <div className="bg-white p-[32px] md:p-[48px] rounded-[24px] shadow-sm border border-neutral-100 text-center flex flex-col items-center animate-in fade-in zoom-in-95 duration-500">
-        <CheckCircle className="w-[64px] h-[64px] text-accent-500 animate-spring-in" />
-        <h2 className="font-display text-[28px] font-bold text-neutral-900 mt-[24px]">
+        <CheckCircle className="w-[64px] h-[64px] text-emerald-500 animate-spring-in mb-[16px]" />
+        <h2 className="font-display text-[28px] font-bold text-neutral-900">
           Application Submitted!
         </h2>
-        <p className="font-body text-[15px] text-neutral-500 mt-[12px]">
-          Thank you for applying. Your application ID is <strong className="text-neutral-900">#APP-9824</strong>.
+        <p className="font-body text-[15px] text-neutral-500 mt-[12px] max-w-[400px]">
+          Thank you for applying to {settings.companyName}. We've created a Candidate Portal for you to track your application status.
         </p>
-        <button
-          onClick={() => window.location.href = '/status'}
-          className="mt-[32px] h-[44px] px-[24px] bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-lg transition-colors"
+        
+        <div className="mt-[24px] p-[16px] bg-neutral-50 rounded-xl border border-neutral-200 w-full max-w-[300px]">
+          <p className="font-body text-[12px] text-neutral-500 font-semibold uppercase tracking-wider mb-[4px]">Your Portal Access Code</p>
+          <p className="font-mono text-[24px] font-bold text-neutral-900 tracking-widest">{candidateToken}</p>
+        </div>
+
+        <Link
+          href="/portal/login"
+          className="mt-[32px] h-[48px] px-[32px] bg-neutral-900 hover:bg-neutral-800 text-white font-semibold rounded-xl transition-colors flex items-center gap-[8px]"
         >
-          Track Status
-        </button>
+          Access Candidate Portal <ArrowRight size={18} />
+        </Link>
       </div>
     )
   }
@@ -71,7 +107,7 @@ export default function ApplicationForm() {
 
       <div className="mt-[8px] bg-neutral-50 p-[16px] rounded-lg border border-neutral-200">
         <p className="font-body text-[12px] text-neutral-500 leading-relaxed">
-          By submitting this application, you agree to Acme Corp&apos;s Privacy Policy and consent to the processing of your personal data. Your data will be processed securely using TalentIQ.
+          By submitting this application, you agree to {settings.companyName || 'our'} Privacy Policy and consent to the processing of your personal data.
         </p>
       </div>
 
