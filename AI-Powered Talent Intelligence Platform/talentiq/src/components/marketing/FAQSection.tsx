@@ -89,7 +89,7 @@ export default function FAQSection() {
                   {/* You can replace these src paths with your actual team images */}
                   <div className="w-14 h-14 rounded-full border-[3px] border-white bg-neutral-200 overflow-hidden relative shadow-sm z-30">
                     <Image
-                      src="/images/avatar-1.png"
+                      src="https://randomuser.me/api/portraits/women/44.jpg"
                       alt="Support Team Member"
                       fill
                       className="object-cover"
@@ -97,7 +97,7 @@ export default function FAQSection() {
                   </div>
                   <div className="w-14 h-14 rounded-full border-[3px] border-white bg-neutral-300 overflow-hidden relative shadow-sm z-20">
                     <Image
-                      src="/images/avatar-2.png"
+                      src="https://randomuser.me/api/portraits/men/32.jpg"
                       alt="Support Team Member"
                       fill
                       className="object-cover"

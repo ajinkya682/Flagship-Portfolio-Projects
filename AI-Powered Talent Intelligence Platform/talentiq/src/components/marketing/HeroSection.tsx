@@ -127,23 +127,6 @@ export default function HeroSection() {
             <div className="mt-14 flex flex-col gap-10">
               <div className="flex items-center gap-4">
                 <HeroAvatarCluster />
-                <div className="flex flex-col">
-                  <span className="font-body text-[15px] font-bold text-neutral-900 leading-tight">
-                    +2K recruiters
-                  </span>
-                  <div className="flex items-center gap-1.5 mt-1">
-                    <div className="flex items-center gap-0.5 text-[#FACC15]">
-                      <Star className="w-[18px] h-[18px] fill-current" />
-                      <Star className="w-[18px] h-[18px] fill-current" />
-                      <Star className="w-[18px] h-[18px] fill-current" />
-                      <Star className="w-[18px] h-[18px] fill-current" />
-                      <Star className="w-[18px] h-[18px] fill-current" />
-                    </div>
-                    <span className="font-body text-[14px] font-medium text-neutral-600 ml-1">
-                      4.9/5
-                    </span>
-                  </div>
-                </div>
               </div>
 
               {/* Bottom Icon Row */}

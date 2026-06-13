@@ -3,7 +3,6 @@ import { Plus_Jakarta_Sans, Inter, JetBrains_Mono } from "next/font/google";
 import { QueryProvider } from "@/lib/QueryProvider";
 import "./globals.css";
 import type { ReactNode } from "react";
-import kjd from "../../public/images/logo.png";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -56,9 +55,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary-500 focus:text-white focus:rounded-md focus:shadow-brand"
-        >
-          Skip to main content
-        </a>
+        ></a>
         <QueryProvider>
           <main id="main">{children}</main>
         </QueryProvider>
