@@ -15,16 +15,18 @@ export default function VideoMeetingRoom({ params }: { params: { interviewId: st
   const [isVideoOff, setIsVideoOff] = useState(false)
   const [isScreenSharing, setIsScreenSharing] = useState(false)
 
-  // Find interview details
-  const interview = interviews.find(i => i.id === params.interviewId)
-  const candidate = candidates.find(c => c.id === interview?.candidateId)
+  const interview = interviews.find(i => i.id === params.interviewId) || {
+    id: params.interviewId,
+    candidateId: 'demo',
+    type: 'Video',
+  }
+  const candidate = candidates.find(c => c.id === interview?.candidateId) || {
+    id: 'demo',
+    name: 'Demo Candidate',
+    avatar: 'https://randomuser.me/api/portraits/women/44.jpg'
+  }
 
   useEffect(() => {
-    if (!interview) {
-      router.push('/dashboard') // Fallback if invalid
-      return
-    }
-
     // Request camera and microphone access
     const startMedia = async () => {
       try {
@@ -47,7 +49,7 @@ export default function VideoMeetingRoom({ params }: { params: { interviewId: st
         stream.getTracks().forEach(track => track.stop())
       }
     }
-  }, [interview, router])
+  }, [router])
 
   // Toggle handlers
   const toggleMute = () => {

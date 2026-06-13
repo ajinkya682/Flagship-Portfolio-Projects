@@ -24,7 +24,7 @@ export default function ApplicationForm({ job, companySlug }: { job?: Job, compa
         name: `${data.firstName} ${data.lastName}`,
         email: data.email,
         phone: '',
-        avatar: undefined,
+        avatar: '',
         role: job?.title || 'Unknown Role',
         jobId: job?.id || '',
         stage: 'Screening',

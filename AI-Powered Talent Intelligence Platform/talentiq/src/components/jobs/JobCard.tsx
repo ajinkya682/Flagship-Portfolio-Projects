@@ -2,10 +2,10 @@
 
 import Link from 'next/link'
 import { MapPin, Users, Calendar, Sparkles, MoreHorizontal, ArrowRight, TrendingUp, Link as LinkIcon, CheckCircle2 } from 'lucide-react'
-import { Job } from '@/types/domain.types'
 import JobStatusBadge from './JobStatusBadge'
 import { useState } from 'react'
 import ShareJobModal from './ShareJobModal'
+import { useDomainStore, Job } from '@/store/domain.store'
 
 const deptColors: Record<string, { bar: string; badge: string; text: string }> = {
   Engineering: { bar: 'from-blue-500 to-indigo-600', badge: 'bg-blue-50 text-blue-700', text: 'text-blue-600' },
@@ -28,8 +28,6 @@ interface JobCardProps {
   job: Job
 }
 
-import { useDomainStore } from '@/store/domain.store'
-
 export default function JobCard({ job }: JobCardProps) {
   const { candidates, settings } = useDomainStore()
   const [copied, setCopied] = useState(false)
@@ -42,7 +40,7 @@ export default function JobCard({ job }: JobCardProps) {
     setIsShareModalOpen(true)
   }
   
-  const daysOpen = Math.floor((new Date().getTime() - new Date(job.postedAt || job.createdAt || new Date()).getTime()) / (1000 * 3600 * 24))
+  const daysOpen = Math.floor((new Date().getTime() - new Date(job.postedAt || new Date()).getTime()) / (1000 * 3600 * 24))
   const dept = deptColors[job.department] ?? deptColors.default
   
   const scoredCandidates = jobCandidates.filter(c => c.aiScore > 0)
@@ -65,7 +63,7 @@ export default function JobCard({ job }: JobCardProps) {
               <span className={`text-[11px] font-semibold px-[7px] py-[2px] rounded-full ${dept.badge}`}>
                 {job.department}
               </span>
-              <span className="text-[11px] text-neutral-400">{job.employmentType}</span>
+              <span className="text-[11px] text-neutral-400">{job.type}</span>
             </div>
           </div>
           <div className="flex items-center gap-[6px] shrink-0">
