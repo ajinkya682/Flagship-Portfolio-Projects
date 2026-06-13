@@ -369,7 +369,7 @@ export default function JobDetailPage() {
               <label className="font-body text-[13px] font-semibold text-neutral-700">Status</label>
               <select 
                 value={editedStatus}
-                onChange={(e) => setEditedStatus(e.target.value)}
+                onChange={(e) => setEditedStatus(e.target.value as "published" | "draft" | "closed")}
                 className="h-[42px] rounded-[10px] border border-neutral-200 px-[12px] font-body text-[14px] focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 bg-white"
               >
                 <option value="published">Active — accepting applications</option>

@@ -156,7 +156,7 @@ export default function JobsPage() {
         </div>
       ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-[16px]">
-          {filtered.map(job => <JobCard key={job.id} job={job} />)}
+          {filtered.map(job => <JobCard key={job.id} job={job as unknown as Job} />)}
         </div>
       ) : (
         <div className="flex flex-col gap-[8px]">

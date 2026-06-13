@@ -1,35 +1,39 @@
-import { io, Socket } from 'socket.io-client'
-import { getToken } from './auth'
+import PusherClient from 'pusher-js'
 
-let socket: Socket | null = null
+let pusher: PusherClient | null = null
+let channel: any = null
 
-export function getSocket(): Socket {
-  if (socket && socket.connected) return socket
+export function getSocket(): any {
+  if (pusher) return pusher
 
-  socket = io(process.env.NEXT_PUBLIC_SOCKET_URL ?? 'http://localhost:3001', {
-    auth: { token: getToken() },
-    transports: ['websocket', 'polling'],
-    reconnection: true,
-    reconnectionAttempts: 5,
-    reconnectionDelay: 1000,
+  // For MVP, we connect to a public channel
+  // In production, use private channels with auth endpoint
+  pusher = new PusherClient(process.env.NEXT_PUBLIC_PUSHER_KEY || 'local', {
+    cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER || 'mt1',
   })
 
-  return socket
+  channel = pusher.subscribe('talentiq-events')
+
+  return pusher
 }
 
 export function disconnectSocket(): void {
-  if (socket) {
-    socket.disconnect()
-    socket = null
+  if (pusher) {
+    pusher.disconnect()
+    pusher = null
+    channel = null
   }
 }
 
 export function subscribeToEvent<T>(event: string, callback: (data: T) => void): void {
-  const s = getSocket()
-  s.on(event, callback)
+  getSocket() // Ensure connected
+  if (channel) {
+    channel.bind(event, callback)
+  }
 }
 
 export function unsubscribeFromEvent<T>(event: string, callback: (data: T) => void): void {
-  if (!socket) return
-  socket.off(event, callback)
+  if (channel) {
+    channel.unbind(event, callback)
+  }
 }

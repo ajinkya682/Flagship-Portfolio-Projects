@@ -5,7 +5,8 @@ import { MapPin, Users, Calendar, Sparkles, MoreHorizontal, ArrowRight, Trending
 import JobStatusBadge from './JobStatusBadge'
 import { useState } from 'react'
 import ShareJobModal from './ShareJobModal'
-import { useDomainStore, Job } from '@/store/domain.store'
+import { useDomainStore } from '@/store/domain.store'
+import { Job } from '@/types/domain.types'
 
 const deptColors: Record<string, { bar: string; badge: string; text: string }> = {
   Engineering: { bar: 'from-blue-500 to-indigo-600', badge: 'bg-blue-50 text-blue-700', text: 'text-blue-600' },
@@ -40,7 +41,7 @@ export default function JobCard({ job }: JobCardProps) {
     setIsShareModalOpen(true)
   }
   
-  const daysOpen = Math.floor((new Date().getTime() - new Date(job.postedAt || new Date()).getTime()) / (1000 * 3600 * 24))
+  const daysOpen = Math.floor((new Date().getTime() - new Date(job.publishedAt || new Date()).getTime()) / (1000 * 3600 * 24))
   const dept = deptColors[job.department] ?? deptColors.default
   
   const scoredCandidates = jobCandidates.filter(c => c.aiScore > 0)
@@ -63,11 +64,11 @@ export default function JobCard({ job }: JobCardProps) {
               <span className={`text-[11px] font-semibold px-[7px] py-[2px] rounded-full ${dept.badge}`}>
                 {job.department}
               </span>
-              <span className="text-[11px] text-neutral-400">{job.type}</span>
+              <span className="text-[11px] text-neutral-400">{job.employmentType}</span>
             </div>
           </div>
           <div className="flex items-center gap-[6px] shrink-0">
-            {job.status === 'published' && (
+            {job.status === 'active' && (
               <button 
                 onClick={handleCopyLink}
                 className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-[4px] px-[8px] py-[3px] bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 text-neutral-600 rounded-[6px] text-[11px] font-medium"

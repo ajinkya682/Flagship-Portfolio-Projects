@@ -10,6 +10,8 @@ export function DashboardStats() {
         icon={Briefcase}
         iconBg="#EFF6FF"
         iconColor="#3B82F6"
+        gradientFrom="#EFF6FF"
+        gradientTo="#DBEAFE"
         value={12}
         label="Open Roles"
         delta="+3"
@@ -21,6 +23,8 @@ export function DashboardStats() {
         icon={Users}
         iconBg="#F0FDF4"
         iconColor="#10B981"
+        gradientFrom="#F0FDF4"
+        gradientTo="#DCFCE7"
         value={342}
         label="Applications"
         delta="+12%"
@@ -33,6 +37,8 @@ export function DashboardStats() {
         icon={Sparkles}
         iconBg="#F5F3FF"
         iconColor="#8B5CF6"
+        gradientFrom="#F5F3FF"
+        gradientTo="#EDE9FE"
         value="84/100"
         label="Avg AI Score"
         delta="+5"
@@ -44,6 +50,8 @@ export function DashboardStats() {
         icon={FileText}
         iconBg="#FFFBEB"
         iconColor="#F59E0B"
+        gradientFrom="#FFFBEB"
+        gradientTo="#FEF3C7"
         value={4}
         label="Offers Pending"
         delta="2 expiring in 48h"

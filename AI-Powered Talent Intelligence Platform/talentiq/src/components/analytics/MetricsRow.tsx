@@ -10,6 +10,8 @@ export default function MetricsRow() {
         icon={Users}
         iconBg="#EFF6FF"
         iconColor="#3B82F6"
+        gradientFrom="#EFF6FF"
+        gradientTo="#DBEAFE"
         value={1248}
         label="Total Applications"
         delta="+14%"
@@ -20,6 +22,8 @@ export default function MetricsRow() {
         icon={Clock}
         iconBg="#F0FDF4"
         iconColor="#10B981"
+        gradientFrom="#F0FDF4"
+        gradientTo="#DCFCE7"
         value="24.5"
         label="Avg Time to Hire (Days)"
         delta="-2.1"
@@ -30,6 +34,8 @@ export default function MetricsRow() {
         icon={ThumbsUp}
         iconBg="#F5F3FF"
         iconColor="#8B5CF6"
+        gradientFrom="#F5F3FF"
+        gradientTo="#EDE9FE"
         value="82%"
         label="Offer Acceptance Rate"
         delta="+4%"
@@ -40,6 +46,8 @@ export default function MetricsRow() {
         icon={Filter}
         iconBg="#FFFBEB"
         iconColor="#F59E0B"
+        gradientFrom="#FFFBEB"
+        gradientTo="#FEF3C7"
         value="12.4%"
         label="Pipeline Conversion"
         delta="-1.2%"

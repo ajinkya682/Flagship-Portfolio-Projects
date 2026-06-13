@@ -1,23 +1,31 @@
-'use client'
+"use client";
 
-import { useDomainStore } from '@/store/domain.store'
-import { MapPin, Briefcase, Building2, Calendar } from 'lucide-react'
-import ApplicationForm from '@/components/portal/ApplicationForm'
-import { notFound } from 'next/navigation'
+import { useDomainStore } from "@/store/domain.store";
+import { MapPin, Briefcase, Building2, Calendar } from "lucide-react";
+import ApplicationForm from "@/components/portal/ApplicationForm";
+import { notFound } from "next/navigation";
 
-export default function PublicJobPage({ params }: { params: { companySlug: string, jobSlug: string } }) {
-  const { jobs, settings } = useDomainStore()
-  
+export default function PublicJobPage({
+  params,
+}: {
+  params: { companySlug: string; jobSlug: string };
+}) {
+  const { jobs, settings } = useDomainStore();
+
   // In a real app, we would query the backend by companySlug and jobSlug.
   // Here we check if the requested slug matches the store's settings and find the job.
   if (params.companySlug !== settings.companySlug) {
-    notFound()
+    notFound();
   }
 
-  const job = jobs.find(j => (j.slug === params.jobSlug || j.id === params.jobSlug) && j.status === 'published')
-  
+  const job = jobs.find(
+    (j) =>
+      (j.slug === params.jobSlug || j.id === params.jobSlug) &&
+      j.status === "published",
+  );
+
   if (!job) {
-    notFound()
+    notFound();
   }
 
   return (
@@ -60,7 +68,8 @@ export default function PublicJobPage({ params }: { params: { companySlug: strin
             {job.salaryMin && job.salaryMax && (
               <div className="flex items-center gap-[6px] text-neutral-600 font-medium text-[14px]">
                 <span className="text-emerald-600 font-semibold px-[8px] py-[2px] bg-emerald-50 rounded-full text-[12px]">
-                  ${(job.salaryMin / 1000).toFixed(0)}k - ${(job.salaryMax / 1000).toFixed(0)}k
+                  ${(job.salaryMin / 1000).toFixed(0)}k - $
+                  {(job.salaryMax / 1000).toFixed(0)}k
                 </span>
               </div>
             )}
@@ -69,12 +78,18 @@ export default function PublicJobPage({ params }: { params: { companySlug: strin
 
         {/* Job Description (Mocked text since store has '...' mostly) */}
         <div className="prose prose-neutral max-w-none mb-[48px] bg-white p-[32px] rounded-[24px] shadow-sm border border-neutral-100">
-          <h3 className="font-display text-[18px] font-bold text-neutral-900 mb-[12px]">About the role</h3>
+          <h3 className="font-display text-[18px] font-bold text-neutral-900 mb-[12px]">
+            About the role
+          </h3>
           <p className="text-[15px] text-neutral-600 leading-relaxed mb-[24px]">
-            {job.description === '...' ? 'We are looking for an experienced professional to join our team. You will be responsible for driving key initiatives and working closely with cross-functional teams to deliver high-quality results. If you are passionate about what you do and thrive in a fast-paced environment, we want to hear from you.' : job.description}
+            {job.description === "..."
+              ? "We are looking for an experienced professional to join our team. You will be responsible for driving key initiatives and working closely with cross-functional teams to deliver high-quality results. If you are passionate about what you do and thrive in a fast-paced environment, we want to hear from you."
+              : job.description}
           </p>
 
-          <h3 className="font-display text-[18px] font-bold text-neutral-900 mb-[12px]">Requirements</h3>
+          <h3 className="font-display text-[18px] font-bold text-neutral-900 mb-[12px]">
+            Requirements
+          </h3>
           <ul className="list-disc pl-[20px] text-[15px] text-neutral-600 space-y-[8px]">
             {job.requirements?.map((req, i) => <li key={i}>{req}</li>) || (
               <>
@@ -88,10 +103,12 @@ export default function PublicJobPage({ params }: { params: { companySlug: strin
 
         {/* Application Form Component */}
         <div id="apply">
-          <h3 className="font-display text-[24px] font-bold text-neutral-900 mb-[16px]">Apply for this job</h3>
+          <h3 className="font-display text-[24px] font-bold text-neutral-900 mb-[16px]">
+            Apply for this job
+          </h3>
           <ApplicationForm job={job as any} companySlug={params.companySlug} />
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -34,14 +34,17 @@ export default function AnalyticsPage() {
   ]
 
   const stages = ['Applied', 'Screening', 'Interview', 'Offer', 'Hired']
-  const pipelineData = stages.map((stage, i) => {
-    // A realistic pipeline would count all candidates who reached this stage or beyond
-    // For simplicity, we just count current candidates + candidates in later stages
+  const stageCounts = stages.map((stage, i) => {
     let count = 0
     for (let j = i; j < stages.length; j++) {
       count += candidates.filter(c => c.stage === stages[j] || (stages[j] === 'Interview' && c.stage === 'Assessment')).length
     }
-    const prevCount = i > 0 ? pipelineData[i - 1].count : Math.max(1, count)
+    return count
+  })
+
+  const pipelineData = stages.map((stage, i) => {
+    const count = stageCounts[i]
+    const prevCount = i > 0 ? stageCounts[i - 1] : Math.max(1, count)
     const dropoff = i > 0 ? Math.round(((prevCount - count) / prevCount) * 100) : 0
     return {
       stage,

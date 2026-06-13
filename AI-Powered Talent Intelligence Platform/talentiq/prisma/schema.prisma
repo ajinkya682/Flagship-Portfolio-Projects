@@ -1,0 +1,477 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ── COMPANIES ────────────────────────────────────────────────────
+model Company {
+  id                   String             @id @default(uuid())
+  name                 String
+  slug                 String             @unique
+  plan                 Plan               @default(starter)
+  stripeCustomerId     String?            @unique
+  stripeSubscriptionId String?            @unique
+  subscriptionStatus   SubscriptionStatus @default(trialing)
+  maxUsers             Int                @default(5)
+  maxJobs              Int                @default(3)
+  industry             String?
+  size                 String?
+  timezone             String             @default("UTC")
+  currency             String             @default("USD")
+  logoUrl              String?
+  careerPageEnabled    Boolean            @default(true)
+  portalThemeColor     String             @default("#0ea5e9")
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+  deletedAt            DateTime?
+
+  users          User[]
+  jobs           Job[]
+  applications   Application[]
+  interviews     Interview[]
+  offers         Offer[]
+  notifications  Notification[]
+  pipelineStages PipelineStage[]
+  analyticsSnaps AnalyticsSnapshot[]
+  auditLogs      AuditLog[]
+  emailTemplates EmailTemplate[]
+
+  @@index([slug])
+  @@index([stripeCustomerId])
+}
+
+// ── USERS ────────────────────────────────────────────────────────
+model User {
+  id            String    @id @default(uuid())
+  companyId     String
+  email         String
+  passwordHash  String?
+  firstName     String
+  lastName      String
+  role          UserRole
+  isActive      Boolean   @default(true)
+  emailVerified Boolean   @default(false)
+  avatarUrl     String?
+  googleId      String?   @unique
+  failedLogins  Int       @default(0)
+  lockedUntil   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  lastLoginAt   DateTime?
+
+  company               Company                   @relation(fields: [companyId], references: [id])
+  refreshTokens         RefreshToken[]
+  notifications         Notification[]
+  assignedApps          Application[]             @relation("AssignedTo")
+  createdJobs           Job[]                     @relation("CreatedBy")
+  movedStages           ApplicationStageHistory[] @relation("MovedBy")
+  createdInterviews     Interview[]               @relation("CreatedBy")
+  scorecards            InterviewScorecard[]
+  createdOffers         Offer[]                   @relation("CreatedBy")
+  auditLogs             AuditLog[]
+  applications          Application[]
+  interviewInterviewers InterviewInterviewer[]
+
+  @@unique([companyId, email])
+  @@index([companyId])
+  @@index([googleId])
+}
+
+// ── REFRESH TOKENS ───────────────────────────────────────────────
+model RefreshToken {
+  id        String   @id @default(uuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  revoked   Boolean  @default(false)
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tokenHash])
+  @@index([userId])
+}
+
+// ── JOBS ─────────────────────────────────────────────────────────
+model Job {
+  id                    String         @id @default(uuid())
+  companyId             String
+  createdById           String
+  title                 String
+  department            String?
+  location              String?
+  employmentType        EmploymentType @default(full_time)
+  remoteType            RemoteType     @default(hybrid)
+  description           String         @db.Text
+  requirements          String[]
+  skills                String[]
+  niceToHaveSkills      String[]
+  salaryMin             Int?
+  salaryMax             Int?
+  currency              String         @default("USD")
+  status                JobStatus      @default(draft)
+  aiDescriptionUsed     Boolean        @default(false)
+  biasCheckScore        Int?
+  biasCheckResults      Json?
+  applicationFormFields Json?
+  scoringWeights        Json?
+  postedAt              DateTime?
+  closedAt              DateTime?
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+  deletedAt             DateTime?
+
+  company      Company         @relation(fields: [companyId], references: [id])
+  createdBy    User            @relation("CreatedBy", fields: [createdById], references: [id])
+  applications Application[]
+  stages       PipelineStage[]
+  interviews   Interview[]
+
+  @@index([companyId, status])
+  @@index([companyId])
+}
+
+// ── PIPELINE STAGES ──────────────────────────────────────────────
+model PipelineStage {
+  id         String    @id @default(uuid())
+  companyId  String
+  jobId      String?
+  name       String
+  color      String    @default("#2563EB")
+  orderIndex Int
+  stageType  StageType @default(screening)
+  isDefault  Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+
+  company      Company                   @relation(fields: [companyId], references: [id])
+  job          Job?                      @relation(fields: [jobId], references: [id])
+  applications Application[]
+  stageHistory ApplicationStageHistory[]
+
+  @@unique([companyId, jobId, orderIndex])
+  @@index([companyId])
+}
+
+// ── APPLICATIONS ─────────────────────────────────────────────────
+model Application {
+  id                String    @id @default(uuid())
+  companyId         String
+  jobId             String
+  candidateId       String
+  currentStageId    String
+  assignedToId      String?
+  source            String    @default("direct")
+  sourceDetail      String?
+  resumeUrl         String?
+  resumeParsed      Boolean   @default(false)
+  aiScore           Int?
+  aiScoreComputedAt DateTime?
+  rejectionReason   String?
+  status            AppStatus @default(active)
+  tags              String[]
+  appliedAt         DateTime  @default(now())
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  company      Company                   @relation(fields: [companyId], references: [id])
+  job          Job                       @relation(fields: [jobId], references: [id])
+  candidate    User                      @relation(fields: [candidateId], references: [id])
+  currentStage PipelineStage             @relation(fields: [currentStageId], references: [id])
+  assignedTo   User?                     @relation("AssignedTo", fields: [assignedToId], references: [id])
+  stageHistory ApplicationStageHistory[]
+  notes        ApplicationNote[]
+  interviews   Interview[]
+  offers       Offer[]
+
+  @@index([companyId, jobId])
+  @@index([companyId, currentStageId])
+  @@index([companyId, aiScore])
+  @@index([candidateId])
+}
+
+// ── STAGE HISTORY ────────────────────────────────────────────────
+model ApplicationStageHistory {
+  id                       String   @id @default(uuid())
+  companyId                String
+  applicationId            String
+  fromStageId              String?
+  toStageId                String
+  movedById                String
+  movedAt                  DateTime @default(now())
+  timeInPreviousStageHours Int?
+
+  application Application   @relation(fields: [applicationId], references: [id])
+  toStage     PipelineStage @relation(fields: [toStageId], references: [id])
+  movedBy     User          @relation("MovedBy", fields: [movedById], references: [id])
+
+  @@index([applicationId])
+  @@index([companyId])
+}
+
+// ── APPLICATION NOTES ────────────────────────────────────────────
+model ApplicationNote {
+  id            String   @id @default(uuid())
+  applicationId String
+  authorId      String
+  content       String   @db.Text
+  createdAt     DateTime @default(now())
+
+  application Application @relation(fields: [applicationId], references: [id])
+
+  @@index([applicationId])
+}
+
+// ── INTERVIEWS ───────────────────────────────────────────────────
+model Interview {
+  id            String          @id @default(uuid())
+  companyId     String
+  applicationId String
+  jobId         String
+  scheduledAt   DateTime
+  durationMins  Int             @default(45)
+  locationType  LocationType    @default(video)
+  meetingLink   String?
+  googleEventId String?
+  status        InterviewStatus @default(scheduled)
+  createdById   String
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  company      Company                @relation(fields: [companyId], references: [id])
+  application  Application            @relation(fields: [applicationId], references: [id])
+  job          Job                    @relation(fields: [jobId], references: [id])
+  createdBy    User                   @relation("CreatedBy", fields: [createdById], references: [id])
+  interviewers InterviewInterviewer[]
+  scorecards   InterviewScorecard[]
+
+  @@index([companyId])
+  @@index([applicationId])
+}
+
+model InterviewInterviewer {
+  interviewId String
+  userId      String
+
+  interview Interview @relation(fields: [interviewId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+
+  @@id([interviewId, userId])
+}
+
+// ── SCORECARDS ───────────────────────────────────────────────────
+model InterviewScorecard {
+  id             String    @id @default(uuid())
+  companyId      String
+  interviewId    String
+  submittedById  String
+  overallRating  Rating
+  notesText      String    @db.Text
+  sentimentScore Float?
+  sentimentAt    DateTime?
+  submittedAt    DateTime  @default(now())
+
+  interview   Interview         @relation(fields: [interviewId], references: [id])
+  submittedBy User              @relation(fields: [submittedById], references: [id])
+  ratings     ScorecardRating[]
+
+  @@index([interviewId])
+}
+
+model ScorecardRating {
+  id          String  @id @default(uuid())
+  scorecardId String
+  criterion   String
+  rating      Int
+  comment     String?
+
+  scorecard InterviewScorecard @relation(fields: [scorecardId], references: [id])
+}
+
+// ── OFFERS ───────────────────────────────────────────────────────
+model Offer {
+  id             String      @id @default(uuid())
+  companyId      String
+  applicationId  String
+  createdById    String
+  baseSalary     Int
+  bonus          Int?
+  equity         String?
+  startDate      DateTime
+  expiryDate     DateTime
+  status         OfferStatus @default(draft)
+  offerLetterUrl String?
+  letterContent  String?     @db.Text
+  sentAt         DateTime?
+  respondedAt    DateTime?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  company     Company     @relation(fields: [companyId], references: [id])
+  application Application @relation(fields: [applicationId], references: [id])
+  createdBy   User        @relation("CreatedBy", fields: [createdById], references: [id])
+
+  @@index([companyId])
+  @@index([applicationId])
+}
+
+// ── NOTIFICATIONS ────────────────────────────────────────────────
+model Notification {
+  id        String   @id @default(uuid())
+  companyId String
+  userId    String
+  type      String
+  title     String
+  body      String
+  read      Boolean  @default(false)
+  metadata  Json?
+  link      String?
+  createdAt DateTime @default(now())
+
+  company Company @relation(fields: [companyId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+
+  @@index([userId, read, createdAt])
+}
+
+// ── AUDIT LOGS ───────────────────────────────────────────────────
+model AuditLog {
+  id           String   @id @default(uuid())
+  companyId    String
+  userId       String
+  action       String
+  resourceType String
+  resourceId   String
+  oldValues    Json?
+  newValues    Json?
+  ipAddress    String?
+  userAgent    String?
+  createdAt    DateTime @default(now())
+
+  company Company @relation(fields: [companyId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+
+  @@index([companyId, createdAt])
+}
+
+// ── ANALYTICS SNAPSHOTS ──────────────────────────────────────────
+model AnalyticsSnapshot {
+  id              String   @id @default(uuid())
+  companyId       String
+  date            DateTime
+  totalApps       Int      @default(0)
+  hires           Int      @default(0)
+  avgTimeToHire   Float?
+  offerAcceptRate Float?
+  data            Json
+
+  company Company @relation(fields: [companyId], references: [id])
+
+  @@unique([companyId, date])
+}
+
+// ── EMAIL TEMPLATES ──────────────────────────────────────────────
+model EmailTemplate {
+  id        String   @id @default(uuid())
+  companyId String?
+  type      String
+  subject   String
+  htmlBody  String   @db.Text
+  variables Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  company Company? @relation(fields: [companyId], references: [id])
+}
+
+// ── ENUMS ────────────────────────────────────────────────────────
+enum Plan {
+  starter
+  growth
+  enterprise
+}
+
+enum SubscriptionStatus {
+  active
+  past_due
+  canceled
+  trialing
+}
+
+enum UserRole {
+  super_admin
+  company_admin
+  recruiter
+  hiring_manager
+  interviewer
+  candidate
+}
+
+enum JobStatus {
+  draft
+  published
+  closed
+  archived
+}
+
+enum EmploymentType {
+  full_time
+  part_time
+  contract
+  internship
+}
+
+enum RemoteType {
+  onsite
+  remote
+  hybrid
+}
+
+enum StageType {
+  new
+  screening
+  interview
+  assessment
+  offer
+  hired
+  rejected
+}
+
+enum AppStatus {
+  active
+  withdrawn
+  rejected
+  hired
+}
+
+enum LocationType {
+  video
+  phone
+  onsite
+}
+
+enum InterviewStatus {
+  scheduled
+  completed
+  cancelled
+}
+
+enum Rating {
+  strong_yes
+  yes
+  no
+  strong_no
+}
+
+enum OfferStatus {
+  draft
+  sent
+  accepted
+  declined
+  expired
+}

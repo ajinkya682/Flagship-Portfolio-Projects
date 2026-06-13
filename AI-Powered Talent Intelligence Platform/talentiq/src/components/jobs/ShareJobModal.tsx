@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { X, Copy, CheckCircle2, Linkedin, Twitter, Mail, Code } from 'lucide-react'
-import { Job } from '@/store/domain.store'
+import { Job } from '@/types/domain.types'
 
 interface ShareJobModalProps {
   job: Job
