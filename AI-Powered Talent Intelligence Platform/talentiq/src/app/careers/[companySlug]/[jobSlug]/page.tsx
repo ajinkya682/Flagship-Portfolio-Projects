@@ -89,7 +89,7 @@ export default function PublicJobPage({ params }: { params: { companySlug: strin
         {/* Application Form Component */}
         <div id="apply">
           <h3 className="font-display text-[24px] font-bold text-neutral-900 mb-[16px]">Apply for this job</h3>
-          <ApplicationForm job={job} companySlug={params.companySlug} />
+          <ApplicationForm job={job as any} companySlug={params.companySlug} />
         </div>
       </div>
     </div>
