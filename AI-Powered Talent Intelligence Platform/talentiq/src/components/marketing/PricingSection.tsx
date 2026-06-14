@@ -3,11 +3,12 @@
 import { useState } from "react";
 import { ShieldCheck, Globe, X, Check, Tag } from "lucide-react";
 import { cn } from "@/lib/utils";
+import CheckoutModal from "@/components/marketing/CheckoutModal";
 
 export default function PricingSection() {
-  const [billingPeriod, setBillingPeriod] = useState<"monthly" | "annual">(
-    "annual",
-  );
+  const [billingPeriod, setBillingPeriod] = useState<"monthly" | "annual">("annual");
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<any>(null);
 
   const plans = [
     {
@@ -199,6 +200,10 @@ export default function PricingSection() {
 
                 {/* Call to Action Button */}
                 <button
+                  onClick={() => {
+                    setSelectedPlan({ ...plan, price });
+                    setIsCheckoutOpen(true);
+                  }}
                   className={cn(
                     "mt-10 w-full h-12 rounded-xl font-body text-[15px] font-bold transition-all duration-300",
                     plan.isPopular
@@ -235,6 +240,16 @@ export default function PricingSection() {
           </div>
         </div>
       </div>
+
+      {selectedPlan && (
+        <CheckoutModal 
+          isOpen={isCheckoutOpen} 
+          onClose={() => setIsCheckoutOpen(false)} 
+          planName={selectedPlan.name}
+          price={selectedPlan.price}
+          billingPeriod={billingPeriod}
+        />
+      )}
     </section>
   );
 }

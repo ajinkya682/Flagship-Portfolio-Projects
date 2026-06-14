@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { useDomainStore } from '@/store/domain.store'
+import CreateOfferModal from '@/components/offers/CreateOfferModal'
 
 const STATUS_STYLES: Record<string, { bg: string; text: string; icon: React.ElementType; border: string }> = {
   accepted: { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', icon: CheckCircle2 },
@@ -19,13 +20,33 @@ const STATUS_STYLES: Record<string, { bg: string; text: string; icon: React.Elem
 export default function OffersPage() {
   const { offers, candidates } = useDomainStore()
   const [search, setSearch] = useState('')
+  const [isCreateOpen, setIsCreateOpen] = useState(false)
+  const [isExporting, setIsExporting] = useState(false)
+  const [showExportToast, setShowExportToast] = useState(false)
 
   const activeOffers = offers.filter(o => o.status === 'sent' || o.status === 'viewed')
   const acceptedOffers = offers.filter(o => o.status === 'accepted')
 
+  const handleExport = () => {
+    setIsExporting(true)
+    setTimeout(() => {
+      setIsExporting(false)
+      setShowExportToast(true)
+      setTimeout(() => setShowExportToast(false), 3000)
+    }, 1500)
+  }
+
   return (
-    <div className="flex flex-col h-full -mx-[16px] md:-mx-[32px] -mt-[16px] md:-mt-[32px] bg-neutral-50/50 min-h-[calc(100vh-60px)]">
+    <div className="flex flex-col h-full -mx-[16px] md:-mx-[32px] -mt-[16px] md:-mt-[32px] bg-neutral-50/50 min-h-[calc(100vh-60px)] relative">
       
+      {/* Export Toast */}
+      {showExportToast && (
+        <div className="absolute top-[24px] right-[50%] translate-x-[50%] md:translate-x-0 md:right-[32px] bg-neutral-900 text-white px-[20px] py-[12px] rounded-[10px] shadow-lg flex items-center gap-[12px] animate-in slide-in-from-top-4 fade-in z-50">
+          <CheckCircle2 size={18} className="text-emerald-400" />
+          <span className="font-body text-[14px] font-medium">Offers exported to CSV successfully.</span>
+        </div>
+      )}
+
       {/* Header */}
       <div className="px-[16px] md:px-[32px] py-[24px] bg-white border-b border-neutral-100 shrink-0">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-[16px] mb-[20px]">
@@ -39,10 +60,18 @@ export default function OffersPage() {
             <p className="font-body text-[13px] text-neutral-500">Manage offer letters and track acceptance rates.</p>
           </div>
           <div className="flex items-center gap-[12px]">
-            <button className="h-[38px] px-[14px] bg-white border border-neutral-200 text-neutral-700 font-body text-[13px] font-semibold rounded-[8px] hover:bg-neutral-50 transition-colors shadow-sm flex items-center gap-[6px]">
-              <Download size={14} /> Export
+            <button 
+              onClick={handleExport}
+              disabled={isExporting}
+              className="h-[38px] px-[14px] bg-white border border-neutral-200 text-neutral-700 font-body text-[13px] font-semibold rounded-[8px] hover:bg-neutral-50 transition-colors shadow-sm flex items-center gap-[6px] disabled:opacity-50"
+            >
+              {isExporting ? <div className="w-[14px] h-[14px] border-2 border-neutral-300 border-t-neutral-600 rounded-full animate-spin" /> : <Download size={14} />}
+              {isExporting ? 'Exporting...' : 'Export'}
             </button>
-            <button className="h-[38px] px-[14px] bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-body text-[13px] font-semibold rounded-[8px] shadow-sm transition-all flex items-center gap-[6px]">
+            <button 
+              onClick={() => setIsCreateOpen(true)}
+              className="h-[38px] px-[14px] bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-body text-[13px] font-semibold rounded-[8px] shadow-sm transition-all flex items-center gap-[6px]"
+            >
               <Plus size={14} /> Create Offer
             </button>
           </div>
@@ -151,6 +180,8 @@ export default function OffersPage() {
           </div>
         </div>
       </div>
+
+      <CreateOfferModal isOpen={isCreateOpen} onClose={() => setIsCreateOpen(false)} />
     </div>
   )
 }

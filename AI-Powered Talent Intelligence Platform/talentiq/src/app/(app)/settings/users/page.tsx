@@ -4,15 +4,10 @@ import { useState } from 'react'
 import { Plus } from 'lucide-react'
 import UserRow from '@/components/settings/UserRow'
 import InviteUserModal from '@/components/settings/InviteUserModal'
-
-const MOCK_USERS = [
-  { id: '1', name: 'Sarah Recruiter', email: 'sarah@acme.com', role: 'Admin', status: 'active' as const, joinedAt: 'Oct 12, 2023' },
-  { id: '2', name: 'Alex Manager', email: 'alex@acme.com', role: 'Hiring Manager', status: 'active' as const, joinedAt: 'Oct 15, 2023' },
-  { id: '3', name: 'Jordan Lee', email: 'jordan@acme.com', role: 'Recruiter', status: 'active' as const, joinedAt: 'Oct 18, 2023' },
-  { id: '4', name: 'Taylor Smith', email: 'taylor@acme.com', role: 'Viewer', status: 'invited' as const, joinedAt: 'Pending' },
-]
+import { useDomainStore } from '@/store/domain.store'
 
 export default function UsersSettingsPage() {
+  const { users } = useDomainStore()
   const [isInviteOpen, setIsInviteOpen] = useState(false)
 
   return (
@@ -43,8 +38,8 @@ export default function UsersSettingsPage() {
               </tr>
             </thead>
             <tbody>
-              {MOCK_USERS.map(user => (
-                <UserRow key={user.id} user={user} />
+              {users.map(user => (
+                <UserRow key={user.id} user={{...user, status: 'active', joinedAt: 'Just now'}} />
               ))}
             </tbody>
           </table>

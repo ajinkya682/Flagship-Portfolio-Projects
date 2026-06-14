@@ -126,12 +126,12 @@ export default function MessagesPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-[8px]">
-                  <button className="h-[36px] w-[36px] flex items-center justify-center rounded-[8px] border border-neutral-200 text-neutral-600 hover:bg-neutral-50 transition-colors">
+                  <Link href={`/meet/${activeContact.id}?type=Voice`} className="h-[36px] w-[36px] flex items-center justify-center rounded-[8px] border border-neutral-200 text-neutral-600 hover:bg-neutral-50 transition-colors">
                     <Phone size={16} />
-                  </button>
-                  <button className="h-[36px] w-[36px] flex items-center justify-center rounded-[8px] border border-neutral-200 text-neutral-600 hover:bg-neutral-50 transition-colors">
+                  </Link>
+                  <Link href={`/meet/${activeContact.id}?type=Video`} className="h-[36px] w-[36px] flex items-center justify-center rounded-[8px] border border-neutral-200 text-neutral-600 hover:bg-neutral-50 transition-colors">
                     <Video size={16} />
-                  </button>
+                  </Link>
                   <Link href={`/applications/${activeContact.id}`} className="flex items-center justify-center h-[36px] px-[14px] bg-white border border-neutral-200 text-neutral-700 font-body text-[13px] font-semibold rounded-[8px] hover:bg-neutral-50 transition-colors ml-[8px]">
                     View Profile
                   </Link>

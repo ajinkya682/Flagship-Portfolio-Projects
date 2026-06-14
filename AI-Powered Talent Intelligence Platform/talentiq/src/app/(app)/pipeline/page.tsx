@@ -20,6 +20,7 @@ import {
 } from '@dnd-kit/core'
 
 import { useDomainStore } from '@/store/domain.store'
+import AddCandidateModal from '@/components/pipeline/AddCandidateModal'
 
 const STAGE_CONFIG = [
   { id: 'Applied', name: 'Applied', color: '#94A3B8' },
@@ -145,6 +146,7 @@ export default function PipelinePage() {
   const [search, setSearch] = useState('')
   const [jobFilter, setJobFilter] = useState('All Jobs')
   const [activeCandidate, setActiveCandidate] = useState<any>(null)
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   
   const JOBS = ['All Jobs', ...Array.from(new Set(jobs.map(j => j.title)))]
 
@@ -192,9 +194,12 @@ export default function PipelinePage() {
             <p className="font-body text-[13px] text-neutral-500">Visual overview of candidates across all stages.</p>
           </div>
           <div className="flex items-center gap-[12px]">
-            <Link href="/jobs/new" className="h-[38px] px-[14px] bg-white border border-neutral-200 text-neutral-700 font-body text-[13px] font-semibold rounded-[8px] hover:bg-neutral-50 transition-colors shadow-sm flex items-center gap-[6px]">
+            <button 
+              onClick={() => setIsAddModalOpen(true)}
+              className="h-[38px] px-[14px] bg-white border border-neutral-200 text-neutral-700 font-body text-[13px] font-semibold rounded-[8px] hover:bg-neutral-50 transition-colors shadow-sm flex items-center gap-[6px]"
+            >
               <Plus size={14} /> Add Candidate
-            </Link>
+            </button>
           </div>
         </div>
 
@@ -267,6 +272,8 @@ export default function PipelinePage() {
           </DragOverlay>
         </DndContext>
       </div>
+
+      <AddCandidateModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} />
     </div>
   )
 }

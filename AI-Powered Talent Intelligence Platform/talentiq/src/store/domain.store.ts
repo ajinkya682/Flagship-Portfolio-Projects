@@ -9,6 +9,7 @@ import { MOCK_CANDIDATES } from '@/mock-data/candidates'
 import { MOCK_INTERVIEWS } from '@/mock-data/interviews'
 import { MOCK_OFFERS } from '@/mock-data/offers'
 import { MOCK_MESSAGES } from '@/mock-data/messages'
+import { DEMO_USERS } from '@/mock-data/users'
 
 // ── Type definitions ───────────────────────────────────────────────
 
@@ -146,8 +147,10 @@ interface DomainState {
   interviews: Interview[]
   messages: Message[]
   offers: Offer[]
+  users: User[]
 
   // Actions
+  addUser: (user: User) => void
   addJob: (job: Job) => void
   updateJob: (id: string, updates: Partial<Job>) => void
 
@@ -183,6 +186,13 @@ const INITIAL_CANDIDATES: Candidate[] = MOCK_CANDIDATES as Candidate[]
 const INITIAL_INTERVIEWS: Interview[] = MOCK_INTERVIEWS as Interview[]
 const INITIAL_OFFERS: Offer[] = MOCK_OFFERS as Offer[]
 const INITIAL_MESSAGES: Message[] = MOCK_MESSAGES as Message[]
+const INITIAL_USERS: User[] = DEMO_USERS.map(u => ({
+  id: u.id,
+  name: u.name,
+  email: u.email,
+  role: u.role,
+  avatar: u.avatar
+}))
 
 // ── Store ───────────────────────────────────────────────────────────
 
@@ -195,9 +205,12 @@ export const useDomainStore = create<DomainState>()(
       interviews: INITIAL_INTERVIEWS,
       messages: INITIAL_MESSAGES,
       offers: INITIAL_OFFERS,
+      users: INITIAL_USERS,
 
       updateSettings: (updates) =>
         set((state) => ({ settings: { ...state.settings, ...updates } })),
+
+      addUser: (user) => set((state) => ({ users: [user, ...state.users] })),
 
       addJob: (job) => set((state) => ({ jobs: [job, ...state.jobs] })),
       updateJob: (id, updates) =>
