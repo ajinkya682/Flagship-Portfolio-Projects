@@ -51,7 +51,7 @@ export interface Job {
   requirements: string[]
   skills: string[]
   niceToHaveSkills: string[]
-  status: 'draft' | 'active' | 'paused' | 'closed'
+  status: 'draft' | 'active' | 'paused' | 'closed' | 'published'
   applicantCount: number
   publishedAt: string | undefined
   closedAt: string | undefined
@@ -59,9 +59,15 @@ export interface Job {
   scoringWeights: ScoringWeights
   slug?: string
   applicationFormConfig?: {
-    requireResume?: boolean
+    requireFullName?: boolean
+    requireMobileNumber?: boolean
+    requireDate?: boolean
     requireLinkedin?: boolean
+    requireGithub?: boolean
     requirePortfolio?: boolean
+    requireResume?: boolean
+    requirePassportPhoto?: boolean
+    requireSignature?: boolean
     customQuestions?: string[]
   }
 }
@@ -74,7 +80,12 @@ export interface Candidate {
   email: string
   phone: string | undefined
   linkedinUrl: string | undefined
+  githubUrl?: string
+  portfolioUrl?: string
   resumeUrl: string | undefined
+  passportPhotoUrl?: string
+  signature?: string
+  availableStartDate?: string
   avatar: string | undefined
   extractedSkills: string[]
   extractedCompanies: string[]

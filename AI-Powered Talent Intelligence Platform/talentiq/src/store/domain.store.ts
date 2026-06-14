@@ -49,9 +49,15 @@ export interface Job {
   postedAt: string
   slug?: string
   applicationFormConfig?: {
-    requireResume?: boolean
+    requireFullName?: boolean
+    requireMobileNumber?: boolean
+    requireDate?: boolean
     requireLinkedin?: boolean
+    requireGithub?: boolean
     requirePortfolio?: boolean
+    requireResume?: boolean
+    requirePassportPhoto?: boolean
+    requireSignature?: boolean
     customQuestions?: string[]
   }
 }
@@ -69,7 +75,12 @@ export interface Candidate {
   location?: string
   yearsExp?: number
   linkedinUrl?: string
+  githubUrl?: string
+  portfolioUrl?: string
   resumeUrl?: string
+  passportPhotoUrl?: string
+  signature?: string
+  availableStartDate?: string
   extractedSkills?: string[]
   extractedCompanies?: string[]
   extractedEducation?: string[]

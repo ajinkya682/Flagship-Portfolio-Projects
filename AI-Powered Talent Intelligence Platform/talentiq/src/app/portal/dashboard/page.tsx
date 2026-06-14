@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useDomainStore } from '@/store/domain.store'
-import { LogOut, Send, CheckCircle2, Clock, User, Briefcase, FileText, Video } from 'lucide-react'
+import { LogOut, Send, CheckCircle2, Clock, User, Briefcase, FileText, Video, MessageSquare, Linkedin, Github, Globe, Phone, Mail, Image as ImageIcon, Calendar } from 'lucide-react'
 import Link from 'next/link'
 
 export default function CandidateDashboard() {
@@ -11,6 +11,7 @@ export default function CandidateDashboard() {
   const { candidates, messages, addMessage, settings, jobs, interviews } = useDomainStore()
   const [candidateId, setCandidateId] = useState<string | null>(null)
   const [newMessage, setNewMessage] = useState('')
+  const [activeTab, setActiveTab] = useState<'messages' | 'profile'>('messages')
 
   useEffect(() => {
     const id = localStorage.getItem('portal_candidate_id')
@@ -155,55 +156,158 @@ export default function CandidateDashboard() {
         </div>
 
         {/* Right Col: Messaging */}
+        {/* Right Col: Tabs Content */}
         <div className="lg:col-span-2 bg-white rounded-[20px] shadow-sm border border-neutral-100 flex flex-col overflow-hidden h-[calc(100vh-100px)]">
-          <div className="p-[20px] border-b border-neutral-100 shrink-0">
-            <h3 className="font-display text-[16px] font-bold text-neutral-900">Messages</h3>
-            <p className="font-body text-[13px] text-neutral-500">Communicate directly with the hiring team.</p>
+          <div className="flex border-b border-neutral-100 shrink-0">
+            <button 
+              onClick={() => setActiveTab('messages')}
+              className={`flex-1 h-[60px] flex items-center justify-center gap-[8px] font-display font-bold text-[14px] transition-colors ${activeTab === 'messages' ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/30' : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-50'}`}
+            >
+              <MessageSquare size={16} /> Messages
+            </button>
+            <button 
+              onClick={() => setActiveTab('profile')}
+              className={`flex-1 h-[60px] flex items-center justify-center gap-[8px] font-display font-bold text-[14px] transition-colors ${activeTab === 'profile' ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/30' : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-50'}`}
+            >
+              <User size={16} /> My Profile
+            </button>
           </div>
 
-          {/* Messages Area */}
-          <div className="flex-1 overflow-y-auto p-[24px] flex flex-col gap-[16px]">
-            {candidateMessages.length === 0 ? (
-              <div className="flex-1 flex flex-col items-center justify-center text-center">
-                <div className="w-[48px] h-[48px] bg-neutral-50 rounded-full flex items-center justify-center mb-[12px]">
-                  <Briefcase className="text-neutral-400" size={24} />
-                </div>
-                <p className="font-body text-[14px] text-neutral-500">No messages yet. Send a message to start the conversation.</p>
-              </div>
-            ) : (
-              candidateMessages.map(msg => {
-                const isMine = msg.senderId === candidate.id
-                return (
-                  <div key={msg.id} className={`flex max-w-[80%] ${isMine ? 'self-end' : 'self-start'}`}>
-                    <div className={`p-[14px] rounded-[16px] ${isMine ? 'bg-blue-600 text-white rounded-br-[4px]' : 'bg-neutral-100 text-neutral-900 rounded-bl-[4px]'}`}>
-                      <p className="font-body text-[14px] leading-relaxed">{msg.text}</p>
-                      <p className={`font-body text-[10px] mt-[6px] ${isMine ? 'text-blue-200' : 'text-neutral-500'}`}>{msg.time}</p>
+          {activeTab === 'messages' && (
+            <>
+              {/* Messages Area */}
+              <div className="flex-1 overflow-y-auto p-[24px] flex flex-col gap-[16px]">
+                {candidateMessages.length === 0 ? (
+                  <div className="flex-1 flex flex-col items-center justify-center text-center">
+                    <div className="w-[48px] h-[48px] bg-neutral-50 rounded-full flex items-center justify-center mb-[12px]">
+                      <Briefcase className="text-neutral-400" size={24} />
                     </div>
+                    <p className="font-body text-[14px] text-neutral-500">No messages yet. Send a message to start the conversation.</p>
                   </div>
-                )
-              })
-            )}
-          </div>
+                ) : (
+                  candidateMessages.map(msg => {
+                    const isMine = msg.senderId === candidate.id
+                    return (
+                      <div key={msg.id} className={`flex max-w-[80%] ${isMine ? 'self-end' : 'self-start'}`}>
+                        <div className={`p-[14px] rounded-[16px] ${isMine ? 'bg-blue-600 text-white rounded-br-[4px]' : 'bg-neutral-100 text-neutral-900 rounded-bl-[4px]'}`}>
+                          <p className="font-body text-[14px] leading-relaxed">{msg.text}</p>
+                          <p className={`font-body text-[10px] mt-[6px] ${isMine ? 'text-blue-200' : 'text-neutral-500'}`}>{msg.time}</p>
+                        </div>
+                      </div>
+                    )
+                  })
+                )}
+              </div>
 
-          {/* Message Input */}
-          <form onSubmit={handleSendMessage} className="p-[16px] border-t border-neutral-100 shrink-0 bg-neutral-50">
-            <div className="flex items-center gap-[12px]">
-              <input
-                type="text"
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                placeholder="Type a message..."
-                className="flex-1 h-[44px] px-[16px] rounded-full border border-neutral-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-white text-[14px]"
-              />
-              <button
-                type="submit"
-                disabled={!newMessage.trim()}
-                className="w-[44px] h-[44px] rounded-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
-              >
-                <Send size={18} className="ml-[2px]" />
-              </button>
+              {/* Message Input */}
+              <form onSubmit={handleSendMessage} className="p-[16px] border-t border-neutral-100 shrink-0 bg-neutral-50">
+                <div className="flex items-center gap-[12px]">
+                  <input
+                    type="text"
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    placeholder="Type a message..."
+                    className="flex-1 h-[44px] px-[16px] rounded-full border border-neutral-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-white text-[14px]"
+                  />
+                  <button
+                    type="submit"
+                    disabled={!newMessage.trim()}
+                    className="w-[44px] h-[44px] rounded-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                  >
+                    <Send size={18} className="ml-[2px]" />
+                  </button>
+                </div>
+              </form>
+            </>
+          )}
+
+          {activeTab === 'profile' && (
+            <div className="flex-1 overflow-y-auto p-[32px]">
+              <div className="flex items-center gap-[24px] mb-[32px]">
+                <div className="w-[80px] h-[80px] bg-neutral-100 rounded-full flex items-center justify-center overflow-hidden border-2 border-white shadow-sm shrink-0">
+                  {candidate.passportPhotoUrl ? (
+                    <img src={candidate.passportPhotoUrl} alt="Passport Photo" className="w-full h-full object-cover" />
+                  ) : candidate.avatar ? (
+                    <img src={candidate.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    <User size={32} className="text-neutral-400" />
+                  )}
+                </div>
+                <div>
+                  <h2 className="font-display text-[24px] font-bold text-neutral-900">{candidate.name}</h2>
+                  <p className="font-body text-[14px] text-neutral-500">{candidate.email}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-[24px]">
+                <div className="flex flex-col gap-[16px]">
+                  <h3 className="font-display text-[15px] font-bold text-neutral-900 border-b border-neutral-100 pb-[8px]">Contact Info</h3>
+                  <div className="flex items-center gap-[12px] text-neutral-600">
+                    <Mail size={16} className="text-neutral-400" />
+                    <span className="font-body text-[14px]">{candidate.email}</span>
+                  </div>
+                  {candidate.phone && (
+                    <div className="flex items-center gap-[12px] text-neutral-600">
+                      <Phone size={16} className="text-neutral-400" />
+                      <span className="font-body text-[14px]">{candidate.phone}</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex flex-col gap-[16px]">
+                  <h3 className="font-display text-[15px] font-bold text-neutral-900 border-b border-neutral-100 pb-[8px]">Links</h3>
+                  {candidate.linkedinUrl && (
+                    <a href={candidate.linkedinUrl} target="_blank" rel="noreferrer" className="flex items-center gap-[12px] text-blue-600 hover:underline">
+                      <Linkedin size={16} />
+                      <span className="font-body text-[14px] truncate">LinkedIn Profile</span>
+                    </a>
+                  )}
+                  {candidate.githubUrl && (
+                    <a href={candidate.githubUrl} target="_blank" rel="noreferrer" className="flex items-center gap-[12px] text-neutral-700 hover:underline">
+                      <Github size={16} />
+                      <span className="font-body text-[14px] truncate">GitHub Profile</span>
+                    </a>
+                  )}
+                  {candidate.portfolioUrl && (
+                    <a href={candidate.portfolioUrl} target="_blank" rel="noreferrer" className="flex items-center gap-[12px] text-neutral-700 hover:underline">
+                      <Globe size={16} />
+                      <span className="font-body text-[14px] truncate">Portfolio Site</span>
+                    </a>
+                  )}
+                </div>
+
+                <div className="flex flex-col gap-[16px]">
+                  <h3 className="font-display text-[15px] font-bold text-neutral-900 border-b border-neutral-100 pb-[8px]">Application Details</h3>
+                  {candidate.availableStartDate && (
+                    <div className="flex items-center gap-[12px] text-neutral-600">
+                      <Calendar size={16} className="text-neutral-400" />
+                      <span className="font-body text-[14px]">Available from: {candidate.availableStartDate}</span>
+                    </div>
+                  )}
+                  {candidate.resumeUrl && (
+                    <div className="flex items-center gap-[12px] text-neutral-600">
+                      <FileText size={16} className="text-neutral-400" />
+                      <span className="font-body text-[14px]">Resume uploaded</span>
+                    </div>
+                  )}
+                  {candidate.passportPhotoUrl && (
+                    <div className="flex items-center gap-[12px] text-neutral-600">
+                      <ImageIcon size={16} className="text-neutral-400" />
+                      <span className="font-body text-[14px]">Passport photo uploaded</span>
+                    </div>
+                  )}
+                </div>
+
+                {candidate.signature && (
+                  <div className="col-span-full mt-[16px] p-[24px] bg-neutral-50 rounded-[12px] border border-neutral-100">
+                    <p className="font-body text-[12px] text-neutral-500 uppercase tracking-wider font-semibold mb-[12px]">Digital Signature</p>
+                    <p className="font-serif italic text-[24px] text-neutral-800">{candidate.signature}</p>
+                    <p className="font-body text-[11px] text-neutral-400 mt-[8px]">Signed on {new Date(candidate.appliedAt).toLocaleDateString()}</p>
+                  </div>
+                )}
+              </div>
             </div>
-          </form>
+          )}
         </div>
       </div>
     </div>

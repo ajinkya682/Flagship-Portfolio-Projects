@@ -3,8 +3,8 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Sparkles, Briefcase, MapPin, Building2, AlignLeft, DollarSign } from 'lucide-react'
-import { useDomainStore, Job } from '@/store/domain.store'
+import { ArrowLeft, Sparkles, Briefcase, MapPin, Building2, AlignLeft, DollarSign, Settings2 } from 'lucide-react'
+import { useDomainStore, type Job } from '@/store/domain.store'
 import { v4 as uuidv4 } from 'uuid'
 
 export default function NewJobPage() {
@@ -24,6 +24,22 @@ export default function NewJobPage() {
 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const [formConfig, setFormConfig] = useState({
+    requireFullName: true,
+    requireMobileNumber: false,
+    requireDate: false,
+    requireLinkedin: true,
+    requireGithub: false,
+    requirePortfolio: false,
+    requireResume: true,
+    requirePassportPhoto: false,
+    requireSignature: false,
+  })
+
+  const handleConfigChange = (field: keyof typeof formConfig) => {
+    setFormConfig(prev => ({ ...prev, [field]: !prev[field] }))
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }))
@@ -46,7 +62,8 @@ export default function NewJobPage() {
         salaryMin: parseInt(formData.salaryMin) || 0,
         salaryMax: parseInt(formData.salaryMax) || 0,
         description: formData.description,
-        postedAt: new Date().toISOString()
+        postedAt: new Date().toISOString(),
+        applicationFormConfig: formConfig
       }
       addJob(newJob)
       router.push('/jobs')
@@ -207,6 +224,35 @@ export default function NewJobPage() {
             className="min-h-[200px] p-[14px] border border-neutral-200 rounded-[10px] text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-y"
           />
           {error && <p className="text-[12px] text-red-500 mt-[4px]">{error}</p>}
+        </div>
+
+        {/* Application Form Configuration */}
+        <div className="flex flex-col gap-[16px] border-t border-neutral-100 pt-[24px]">
+          <div className="flex items-center gap-[8px]">
+            <Settings2 size={16} className="text-neutral-400" />
+            <h3 className="font-display text-[15px] font-bold text-neutral-900">Application Form Requirements</h3>
+          </div>
+          <p className="font-body text-[13px] text-neutral-500 mb-[8px]">Select the fields candidates must fill out when applying for this job.</p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-[12px]">
+            {Object.entries(formConfig).map(([key, value]) => {
+              const label = key
+                .replace('require', '')
+                .replace(/([A-Z])/g, ' $1')
+                .trim()
+              return (
+                <label key={key} className="flex items-center gap-[12px] p-[12px] border border-neutral-200 rounded-[10px] cursor-pointer hover:bg-neutral-50 transition-colors">
+                  <input 
+                    type="checkbox" 
+                    checked={value} 
+                    onChange={() => handleConfigChange(key as keyof typeof formConfig)}
+                    className="w-[16px] h-[16px] rounded-[4px] border-neutral-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="font-body text-[14px] font-medium text-neutral-700">{label}</span>
+                </label>
+              )
+            })}
+          </div>
         </div>
 
         <div className="flex items-center justify-end gap-[12px] pt-[16px] border-t border-neutral-100">
