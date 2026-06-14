@@ -23,6 +23,7 @@ export default function NewJobPage() {
   })
 
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }))
@@ -54,9 +55,11 @@ export default function NewJobPage() {
 
   const generateWithAi = () => {
     if (!formData.title) {
-      alert("Please enter a job title first.")
+      setError("Please enter a job title first so AI knows what to generate.")
+      setTimeout(() => setError(null), 4000)
       return
     }
+    setError(null)
     setFormData(prev => ({
       ...prev,
       description: `We are looking for a ${prev.title} to join our growing team. You will be responsible for taking ownership of key projects and collaborating with cross-functional teams to deliver high-quality results.\n\nRequirements:\n- 3+ years of relevant experience\n- Strong problem-solving skills\n- Excellent communication and teamwork abilities\n\nWhat We Offer:\n- Competitive salary\n- Remote flexibility\n- Health, dental, and vision insurance`
@@ -195,7 +198,7 @@ export default function NewJobPage() {
               <Sparkles size={12} /> Auto-generate with AI
             </button>
           </div>
-          <textarea
+            <textarea
             required
             name="description"
             value={formData.description}
@@ -203,6 +206,7 @@ export default function NewJobPage() {
             placeholder="Describe the role, responsibilities, and requirements..."
             className="min-h-[200px] p-[14px] border border-neutral-200 rounded-[10px] text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-y"
           />
+          {error && <p className="text-[12px] text-red-500 mt-[4px]">{error}</p>}
         </div>
 
         <div className="flex items-center justify-end gap-[12px] pt-[16px] border-t border-neutral-100">

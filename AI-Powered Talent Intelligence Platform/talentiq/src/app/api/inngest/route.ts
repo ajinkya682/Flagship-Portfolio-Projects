@@ -1,17 +1,6 @@
-export const dynamic = "force-dynamic";
-
-import { serve } from 'inngest/next'
-import { inngest } from '@/lib/inngest/client'
-import { parseResumeJob, scoreCandidateJob, biasDetectJob } from '@/lib/inngest/functions'
-import { sendApplicationReceivedEmailJob, sendInterviewInviteEmailJob } from '@/lib/inngest/emails'
-
-export const { GET, POST, PUT } = serve({
-  client: inngest,
-  functions: [
-    parseResumeJob,
-    scoreCandidateJob,
-    biasDetectJob,
-    sendApplicationReceivedEmailJob,
-    sendInterviewInviteEmailJob
-  ]
-})
+// DEMO MODE — Stubbed (Inngest background jobs disabled)
+export const dynamic = 'force-dynamic'
+import { NextResponse } from 'next/server'
+export async function GET() { return NextResponse.json({ ok: true }) }
+export async function POST() { return NextResponse.json({ ok: true }) }
+export async function PUT() { return NextResponse.json({ ok: true }) }

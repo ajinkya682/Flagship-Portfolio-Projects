@@ -5,10 +5,20 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
   ArrowLeft, Sparkles, Mail, Phone, Linkedin, Globe, FileText, MessageSquare,
-  CheckCircle2, XCircle, ChevronRight, Tag, Clock, Star, Plus, Send
+  CheckCircle2, XCircle, ChevronRight, Tag, Clock, Star, Plus, Send, AlertTriangle
 } from 'lucide-react'
 import { useDomainStore } from '@/store/domain.store'
 import { v4 as uuidv4 } from 'uuid'
+
+const REJECT_REASONS = [
+  'Not a skills fit',
+  'Overqualified',
+  'Underqualified',
+  'Salary expectations too high',
+  'Position filled',
+  'Withdrew from process',
+  'Other',
+]
 
 const PIPELINE_STAGES = ['Applied', 'Screening', 'Interview', 'Assessment', 'Offer', 'Hired']
 
@@ -36,6 +46,9 @@ export default function ApplicationDetailPage() {
   const job = jobs.find(j => j.id === candidate?.jobId)
 
   const [noteText, setNoteText] = useState('')
+  const [showRejectModal, setShowRejectModal] = useState(false)
+  const [rejectReason, setRejectReason] = useState(REJECT_REASONS[0])
+  const [rejectConfirmed, setRejectConfirmed] = useState(false)
 
   if (!candidate || !job) {
     return (
@@ -84,11 +97,21 @@ export default function ApplicationDetailPage() {
   }
 
   const handleReject = () => {
-    // Optionally have a separate reject flow, for now just move to a "Rejected" state or alert
-    alert('Reject functionality to be implemented')
+    setShowRejectModal(true)
+  }
+
+  const handleConfirmReject = () => {
+    moveCandidateStage(candidate.id, 'Rejected')
+    setRejectConfirmed(true)
+    setTimeout(() => {
+      setShowRejectModal(false)
+      setRejectConfirmed(false)
+      router.push('/applications')
+    }, 1500)
   }
 
   return (
+    <>
     <div className="flex flex-col h-full -mx-[16px] md:-mx-[32px] -mt-[16px] md:-mt-[32px] bg-neutral-50/50 min-h-screen">
 
       {/* Top bar */}
@@ -147,7 +170,7 @@ export default function ApplicationDetailPage() {
 
                 <h2 className="font-display text-[22px] font-bold text-neutral-900">{candidate.name}</h2>
                 <p className="font-body text-[13px] text-neutral-500 mt-[2px]">{candidate.role} · {location}</p>
-                <p className="font-body text-[12px] text-neutral-400 mt-[2px]">{yearsExp} years experience · Applied {new Date(candidate.appliedAt).toLocaleDateString('en-US')}</p>
+                <p className="font-body text-[12px] text-neutral-400 mt-[2px]">{yearsExp} years experience · Applied {candidate.appliedAt.slice(0, 10)}</p>
 
                 {/* Contact links */}
                 <div className="flex flex-wrap gap-[8px] mt-[14px]">
@@ -378,5 +401,74 @@ export default function ApplicationDetailPage() {
         </div>
       </div>
     </div>
+
+    {/* Reject Confirmation Modal */}
+    {showRejectModal && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+        <div className="bg-white rounded-[20px] shadow-2xl w-full max-w-[420px] overflow-hidden">
+          {/* Modal Header */}
+          <div className="bg-red-50 px-[24px] py-[20px] border-b border-red-100 flex items-center gap-[12px]">
+            <div className="w-[40px] h-[40px] rounded-full bg-red-100 flex items-center justify-center">
+              <AlertTriangle size={18} className="text-red-600" />
+            </div>
+            <div>
+              <h3 className="font-display text-[16px] font-bold text-neutral-900">Reject Candidate</h3>
+              <p className="font-body text-[12px] text-neutral-500 mt-[2px]">This action will remove them from the pipeline</p>
+            </div>
+          </div>
+
+          {!rejectConfirmed ? (
+            <div className="p-[24px] flex flex-col gap-[16px]">
+              <div className="bg-neutral-50 rounded-[12px] p-[14px] flex items-center gap-[12px]">
+                <img src={candidate.avatar} alt={candidate.name} className="w-[40px] h-[40px] rounded-[10px] object-cover" />
+                <div>
+                  <p className="font-body text-[14px] font-semibold text-neutral-900">{candidate.name}</p>
+                  <p className="font-body text-[12px] text-neutral-500">{candidate.role}</p>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-[8px]">
+                <label className="font-body text-[12px] font-semibold text-neutral-700">Reason for rejection</label>
+                <select
+                  value={rejectReason}
+                  onChange={e => setRejectReason(e.target.value)}
+                  className="h-[40px] px-[12px] bg-white border border-neutral-200 rounded-[8px] text-[13px] text-neutral-900 focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all appearance-none"
+                >
+                  {REJECT_REASONS.map(r => <option key={r} value={r}>{r}</option>)}
+                </select>
+              </div>
+
+              <p className="font-body text-[12px] text-neutral-500 bg-amber-50 border border-amber-100 rounded-[8px] p-[10px]">
+                ⚠️ The candidate will be notified via email that they are no longer being considered for this role.
+              </p>
+
+              <div className="flex items-center gap-[10px] mt-[4px]">
+                <button
+                  onClick={() => setShowRejectModal(false)}
+                  className="flex-1 h-[40px] border border-neutral-200 text-neutral-700 font-body text-[13px] font-semibold rounded-[10px] hover:bg-neutral-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmReject}
+                  className="flex-1 h-[40px] bg-red-600 hover:bg-red-700 text-white font-body text-[13px] font-semibold rounded-[10px] shadow-sm transition-colors flex items-center justify-center gap-[5px]"
+                >
+                  <XCircle size={14} /> Confirm Rejection
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="p-[24px] flex flex-col items-center gap-[12px] text-center">
+              <div className="w-[56px] h-[56px] rounded-full bg-emerald-100 flex items-center justify-center">
+                <CheckCircle2 size={28} className="text-emerald-600" />
+              </div>
+              <p className="font-display text-[16px] font-bold text-neutral-900">Rejection recorded</p>
+              <p className="font-body text-[13px] text-neutral-500">Returning to candidates list...</p>
+            </div>
+          )}
+        </div>
+      </div>
+    )}
+  </>
   )
 }
