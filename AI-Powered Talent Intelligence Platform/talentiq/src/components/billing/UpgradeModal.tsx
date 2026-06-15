@@ -3,6 +3,7 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import { X, Check } from 'lucide-react'
 import { useState } from 'react'
+import CheckoutModal from '@/components/marketing/CheckoutModal'
 
 interface UpgradeModalProps {
   isOpen: boolean
@@ -12,6 +13,7 @@ interface UpgradeModalProps {
 export default function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('annual')
   const [selectedPlan, setSelectedPlan] = useState<'pro' | 'enterprise'>('pro')
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false)
 
   return (
     <Dialog.Root open={isOpen} onOpenChange={onClose}>
@@ -115,6 +117,7 @@ export default function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
                 </button>
               </Dialog.Close>
               <button 
+                onClick={() => setIsCheckoutOpen(true)}
                 className="px-[24px] py-[8px] text-[14px] font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-md transition-colors shadow-sm"
               >
                 Proceed to Checkout
@@ -124,6 +127,15 @@ export default function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
 
         </Dialog.Content>
       </Dialog.Portal>
+      
+      <CheckoutModal 
+        isOpen={isCheckoutOpen}
+        onClose={() => {
+          setIsCheckoutOpen(false)
+          onClose()
+        }}
+        planName={selectedPlan === 'pro' ? 'Growth' : 'Enterprise'}
+      />
     </Dialog.Root>
   )
 }

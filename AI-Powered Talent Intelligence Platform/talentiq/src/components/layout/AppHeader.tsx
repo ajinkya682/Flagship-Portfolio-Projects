@@ -12,6 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { Settings, User, CreditCard, LogOut } from 'lucide-react'
 
 const MOCK_NOTIFICATIONS = [
   {
@@ -142,32 +143,47 @@ export default function AppHeader() {
               <span className="absolute bottom-[1px] right-[1px] w-[7px] h-[7px] rounded-full bg-emerald-400 border-[1.5px] border-white" />
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-[220px] bg-white rounded-[12px] shadow-xl border border-neutral-100 p-[4px] font-body z-50 overflow-hidden">
+          <DropdownMenuContent align="end" className="w-[220px] bg-white rounded-[12px] shadow-xl border border-neutral-100 p-0 font-body z-50 overflow-hidden">
             {/* User info */}
             <div className="px-[12px] py-[10px] mb-[4px]">
               <p className="text-[13px] font-semibold text-neutral-900">{user?.name || 'Sarah Recruiter'}</p>
               <p className="text-[11px] text-neutral-500 mt-[1px]">{user?.email || 'sarah@acme.com'}</p>
               <span className="inline-flex items-center gap-[4px] mt-[6px] text-[10px] font-semibold text-amber-600 bg-amber-50 border border-amber-200/60 rounded-full px-[6px] py-[2px]">
-                ⚡ Growth Plan
+                Growth Plan
               </span>
             </div>
-            <DropdownMenuSeparator className="my-[4px] bg-neutral-100 h-[1px]" />
-            <DropdownMenuItem className="text-[13px] font-medium text-neutral-700 focus:bg-neutral-50 focus:text-neutral-900 cursor-pointer rounded-[6px] px-[8px] py-[7px]">
-              Profile Settings
-            </DropdownMenuItem>
-            <DropdownMenuItem className="text-[13px] font-medium text-neutral-700 focus:bg-neutral-50 focus:text-neutral-900 cursor-pointer rounded-[6px] px-[8px] py-[7px]">
-              Workspace Settings
-            </DropdownMenuItem>
-            <DropdownMenuItem className="text-[13px] font-medium text-neutral-700 focus:bg-neutral-50 focus:text-neutral-900 cursor-pointer rounded-[6px] px-[8px] py-[7px]">
-              Billing & Plan
-            </DropdownMenuItem>
-            <DropdownMenuSeparator className="my-[4px] bg-neutral-100 h-[1px]" />
-            <DropdownMenuItem
-              className="text-[13px] font-medium text-red-600 focus:bg-red-50 focus:text-red-600 cursor-pointer rounded-[6px] px-[8px] py-[7px]"
-              onClick={() => window.location.href = '/login'}
-            >
-              Sign out
-            </DropdownMenuItem>
+            <DropdownMenuSeparator className="bg-neutral-100 h-[1px] m-0" />
+            
+            <div className="p-[4px]">
+              <DropdownMenuItem asChild>
+                <Link href="/settings/users" className="flex items-center gap-[8px] w-full px-[8px] py-[6px] rounded-[6px] text-[13px] text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50 cursor-pointer transition-colors outline-none">
+                  <User size={14} className="text-neutral-400" /> Profile Settings
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/settings" className="flex items-center gap-[8px] w-full px-[8px] py-[6px] rounded-[6px] text-[13px] text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50 cursor-pointer transition-colors outline-none">
+                  <Settings size={14} className="text-neutral-400" /> Workspace Settings
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/settings/billing" className="flex items-center gap-[8px] w-full px-[8px] py-[6px] rounded-[6px] text-[13px] text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50 cursor-pointer transition-colors outline-none">
+                  <CreditCard size={14} className="text-neutral-400" /> Billing and Plan
+                </Link>
+              </DropdownMenuItem>
+            </div>
+
+            <DropdownMenuSeparator className="bg-neutral-100 h-[1px] m-0" />
+            
+            <div className="p-[4px]">
+              <DropdownMenuItem asChild>
+                <button 
+                  onClick={() => window.location.href = '/login'}
+                  className="flex items-center gap-[8px] w-full px-[8px] py-[6px] rounded-[6px] text-[13px] text-red-600 hover:bg-red-50 cursor-pointer transition-colors outline-none text-left"
+                >
+                  <LogOut size={14} /> Log Out
+                </button>
+              </DropdownMenuItem>
+            </div>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

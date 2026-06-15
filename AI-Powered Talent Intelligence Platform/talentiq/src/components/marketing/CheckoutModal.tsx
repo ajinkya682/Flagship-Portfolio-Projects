@@ -28,7 +28,8 @@ export default function CheckoutModal({ isOpen, onClose, planName, price, billin
       
       // Redirect to dashboard after success
       setTimeout(() => {
-        router.push('/portal/dashboard')
+        router.push('/dashboard')
+        onClose()
       }, 2000)
     }, 1500)
   }

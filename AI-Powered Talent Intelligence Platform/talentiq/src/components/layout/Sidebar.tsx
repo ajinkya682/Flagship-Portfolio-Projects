@@ -2,9 +2,18 @@
 
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
+import { useState } from 'react'
 import { useUIStore } from '@/store/ui.store'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { cn } from '@/lib/utils'
+import CheckoutModal from '@/components/marketing/CheckoutModal'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import {
   ChevronLeft,
   ChevronDown,
@@ -98,6 +107,13 @@ export default function Sidebar() {
   const { sidebarCollapsed, toggleSidebar } = useUIStore()
   const pathname = usePathname()
   const { user } = useCurrentUser()
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false)
+  const [selectedPlan, setSelectedPlan] = useState<'Startup' | 'Growth' | 'Enterprise'>('Growth')
+
+  const handlePlanSelect = (plan: 'Startup' | 'Growth' | 'Enterprise') => {
+    setSelectedPlan(plan)
+    setIsCheckoutOpen(true)
+  }
 
   return (
     <div
@@ -135,19 +151,60 @@ export default function Sidebar() {
       {/* Workspace Switcher */}
       {!sidebarCollapsed && (
         <div className="relative z-10 px-[16px] mt-[16px] mb-[8px]">
-          <button className="w-full flex items-center gap-[12px] px-[12px] py-[10px] rounded-[12px] bg-white border border-neutral-200/80 shadow-sm hover:border-neutral-300 hover:shadow-md transition-all group">
-            <div className="w-[32px] h-[32px] shrink-0 rounded-[8px] bg-gradient-to-br from-neutral-800 to-neutral-900 flex items-center justify-center shadow-inner">
-              <span className="text-white font-bold text-[12px]">AC</span>
-            </div>
-            <div className="flex-1 text-left overflow-hidden">
-              <p className="text-[13px] font-semibold text-neutral-900 truncate">Acme Corp</p>
-              <div className="flex items-center gap-[4px] mt-[2px]">
-                <Zap size={10} className="text-amber-500 fill-amber-500/20" />
-                <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider">Growth Plan</span>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="w-full flex items-center gap-[12px] px-[12px] py-[10px] rounded-[12px] bg-white border border-neutral-200/80 shadow-sm hover:border-neutral-300 hover:shadow-md transition-all group outline-none">
+                <div className="w-[32px] h-[32px] shrink-0 rounded-[8px] bg-gradient-to-br from-neutral-800 to-neutral-900 flex items-center justify-center shadow-inner">
+                  <span className="text-white font-bold text-[12px]">AC</span>
+                </div>
+                <div className="flex-1 text-left overflow-hidden">
+                  <p className="text-[13px] font-semibold text-neutral-900 truncate">Acme Corp</p>
+                  <div className="flex items-center gap-[4px] mt-[2px]">
+                    <Zap size={10} className="text-amber-500 fill-amber-500/20" />
+                    <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider">Growth Plan</span>
+                  </div>
+                </div>
+                <ChevronDown size={14} className="text-neutral-400 group-hover:text-neutral-600 shrink-0 transition-colors" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="center" className="w-[228px] bg-white rounded-[12px] shadow-xl border border-neutral-100 p-[4px] font-body z-50">
+              <div className="px-[8px] py-[6px]">
+                <p className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider">Change Plan</p>
               </div>
-            </div>
-            <ChevronDown size={14} className="text-neutral-400 group-hover:text-neutral-600 shrink-0 transition-colors" />
-          </button>
+              <DropdownMenuItem 
+                onClick={() => handlePlanSelect('Startup')}
+                className="flex items-center justify-between px-[8px] py-[8px] rounded-[6px] text-[13px] font-medium text-neutral-700 hover:bg-neutral-50 cursor-pointer outline-none"
+              >
+                <span>Startup Plan</span>
+                <span className="text-[11px] text-neutral-400">$99/mo</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => handlePlanSelect('Growth')}
+                className="flex items-center justify-between px-[8px] py-[8px] rounded-[6px] text-[13px] font-medium text-neutral-700 hover:bg-neutral-50 cursor-pointer outline-none"
+              >
+                <div className="flex items-center gap-[6px]">
+                  <span>Growth Plan</span>
+                  <span className="text-[9px] font-bold bg-amber-100 text-amber-700 px-[4px] py-[1px] rounded-full">CURRENT</span>
+                </div>
+                <span className="text-[11px] text-neutral-400">$299/mo</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => handlePlanSelect('Enterprise')}
+                className="flex items-center justify-between px-[8px] py-[8px] rounded-[6px] text-[13px] font-medium text-neutral-700 hover:bg-neutral-50 cursor-pointer outline-none"
+              >
+                <span>Enterprise Plan</span>
+                <span className="text-[11px] text-neutral-400">$999/mo</span>
+              </DropdownMenuItem>
+              
+              <DropdownMenuSeparator className="bg-neutral-100 h-[1px] my-[4px]" />
+              
+              <DropdownMenuItem asChild>
+                <Link href="/settings/billing" className="flex items-center px-[8px] py-[8px] rounded-[6px] text-[13px] font-medium text-blue-600 hover:bg-blue-50 cursor-pointer outline-none">
+                  Manage Billing Details
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       )}
       {sidebarCollapsed && (
@@ -235,6 +292,12 @@ export default function Sidebar() {
           </div>
         )}
       </div>
+      
+      <CheckoutModal 
+        isOpen={isCheckoutOpen} 
+        onClose={() => setIsCheckoutOpen(false)} 
+        planName={selectedPlan} 
+      />
     </div>
   )
 }
