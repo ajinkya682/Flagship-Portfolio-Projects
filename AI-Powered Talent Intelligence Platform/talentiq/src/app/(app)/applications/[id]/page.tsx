@@ -49,6 +49,12 @@ export default function ApplicationDetailPage() {
   const [showRejectModal, setShowRejectModal] = useState(false)
   const [rejectReason, setRejectReason] = useState(REJECT_REASONS[0])
   const [rejectConfirmed, setRejectConfirmed] = useState(false)
+  
+  const [showMoveModal, setShowMoveModal] = useState(false)
+  const [moveConfirmed, setMoveConfirmed] = useState(false)
+
+  const [showMoveBackModal, setShowMoveBackModal] = useState(false)
+  const [moveBackConfirmed, setMoveBackConfirmed] = useState(false)
 
   if (!candidate || !job) {
     return (
@@ -90,9 +96,34 @@ export default function ApplicationDetailPage() {
   }
 
   const handleNextStage = () => {
+    setShowMoveModal(true)
+  }
+
+  const handlePreviousStage = () => {
+    setShowMoveBackModal(true)
+  }
+
+  const handleConfirmMove = () => {
     const nextStage = PIPELINE_STAGES[currentStageIdx + 1]
     if (nextStage) {
       moveCandidateStage(candidate.id, nextStage)
+      setMoveConfirmed(true)
+      setTimeout(() => {
+        setShowMoveModal(false)
+        setMoveConfirmed(false)
+      }, 1500)
+    }
+  }
+
+  const handleConfirmMoveBack = () => {
+    const prevStage = PIPELINE_STAGES[currentStageIdx - 1]
+    if (prevStage) {
+      moveCandidateStage(candidate.id, prevStage)
+      setMoveBackConfirmed(true)
+      setTimeout(() => {
+        setShowMoveBackModal(false)
+        setMoveBackConfirmed(false)
+      }, 1500)
     }
   }
 
@@ -126,7 +157,12 @@ export default function ApplicationDetailPage() {
           <button onClick={handleReject} className="h-[34px] px-[14px] bg-red-50 hover:bg-red-100 text-red-600 font-body text-[12px] font-semibold rounded-[8px] transition-colors flex items-center gap-[5px]">
             <XCircle size={13} /> Reject
           </button>
-          {currentStageIdx < PIPELINE_STAGES.length - 1 && (
+          {currentStageIdx > 0 && candidate.stage !== 'Rejected' && (
+            <button onClick={handlePreviousStage} className="h-[34px] px-[14px] bg-white border border-neutral-200 hover:bg-neutral-50 text-neutral-600 font-body text-[12px] font-semibold rounded-[8px] transition-colors flex items-center gap-[5px]">
+              <ArrowLeft size={13} /> Move back to {PIPELINE_STAGES[currentStageIdx - 1]}
+            </button>
+          )}
+          {currentStageIdx < PIPELINE_STAGES.length - 1 && candidate.stage !== 'Rejected' && (
             <button onClick={handleNextStage} className="h-[34px] px-[14px] bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-body text-[12px] font-semibold rounded-[8px] shadow-sm flex items-center gap-[5px]">
               <CheckCircle2 size={13} /> Move to {PIPELINE_STAGES[currentStageIdx + 1]}
             </button>
@@ -464,6 +500,120 @@ export default function ApplicationDetailPage() {
               </div>
               <p className="font-display text-[16px] font-bold text-neutral-900">Rejection recorded</p>
               <p className="font-body text-[13px] text-neutral-500">Returning to candidates list...</p>
+            </div>
+          )}
+        </div>
+      </div>
+    )}
+
+    {/* Move Confirmation Modal */}
+    {showMoveModal && currentStageIdx < PIPELINE_STAGES.length - 1 && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+        <div className="bg-white rounded-[20px] shadow-2xl w-full max-w-[420px] overflow-hidden">
+          {/* Modal Header */}
+          <div className="bg-blue-50 px-[24px] py-[20px] border-b border-blue-100 flex items-center gap-[12px]">
+            <div className="w-[40px] h-[40px] rounded-full bg-blue-100 flex items-center justify-center">
+              <CheckCircle2 size={18} className="text-blue-600" />
+            </div>
+            <div>
+              <h3 className="font-display text-[16px] font-bold text-neutral-900">Move to {PIPELINE_STAGES[currentStageIdx + 1]}</h3>
+              <p className="font-body text-[12px] text-neutral-500 mt-[2px]">They will be advanced to the next pipeline stage</p>
+            </div>
+          </div>
+
+          {!moveConfirmed ? (
+            <div className="p-[24px] flex flex-col gap-[16px]">
+              <div className="bg-neutral-50 rounded-[12px] p-[14px] flex items-center gap-[12px]">
+                <img src={candidate.avatar} alt={candidate.name} className="w-[40px] h-[40px] rounded-[10px] object-cover" />
+                <div>
+                  <p className="font-body text-[14px] font-semibold text-neutral-900">{candidate.name}</p>
+                  <p className="font-body text-[12px] text-neutral-500">Currently in: <span className="font-semibold">{candidate.stage}</span></p>
+                </div>
+              </div>
+
+              <p className="font-body text-[12px] text-neutral-500 bg-blue-50/50 border border-blue-100 rounded-[8px] p-[10px]">
+                ℹ️ The candidate's timeline and stats will be updated. You can always move them back later if needed.
+              </p>
+
+              <div className="flex items-center gap-[10px] mt-[4px]">
+                <button
+                  onClick={() => setShowMoveModal(false)}
+                  className="flex-1 h-[40px] border border-neutral-200 text-neutral-700 font-body text-[13px] font-semibold rounded-[10px] hover:bg-neutral-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmMove}
+                  className="flex-1 h-[40px] bg-blue-600 hover:bg-blue-700 text-white font-body text-[13px] font-semibold rounded-[10px] shadow-sm transition-colors flex items-center justify-center gap-[5px]"
+                >
+                  <CheckCircle2 size={14} /> Confirm Move
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="p-[24px] flex flex-col items-center gap-[12px] text-center">
+              <div className="w-[56px] h-[56px] rounded-full bg-emerald-100 flex items-center justify-center">
+                <CheckCircle2 size={28} className="text-emerald-600" />
+              </div>
+              <p className="font-display text-[16px] font-bold text-neutral-900">Successfully Moved</p>
+              <p className="font-body text-[13px] text-neutral-500">Candidate advanced to {PIPELINE_STAGES[currentStageIdx + 1]}</p>
+            </div>
+          )}
+        </div>
+      </div>
+    )}
+
+    {/* Move Back Confirmation Modal */}
+    {showMoveBackModal && currentStageIdx > 0 && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+        <div className="bg-white rounded-[20px] shadow-2xl w-full max-w-[420px] overflow-hidden">
+          {/* Modal Header */}
+          <div className="bg-neutral-100 px-[24px] py-[20px] border-b border-neutral-200 flex items-center gap-[12px]">
+            <div className="w-[40px] h-[40px] rounded-full bg-white flex items-center justify-center border border-neutral-200">
+              <ArrowLeft size={18} className="text-neutral-600" />
+            </div>
+            <div>
+              <h3 className="font-display text-[16px] font-bold text-neutral-900">Move back to {PIPELINE_STAGES[currentStageIdx - 1]}</h3>
+              <p className="font-body text-[12px] text-neutral-500 mt-[2px]">They will be reverted to the previous stage</p>
+            </div>
+          </div>
+
+          {!moveBackConfirmed ? (
+            <div className="p-[24px] flex flex-col gap-[16px]">
+              <div className="bg-neutral-50 rounded-[12px] p-[14px] flex items-center gap-[12px]">
+                <img src={candidate.avatar} alt={candidate.name} className="w-[40px] h-[40px] rounded-[10px] object-cover" />
+                <div>
+                  <p className="font-body text-[14px] font-semibold text-neutral-900">{candidate.name}</p>
+                  <p className="font-body text-[12px] text-neutral-500">Currently in: <span className="font-semibold">{candidate.stage}</span></p>
+                </div>
+              </div>
+
+              <p className="font-body text-[12px] text-neutral-500 bg-amber-50 border border-amber-100 rounded-[8px] p-[10px]">
+                ⚠️ Are you sure you want to move them back? This will update their pipeline status accordingly.
+              </p>
+
+              <div className="flex items-center gap-[10px] mt-[4px]">
+                <button
+                  onClick={() => setShowMoveBackModal(false)}
+                  className="flex-1 h-[40px] border border-neutral-200 text-neutral-700 font-body text-[13px] font-semibold rounded-[10px] hover:bg-neutral-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmMoveBack}
+                  className="flex-1 h-[40px] bg-neutral-900 hover:bg-black text-white font-body text-[13px] font-semibold rounded-[10px] shadow-sm transition-colors flex items-center justify-center gap-[5px]"
+                >
+                  <ArrowLeft size={14} /> Confirm Move Back
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="p-[24px] flex flex-col items-center gap-[12px] text-center">
+              <div className="w-[56px] h-[56px] rounded-full bg-neutral-100 flex items-center justify-center border border-neutral-200">
+                <CheckCircle2 size={28} className="text-neutral-600" />
+              </div>
+              <p className="font-display text-[16px] font-bold text-neutral-900">Successfully Reverted</p>
+              <p className="font-body text-[13px] text-neutral-500">Candidate moved back to {PIPELINE_STAGES[currentStageIdx - 1]}</p>
             </div>
           )}
         </div>
