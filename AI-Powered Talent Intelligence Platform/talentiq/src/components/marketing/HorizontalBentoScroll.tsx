@@ -33,13 +33,15 @@ export default function HorizontalBentoScroll() {
   useGSAP(
     () => {
       if (!containerRef.current || !trackRef.current) return;
-      const isDesktop = window.innerWidth >= 1024;
-      if (
-        !isDesktop ||
-        window.matchMedia("(prefers-reduced-motion: reduce)").matches
-      ) {
-        return;
-      }
+      
+      const mm = gsap.matchMedia();
+
+      mm.add("(min-width: 1024px)", () => {
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+          return;
+        }
+        
+        if (!containerRef.current || !trackRef.current) return;
 
       const cards = gsap.utils.toArray(".bento-card") as HTMLElement[];
       if (cards.length === 0) return;
@@ -200,6 +202,8 @@ export default function HorizontalBentoScroll() {
         ease: "none",
         repeat: -1,
       });
+      
+      }); // end matchMedia
     },
     { scope: containerRef },
   );
