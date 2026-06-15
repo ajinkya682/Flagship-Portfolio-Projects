@@ -35,11 +35,14 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
            </svg>
         </div>
 
-        {/* Top left - Skip to main content & Logo */}
-        <div className="relative z-10 flex flex-col items-start gap-4">
-          <button className="text-[12px] font-medium text-white/60 hover:text-white transition-colors">
-            Skip to main content
-          </button>
+        {/* Top left - Back Link & Logo */}
+        <div className="relative z-10 flex flex-col items-start gap-6">
+          <Link 
+            href="/" 
+            className="flex items-center gap-2 text-[13px] font-medium text-white/60 hover:text-white transition-colors group"
+          >
+            <span className="group-hover:-translate-x-1 transition-transform">←</span> Back to Website
+          </Link>
           <Link href="/" className="flex items-center gap-2">
             <Hexagon className="w-8 h-8 text-blue-500 fill-blue-500" />
             <span className="font-display text-[22px] font-bold text-white tracking-tight">TalentIQ</span>

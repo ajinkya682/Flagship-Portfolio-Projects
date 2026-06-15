@@ -54,12 +54,6 @@ export default function MarketingNav() {
 
   return (
     <>
-      <a
-        href="#main"
-        className="sr-only focus:not-sr-only focus:absolute focus:z-[200] focus:p-4 focus:bg-white focus:text-[#3B58F6] focus:font-bold focus:outline-none focus:ring-2 focus:ring-[#3B58F6] rounded-br-md"
-      >
-        Skip to main content
-      </a>
 
       {/* Edge-to-Edge Full Width Container */}
       <header
