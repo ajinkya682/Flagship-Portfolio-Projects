@@ -58,13 +58,6 @@ export default function AppHeader() {
   return (
     <header className="sticky top-0 z-30 flex h-[60px] items-center justify-between bg-white/80 backdrop-blur-md px-[16px] md:px-[32px] border-b border-neutral-100/80">
       <div className="flex items-center gap-[12px]">
-        {/* Mobile Hamburger Menu */}
-        <button
-          onClick={() => setMobileSidebarOpen(true)}
-          className="lg:hidden p-[8px] -ml-[8px] text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 rounded-[8px] transition-colors"
-        >
-          <Menu size={20} />
-        </button>
         <Breadcrumb />
       </div>
 
