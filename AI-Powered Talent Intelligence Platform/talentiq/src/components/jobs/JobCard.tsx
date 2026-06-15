@@ -1,9 +1,10 @@
 'use client'
 
 import Link from 'next/link'
-import { MapPin, Users, Calendar, Sparkles, MoreHorizontal, ArrowRight, TrendingUp, Link as LinkIcon, CheckCircle2 } from 'lucide-react'
+import { MapPin, Users, Calendar, Sparkles, MoreHorizontal, ArrowRight, TrendingUp, Link as LinkIcon, CheckCircle2, Play, StopCircle, Share } from 'lucide-react'
 import JobStatusBadge from './JobStatusBadge'
 import { useState } from 'react'
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import ShareJobModal from './ShareJobModal'
 import { useDomainStore } from '@/store/domain.store'
 import { Job } from '@/types/domain.types'
@@ -30,7 +31,7 @@ interface JobCardProps {
 }
 
 export default function JobCard({ job }: JobCardProps) {
-  const { candidates, settings } = useDomainStore()
+  const { candidates, settings, updateJob } = useDomainStore()
   const [copied, setCopied] = useState(false)
   const [isShareModalOpen, setIsShareModalOpen] = useState(false)
   const jobCandidates = candidates.filter(c => c.jobId === job.id)
@@ -79,9 +80,49 @@ export default function JobCard({ job }: JobCardProps) {
               </button>
             )}
             <JobStatusBadge status={job.status} />
-            <button className="opacity-0 group-hover:opacity-100 transition-opacity text-neutral-300 hover:text-neutral-600 p-[2px] rounded">
-              <MoreHorizontal size={15} />
-            </button>
+            <DropdownMenu.Root>
+              <DropdownMenu.Trigger asChild>
+                <button className="opacity-0 group-hover:opacity-100 transition-opacity text-neutral-400 hover:text-neutral-700 p-[2px] rounded focus:outline-none focus:ring-2 focus:ring-blue-100">
+                  <MoreHorizontal size={15} />
+                </button>
+              </DropdownMenu.Trigger>
+              <DropdownMenu.Portal>
+                <DropdownMenu.Content align="end" sideOffset={5} className="z-50 min-w-[160px] bg-white rounded-lg shadow-lg border border-neutral-100 p-1 font-body animate-in fade-in slide-in-from-top-2">
+                  <DropdownMenu.Item 
+                    className="flex items-center gap-2 px-3 py-2 text-[13px] font-medium text-neutral-600 rounded-md hover:bg-neutral-50 hover:text-neutral-900 cursor-pointer focus:bg-neutral-50 focus:outline-none"
+                    onClick={handleCopyLink}
+                  >
+                    <Share size={14} className="text-blue-500" /> Share Link
+                  </DropdownMenu.Item>
+                  <DropdownMenu.Separator className="h-[1px] bg-neutral-100 my-1" />
+                  
+                  {job.status !== 'published' && (
+                    <DropdownMenu.Item 
+                      className="flex items-center gap-2 px-3 py-2 text-[13px] font-medium text-emerald-600 rounded-md hover:bg-emerald-50 cursor-pointer focus:bg-emerald-50 focus:outline-none"
+                      onClick={() => updateJob(job.id, { status: 'published' })}
+                    >
+                      <Play size={14} /> Publish Job
+                    </DropdownMenu.Item>
+                  )}
+                  {job.status === 'published' && (
+                    <DropdownMenu.Item 
+                      className="flex items-center gap-2 px-3 py-2 text-[13px] font-medium text-amber-600 rounded-md hover:bg-amber-50 cursor-pointer focus:bg-amber-50 focus:outline-none"
+                      onClick={() => updateJob(job.id, { status: 'closed' })}
+                    >
+                      <StopCircle size={14} /> Close Job
+                    </DropdownMenu.Item>
+                  )}
+                  {job.status !== 'draft' && (
+                    <DropdownMenu.Item 
+                      className="flex items-center gap-2 px-3 py-2 text-[13px] font-medium text-neutral-600 rounded-md hover:bg-neutral-50 hover:text-neutral-900 cursor-pointer focus:bg-neutral-50 focus:outline-none"
+                      onClick={() => updateJob(job.id, { status: 'draft' })}
+                    >
+                      <Sparkles size={14} className="text-neutral-400" /> Move to Draft
+                    </DropdownMenu.Item>
+                  )}
+                </DropdownMenu.Content>
+              </DropdownMenu.Portal>
+            </DropdownMenu.Root>
           </div>
         </div>
 
