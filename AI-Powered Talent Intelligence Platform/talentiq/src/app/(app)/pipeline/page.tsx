@@ -3,9 +3,16 @@
 import { useState } from 'react'
 import {
   Search, Filter, Plus, MoreHorizontal, Sparkles,
-  Clock, GitMerge, ChevronDown
+  Clock, GitMerge, ChevronDown, CheckCircle2, ArrowLeft, XCircle
 } from 'lucide-react'
 import Link from 'next/link'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import {
   DndContext,
   DragOverlay,
@@ -42,6 +49,8 @@ function ScoreChip({ score }: { score: number }) {
 }
 
 function CandidateCard({ candidate, isDragging = false, listeners, attributes, setNodeRef, transform }: any) {
+  const { moveCandidateStage } = useDomainStore()
+  
   const style = transform ? {
     transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
     zIndex: isDragging ? 50 : 1,
@@ -70,9 +79,44 @@ function CandidateCard({ candidate, isDragging = false, listeners, attributes, s
             <p className="font-body text-[11px] text-neutral-500 mt-[2px] truncate max-w-[140px]">{candidate.role}</p>
           </div>
         </div>
-        <button className="text-neutral-300 hover:text-neutral-600 transition-colors" onPointerDown={(e) => e.stopPropagation()}>
-          <MoreHorizontal size={16} />
-        </button>
+        <div onPointerDown={(e) => e.stopPropagation()}>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="text-neutral-300 hover:text-neutral-600 transition-colors outline-none focus:ring-2 focus:ring-blue-100 rounded-sm">
+                <MoreHorizontal size={16} />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-[180px] bg-white rounded-[12px] shadow-xl border border-neutral-100 p-[4px] font-body z-50">
+              {STAGE_CONFIG.findIndex(s => s.id === candidate.stage) < STAGE_CONFIG.length - 1 && candidate.stage !== 'Rejected' && (
+                <DropdownMenuItem 
+                  onClick={() => moveCandidateStage(candidate.id, STAGE_CONFIG[STAGE_CONFIG.findIndex(s => s.id === candidate.stage) + 1].id)}
+                  className="flex items-center gap-[8px] px-[8px] py-[6px] rounded-[6px] text-[13px] text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50 cursor-pointer outline-none"
+                >
+                  <CheckCircle2 size={14} className="text-blue-500" /> Move Forward
+                </DropdownMenuItem>
+              )}
+              {STAGE_CONFIG.findIndex(s => s.id === candidate.stage) > 0 && candidate.stage !== 'Rejected' && (
+                <DropdownMenuItem 
+                  onClick={() => moveCandidateStage(candidate.id, STAGE_CONFIG[STAGE_CONFIG.findIndex(s => s.id === candidate.stage) - 1].id)}
+                  className="flex items-center gap-[8px] px-[8px] py-[6px] rounded-[6px] text-[13px] text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50 cursor-pointer outline-none"
+                >
+                  <ArrowLeft size={14} className="text-neutral-400" /> Move Backward
+                </DropdownMenuItem>
+              )}
+              {candidate.stage !== 'Rejected' && (
+                <>
+                  <DropdownMenuSeparator className="bg-neutral-100 h-[1px] my-[4px]" />
+                  <DropdownMenuItem 
+                    onClick={() => moveCandidateStage(candidate.id, 'Rejected')}
+                    className="flex items-center gap-[8px] px-[8px] py-[6px] rounded-[6px] text-[13px] text-red-600 hover:bg-red-50 cursor-pointer outline-none"
+                  >
+                    <XCircle size={14} /> Reject
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
       <div className="flex items-center justify-between mt-[14px] pt-[12px] border-t border-neutral-50">

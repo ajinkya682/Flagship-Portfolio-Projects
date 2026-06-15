@@ -297,6 +297,8 @@ export default function Sidebar() {
         isOpen={isCheckoutOpen} 
         onClose={() => setIsCheckoutOpen(false)} 
         planName={selectedPlan} 
+        price={selectedPlan === 'Startup' ? 99 : selectedPlan === 'Growth' ? 299 : 999}
+        billingPeriod="monthly"
       />
     </div>
   )

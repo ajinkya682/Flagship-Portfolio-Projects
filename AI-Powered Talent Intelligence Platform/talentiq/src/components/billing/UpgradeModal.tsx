@@ -135,6 +135,8 @@ export default function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
           onClose()
         }}
         planName={selectedPlan === 'pro' ? 'Growth' : 'Enterprise'}
+        price={selectedPlan === 'pro' ? (billingCycle === 'annual' ? 199 : 249) : (billingCycle === 'annual' ? 499 : 599)}
+        billingPeriod={billingCycle}
       />
     </Dialog.Root>
   )
