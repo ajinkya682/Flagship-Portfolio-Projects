@@ -4,8 +4,6 @@
 
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
-import { MOCK_JOBS } from '@/mock-data/jobs'
-import { MOCK_CANDIDATES } from '@/mock-data/candidates'
 import { MOCK_INTERVIEWS } from '@/mock-data/interviews'
 import { MOCK_OFFERS } from '@/mock-data/offers'
 import { MOCK_MESSAGES } from '@/mock-data/messages'
@@ -142,8 +140,6 @@ export interface Offer {
 
 interface DomainState {
   settings: Settings
-  jobs: Job[]
-  candidates: Candidate[]
   interviews: Interview[]
   messages: Message[]
   offers: Offer[]
@@ -151,13 +147,6 @@ interface DomainState {
 
   // Actions
   addUser: (user: User) => void
-  addJob: (job: Job) => void
-  updateJob: (id: string, updates: Partial<Job>) => void
-
-  addCandidate: (candidate: Candidate) => void
-  updateCandidate: (id: string, updates: Partial<Candidate>) => void
-  moveCandidateStage: (candidateId: string, newStage: string) => void
-  addCandidateNote: (candidateId: string, note: any) => void
 
   addInterview: (interview: Interview) => void
   updateInterview: (id: string, updates: Partial<Interview>) => void
@@ -180,9 +169,6 @@ const INITIAL_SETTINGS: Settings = {
   portalThemeColor: '#0ea5e9',
 }
 
-// Map mock-data to store types (they are compatible by design)
-const INITIAL_JOBS: Job[] = MOCK_JOBS as Job[]
-const INITIAL_CANDIDATES: Candidate[] = MOCK_CANDIDATES as Candidate[]
 const INITIAL_INTERVIEWS: Interview[] = MOCK_INTERVIEWS as Interview[]
 const INITIAL_OFFERS: Offer[] = MOCK_OFFERS as Offer[]
 const INITIAL_MESSAGES: Message[] = MOCK_MESSAGES as Message[]
@@ -200,8 +186,6 @@ export const useDomainStore = create<DomainState>()(
   persist(
     (set) => ({
       settings: INITIAL_SETTINGS,
-      jobs: INITIAL_JOBS,
-      candidates: INITIAL_CANDIDATES,
       interviews: INITIAL_INTERVIEWS,
       messages: INITIAL_MESSAGES,
       offers: INITIAL_OFFERS,
@@ -211,43 +195,6 @@ export const useDomainStore = create<DomainState>()(
         set((state) => ({ settings: { ...state.settings, ...updates } })),
 
       addUser: (user) => set((state) => ({ users: [user, ...state.users] })),
-
-      addJob: (job) => set((state) => ({ jobs: [job, ...state.jobs] })),
-      updateJob: (id, updates) =>
-        set((state) => ({
-          jobs: state.jobs.map((j) => (j.id === id ? { ...j, ...updates } : j)),
-        })),
-
-      addCandidate: (candidate) =>
-        set((state) => ({ candidates: [candidate, ...state.candidates] })),
-      updateCandidate: (id, updates) =>
-        set((state) => ({
-          candidates: state.candidates.map((c) =>
-            c.id === id ? { ...c, ...updates } : c,
-          ),
-        })),
-      moveCandidateStage: (candidateId, newStage) =>
-        set((state) => ({
-          candidates: state.candidates.map((c) =>
-            c.id === candidateId
-              ? {
-                  ...c,
-                  stage: newStage,
-                  daysInStage: 0,
-                  timeline: [
-                    ...c.timeline,
-                    { event: `Moved to ${newStage}`, date: 'Just now', type: 'stage' as const },
-                  ],
-                }
-              : c,
-          ),
-        })),
-      addCandidateNote: (candidateId, note) =>
-        set((state) => ({
-          candidates: state.candidates.map((c) =>
-            c.id === candidateId ? { ...c, notes: [...c.notes, note] } : c,
-          ),
-        })),
 
       addInterview: (interview) =>
         set((state) => ({ interviews: [interview, ...state.interviews] })),
@@ -272,8 +219,6 @@ export const useDomainStore = create<DomainState>()(
 
       resetStore: () =>
         set({
-          jobs: INITIAL_JOBS,
-          candidates: INITIAL_CANDIDATES,
           interviews: INITIAL_INTERVIEWS,
           messages: INITIAL_MESSAGES,
           offers: INITIAL_OFFERS,
@@ -285,11 +230,8 @@ export const useDomainStore = create<DomainState>()(
       // Use sessionStorage to avoid localStorage quota issues with large datasets
       storage: createJSONStorage(() => sessionStorage),
       // Don't persist the full dataset — re-seed on every session from imports
-      // Only persist user mutations (notes, stage moves, etc.)
       partialize: (state) => ({
         settings: state.settings,
-        // Persist only changes to first 50 candidates (featured profiles)
-        // Full data is re-seeded from mock-data imports each session
       }),
       // Merge: always start fresh from mock data, never from stale session storage
       merge: (_persisted, current) => current,

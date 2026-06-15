@@ -6,6 +6,7 @@ import {
   Calendar, ChevronDown, Download
 } from 'lucide-react'
 import { useDomainStore } from '@/store/domain.store'
+import { useCandidatesStore } from '@/store/candidates.store'
 
 const teamData = [
   { name: 'Alex Manager', avatar: 'https://randomuser.me/api/portraits/men/22.jpg', interviews: 15, avgRating: 4.8, avgTime: '2.1d' },
@@ -14,7 +15,8 @@ const teamData = [
 ]
 
 export default function AnalyticsPage() {
-  const { candidates, offers, interviews } = useDomainStore()
+  const { offers, interviews } = useDomainStore()
+  const { candidates } = useCandidatesStore()
   const [period, setPeriod] = useState('30d')
 
   const totalApplications = candidates.length

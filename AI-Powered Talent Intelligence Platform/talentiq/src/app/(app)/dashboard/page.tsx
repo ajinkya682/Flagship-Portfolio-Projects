@@ -8,6 +8,8 @@ import AIInsightsPanel from '@/components/dashboard/AIInsightsPanel'
 import { Briefcase, Users, GitMerge, FileText, Clock, Sparkles, ArrowUpRight, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
 import { useDomainStore } from '@/store/domain.store'
+import { useJobsStore } from '@/store/jobs.store'
+import { useCandidatesStore } from '@/store/candidates.store'
 
 // ─── Mock Data ───────────────────────────────────────────────────
 const sparkline = [18, 22, 19, 28, 34, 40, 36, 44, 51, 58]
@@ -48,7 +50,9 @@ function ScoreChip({ score }: { score: number }) {
 }
 
 export default function DashboardPage() {
-  const { jobs, candidates, offers, interviews, messages } = useDomainStore()
+  const { offers, interviews, messages } = useDomainStore()
+  const { jobs } = useJobsStore()
+  const { candidates } = useCandidatesStore()
 
   const pendingOffers = offers.filter(o => o.status === 'sent' || o.status === 'viewed')
   

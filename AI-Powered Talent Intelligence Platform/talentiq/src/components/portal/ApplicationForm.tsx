@@ -4,12 +4,14 @@ import { useState } from 'react'
 import { UploadCloud, CheckCircle, ArrowRight, Image as ImageIcon } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { useDomainStore } from '@/store/domain.store'
+import { useCandidatesStore } from '@/store/candidates.store'
 import { Job } from '@/types/domain.types'
 import Link from 'next/link'
 
 export default function ApplicationForm({ job, companySlug }: { job?: Job, companySlug?: string }) {
   const { register, handleSubmit } = useForm()
-  const { addCandidate, settings } = useDomainStore()
+  const { settings } = useDomainStore()
+  const { addCandidate } = useCandidatesStore()
   const [submitted, setSubmitted] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [candidateToken, setCandidateToken] = useState('')

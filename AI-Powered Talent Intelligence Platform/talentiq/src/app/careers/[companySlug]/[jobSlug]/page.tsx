@@ -1,6 +1,7 @@
 "use client";
 
 import { useDomainStore } from "@/store/domain.store";
+import { useJobsStore } from "@/store/jobs.store";
 import { MapPin, Briefcase, Building2, Calendar } from "lucide-react";
 import ApplicationForm from "@/components/portal/ApplicationForm";
 import { notFound } from "next/navigation";
@@ -10,7 +11,8 @@ export default function PublicJobPage({
 }: {
   params: { companySlug: string; jobSlug: string };
 }) {
-  const { jobs, settings } = useDomainStore();
+  const { settings } = useDomainStore();
+  const { jobs } = useJobsStore();
 
   // In a real app, we would query the backend by companySlug and jobSlug.
   // Here we check if the requested slug matches the store's settings and find the job.

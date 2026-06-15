@@ -8,6 +8,8 @@ import {
   CheckCircle2, XCircle, ChevronRight, Tag, Clock, Star, Plus, Send, AlertTriangle
 } from 'lucide-react'
 import { useDomainStore } from '@/store/domain.store'
+import { useJobsStore } from '@/store/jobs.store'
+import { useCandidatesStore } from '@/store/candidates.store'
 import { v4 as uuidv4 } from 'uuid'
 
 const REJECT_REASONS = [
@@ -41,7 +43,8 @@ export default function ApplicationDetailPage() {
   const router = useRouter()
   const candidateId = params?.id as string
 
-  const { candidates, jobs, moveCandidateStage, addCandidateNote } = useDomainStore()
+  const { jobs } = useJobsStore()
+  const { candidates, moveCandidateStage, addCandidateNote } = useCandidatesStore()
   const candidate = candidates.find(c => c.id === candidateId)
   const job = jobs.find(j => j.id === candidate?.jobId)
 

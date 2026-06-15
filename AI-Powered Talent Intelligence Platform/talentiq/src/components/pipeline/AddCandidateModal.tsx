@@ -4,6 +4,8 @@ import { useState } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { X, CheckCircle2 } from 'lucide-react'
 import { useDomainStore } from '@/store/domain.store'
+import { useJobsStore } from '@/store/jobs.store'
+import { useCandidatesStore } from '@/store/candidates.store'
 
 interface AddCandidateModalProps {
   isOpen: boolean
@@ -11,7 +13,8 @@ interface AddCandidateModalProps {
 }
 
 export default function AddCandidateModal({ isOpen, onClose }: AddCandidateModalProps) {
-  const { addCandidate, jobs } = useDomainStore()
+  const { jobs } = useJobsStore()
+  const { addCandidate } = useCandidatesStore()
   
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')

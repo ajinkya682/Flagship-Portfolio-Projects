@@ -4,6 +4,8 @@ import { useState } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { X, CheckCircle2 } from 'lucide-react'
 import { useDomainStore } from '@/store/domain.store'
+import { useJobsStore } from '@/store/jobs.store'
+import { useCandidatesStore } from '@/store/candidates.store'
 
 interface CreateOfferModalProps {
   isOpen: boolean
@@ -11,7 +13,9 @@ interface CreateOfferModalProps {
 }
 
 export default function CreateOfferModal({ isOpen, onClose }: CreateOfferModalProps) {
-  const { addOffer, candidates, jobs } = useDomainStore()
+  const { addOffer } = useDomainStore()
+  const { jobs } = useJobsStore()
+  const { candidates } = useCandidatesStore()
   
   const [candidateId, setCandidateId] = useState('')
   const [amount, setAmount] = useState('')

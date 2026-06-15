@@ -6,11 +6,13 @@ import {
   Check, CheckCheck, Clock, Video, Phone
 } from 'lucide-react'
 import { useDomainStore } from '@/store/domain.store'
+import { useCandidatesStore } from '@/store/candidates.store'
 import { v4 as uuidv4 } from 'uuid'
 import Link from 'next/link'
 
 export default function MessagesPage() {
-  const { candidates, messages, addMessage } = useDomainStore()
+  const { messages, addMessage } = useDomainStore()
+  const { candidates } = useCandidatesStore()
   const [activeContactId, setActiveContactId] = useState<string | null>(candidates.length > 0 ? candidates[0].id : null)
   const [inputText, setInputText] = useState('')
   const [search, setSearch] = useState('')

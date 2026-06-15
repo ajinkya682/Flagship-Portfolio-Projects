@@ -9,6 +9,8 @@ import {
 } from 'lucide-react'
 import JobStatusBadge from '@/components/jobs/JobStatusBadge'
 import { useDomainStore } from '@/store/domain.store'
+import { useJobsStore } from '@/store/jobs.store'
+import { useCandidatesStore } from '@/store/candidates.store'
 
 const TABS = [
   { id: 'overview', label: 'Overview', icon: Briefcase },
@@ -33,7 +35,8 @@ export default function JobDetailPage() {
   const jobId = params?.id as string
   const [activeTab, setActiveTab] = useState('overview')
 
-  const { jobs, candidates, updateJob } = useDomainStore()
+  const { jobs, updateJob } = useJobsStore()
+  const { candidates } = useCandidatesStore()
   
   const job = jobs.find(j => j.id === jobId)
   const jobCandidates = candidates.filter(c => c.jobId === jobId)

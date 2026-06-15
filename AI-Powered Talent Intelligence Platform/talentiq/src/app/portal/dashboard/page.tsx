@@ -3,12 +3,16 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useDomainStore } from '@/store/domain.store'
+import { useJobsStore } from '@/store/jobs.store'
+import { useCandidatesStore } from '@/store/candidates.store'
 import { LogOut, Send, CheckCircle2, Clock, User, Briefcase, FileText, Video, MessageSquare, Linkedin, Github, Globe, Phone, Mail, Image as ImageIcon, Calendar } from 'lucide-react'
 import Link from 'next/link'
 
 export default function CandidateDashboard() {
   const router = useRouter()
-  const { candidates, messages, addMessage, settings, jobs, interviews } = useDomainStore()
+  const { messages, addMessage, settings, interviews } = useDomainStore()
+  const { jobs } = useJobsStore()
+  const { candidates } = useCandidatesStore()
   const [candidateId, setCandidateId] = useState<string | null>(null)
   const [newMessage, setNewMessage] = useState('')
   const [activeTab, setActiveTab] = useState<'messages' | 'profile'>('messages')

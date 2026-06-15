@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { useDomainStore } from '@/store/domain.store'
+import { useCandidatesStore } from '@/store/candidates.store'
 import CreateOfferModal from '@/components/offers/CreateOfferModal'
 
 const STATUS_STYLES: Record<string, { bg: string; text: string; icon: React.ElementType; border: string }> = {
@@ -18,7 +19,8 @@ const STATUS_STYLES: Record<string, { bg: string; text: string; icon: React.Elem
 }
 
 export default function OffersPage() {
-  const { offers, candidates } = useDomainStore()
+  const { offers } = useDomainStore()
+  const { candidates } = useCandidatesStore()
   const [search, setSearch] = useState('')
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isExporting, setIsExporting] = useState(false)

@@ -3,11 +3,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useDomainStore } from '@/store/domain.store'
+import { useCandidatesStore } from '@/store/candidates.store'
 import { Mic, MicOff, Video, VideoOff, PhoneOff, MonitorUp, MessageSquare, Settings, Users } from 'lucide-react'
 
 export default function VideoMeetingRoom({ params }: { params: { interviewId: string } }) {
   const router = useRouter()
-  const { interviews, candidates } = useDomainStore()
+  const { interviews } = useDomainStore()
+  const { candidates } = useCandidatesStore()
   const videoRef = useRef<HTMLVideoElement>(null)
   
   const [stream, setStream] = useState<MediaStream | null>(null)

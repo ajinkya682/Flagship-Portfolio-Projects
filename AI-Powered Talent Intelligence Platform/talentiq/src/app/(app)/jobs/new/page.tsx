@@ -5,11 +5,12 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Sparkles, Briefcase, MapPin, Building2, AlignLeft, DollarSign, Settings2 } from 'lucide-react'
 import { useDomainStore, type Job } from '@/store/domain.store'
+import { useJobsStore } from '@/store/jobs.store'
 import { v4 as uuidv4 } from 'uuid'
 
 export default function NewJobPage() {
   const router = useRouter()
-  const { addJob } = useDomainStore()
+  const { addJob } = useJobsStore()
 
   const [formData, setFormData] = useState({
     title: '',

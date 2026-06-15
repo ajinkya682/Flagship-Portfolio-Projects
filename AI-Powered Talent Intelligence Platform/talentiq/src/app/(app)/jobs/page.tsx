@@ -4,15 +4,19 @@ import { useState } from 'react'
 import { Search, Plus, LayoutGrid, List, SlidersHorizontal, Briefcase, TrendingUp, Users, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 import JobCard from '@/components/jobs/JobCard'
+import { EmptyState } from '@/components/ui/EmptyState'
 import { Job } from '@/types/domain.types'
 
 import { useDomainStore } from '@/store/domain.store'
+import { useJobsStore } from '@/store/jobs.store'
+import { useCandidatesStore } from '@/store/candidates.store'
 
 const STATUSES = ['all', 'published', 'draft', 'closed']
 const DEPARTMENTS = ['All', 'Engineering', 'Product', 'Design', 'Sales', 'Data', 'Marketing']
 
 export default function JobsPage() {
-  const { jobs, candidates } = useDomainStore()
+  const { jobs } = useJobsStore()
+  const { candidates } = useCandidatesStore()
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [deptFilter, setDeptFilter] = useState('All')
@@ -146,14 +150,23 @@ export default function JobsPage() {
 
       {/* Job Cards Grid */}
       {filtered.length === 0 ? (
-        <div className="bg-white rounded-[16px] border border-neutral-100 shadow-sm p-[60px] flex flex-col items-center justify-center text-center">
-          <Briefcase size={40} className="text-neutral-200 mb-[16px]" />
-          <h3 className="font-display text-[18px] font-bold text-neutral-700 mb-[6px]">No jobs found</h3>
-          <p className="font-body text-[13px] text-neutral-400 mb-[20px]">Try adjusting your search or filters</p>
-          <button onClick={() => { setSearch(''); setStatusFilter('all'); setDeptFilter('All') }} className="text-[13px] font-semibold text-primary-600 hover:text-primary-700">
-            Clear filters
-          </button>
-        </div>
+        <EmptyState
+          icon={Briefcase}
+          title="No jobs found"
+          description="We couldn't find any jobs matching your current filters. Try adjusting your search criteria."
+          action={
+            <button
+              onClick={() => {
+                setSearch('')
+                setStatusFilter('all')
+                setDeptFilter('All')
+              }}
+              className="h-[36px] px-[16px] rounded-[8px] bg-neutral-100 text-neutral-700 font-semibold text-[13px] hover:bg-neutral-200 transition-colors"
+            >
+              Clear Filters
+            </button>
+          }
+        />
       ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-[16px]">
           {filtered.map(job => <JobCard key={job.id} job={job as unknown as Job} />)}

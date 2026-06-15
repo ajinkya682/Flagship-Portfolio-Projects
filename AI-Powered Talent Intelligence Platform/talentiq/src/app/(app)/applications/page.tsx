@@ -7,6 +7,8 @@ import {
   Users, TrendingUp, Clock, CheckCircle2, Linkedin, Globe
 } from 'lucide-react'
 import { useDomainStore } from '@/store/domain.store'
+import { useCandidatesStore } from '@/store/candidates.store'
+import { EmptyState } from '@/components/ui/EmptyState'
 
 const STAGES = ['All', 'Applied', 'Screening', 'Interview', 'Assessment', 'Offer', 'Hired']
 const SOURCES = ['All', 'LinkedIn', 'Indeed', 'Referral', 'Direct', 'Other']
@@ -30,7 +32,7 @@ function ScoreChip({ score }: { score: number }) {
 }
 
 export default function ApplicationsPage() {
-  const { candidates } = useDomainStore()
+  const { candidates } = useCandidatesStore()
   const [search, setSearch] = useState('')
   const [stageFilter, setStageFilter] = useState('All')
   const [sourceFilter, setSourceFilter] = useState('All')
@@ -230,11 +232,24 @@ export default function ApplicationsPage() {
           </table>
 
           {filtered.length === 0 && (
-            <div className="py-[60px] flex flex-col items-center text-center">
-              <Users size={36} className="text-neutral-200 mb-[12px]" />
-              <p className="font-display text-[16px] font-bold text-neutral-500">No candidates found</p>
-              <p className="font-body text-[13px] text-neutral-400 mt-[4px]">Try adjusting your filters</p>
-            </div>
+            <EmptyState
+              icon={Users}
+              title="No candidates found"
+              description="We couldn't find any candidates matching your current filters. Try adjusting your search criteria."
+              className="border-0 shadow-none bg-transparent"
+              action={
+                <button
+                  onClick={() => {
+                    setSearch('')
+                    setStageFilter('All')
+                    setSourceFilter('All')
+                  }}
+                  className="h-[36px] px-[16px] rounded-[8px] bg-neutral-100 text-neutral-700 font-semibold text-[13px] hover:bg-neutral-200 transition-colors"
+                >
+                  Clear Filters
+                </button>
+              }
+            />
           )}
         </div>
       </div>

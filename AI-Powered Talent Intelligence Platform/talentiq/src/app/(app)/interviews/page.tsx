@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { useDomainStore } from '@/store/domain.store'
+import { useCandidatesStore } from '@/store/candidates.store'
 
 function InterviewCard({ data, candidate, isToday = false }: { data: any; candidate: any; isToday?: boolean }) {
   const Icon = data.type === 'Video' ? Video : Phone
@@ -80,7 +81,8 @@ function InterviewCard({ data, candidate, isToday = false }: { data: any; candid
 }
 
 export default function InterviewsPage() {
-  const { interviews, candidates } = useDomainStore()
+  const { interviews } = useDomainStore()
+  const { candidates } = useCandidatesStore()
   const [filter, setFilter] = useState('all')
 
   const todayInterviews = interviews.filter(i => i.date === 'Today')

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Application } from '@/types/domain.types'
 import { useDomainStore } from '@/store/domain.store'
+import { useCandidatesStore } from '@/store/candidates.store'
 import { Send, User, Briefcase } from 'lucide-react'
 
 interface MessagesTabProps {
@@ -11,6 +12,7 @@ interface MessagesTabProps {
 
 export default function MessagesTab({ application }: MessagesTabProps) {
   const { messages, addMessage } = useDomainStore()
+  const { candidates } = useCandidatesStore()
   const [newMessage, setNewMessage] = useState('')
 
   const candidateMessages = messages.filter(m => m.candidateId === application.candidate.id)

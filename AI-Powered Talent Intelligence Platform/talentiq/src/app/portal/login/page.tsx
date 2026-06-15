@@ -3,13 +3,14 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useDomainStore } from '@/store/domain.store'
+import { useCandidatesStore } from '@/store/candidates.store'
 import { Sparkles, ArrowRight, AlertCircle } from 'lucide-react'
 
 export default function PortalLogin() {
   const [code, setCode] = useState('')
   const [error, setError] = useState('')
   const router = useRouter()
-  const { candidates } = useDomainStore()
+  const { candidates } = useCandidatesStore()
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault()

@@ -27,6 +27,8 @@ import {
 } from '@dnd-kit/core'
 
 import { useDomainStore } from '@/store/domain.store'
+import { useJobsStore } from '@/store/jobs.store'
+import { useCandidatesStore } from '@/store/candidates.store'
 import AddCandidateModal from '@/components/pipeline/AddCandidateModal'
 
 const STAGE_CONFIG = [
@@ -49,7 +51,8 @@ function ScoreChip({ score }: { score: number }) {
 }
 
 function CandidateCard({ candidate, isDragging = false, listeners, attributes, setNodeRef, transform }: any) {
-  const { moveCandidateStage } = useDomainStore()
+  const { jobs } = useJobsStore()
+  const { candidates, moveCandidateStage } = useCandidatesStore()
   
   const style = transform ? {
     transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
@@ -158,7 +161,7 @@ function DroppableColumn({ stage, children, count }: { stage: any, children: Rea
   })
 
   return (
-    <div className="flex flex-col min-w-[280px] w-[280px] shrink-0 bg-neutral-100/50 rounded-[12px] border border-neutral-200/60 overflow-hidden shadow-sm transition-colors">
+    <div className="flex flex-col min-w-[85vw] max-w-[320px] sm:min-w-[280px] sm:w-[280px] shrink-0 bg-neutral-100/50 rounded-[12px] border border-neutral-200/60 overflow-hidden shadow-sm transition-colors snap-center sm:snap-align-none">
       {/* Column Header */}
       <div className="px-[16px] py-[14px] bg-neutral-50 border-b border-neutral-200/60" style={{ borderTop: `4px solid ${stage.color}` }}>
         <div className="flex items-center justify-between mb-[4px]">
@@ -186,7 +189,8 @@ function DroppableColumn({ stage, children, count }: { stage: any, children: Rea
 }
 
 export default function PipelinePage() {
-  const { candidates, jobs, moveCandidateStage } = useDomainStore()
+  const { jobs } = useJobsStore()
+  const { candidates, moveCandidateStage } = useCandidatesStore()
   const [search, setSearch] = useState('')
   const [jobFilter, setJobFilter] = useState('All Jobs')
   const [activeCandidate, setActiveCandidate] = useState<any>(null)
@@ -283,7 +287,7 @@ export default function PipelinePage() {
       </div>
 
       {/* Kanban Board Area */}
-      <div className="flex-1 overflow-x-auto p-[16px] md:p-[24px]">
+      <div className="flex-1 overflow-x-auto p-[16px] md:p-[24px] snap-x snap-mandatory sm:snap-none scroll-smooth">
         <DndContext 
           sensors={sensors} 
           collisionDetection={closestCorners} 

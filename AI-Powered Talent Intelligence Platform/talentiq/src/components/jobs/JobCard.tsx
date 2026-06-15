@@ -7,6 +7,8 @@ import { useState } from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import ShareJobModal from './ShareJobModal'
 import { useDomainStore } from '@/store/domain.store'
+import { useJobsStore } from '@/store/jobs.store'
+import { useCandidatesStore } from '@/store/candidates.store'
 import { Job } from '@/types/domain.types'
 
 const deptColors: Record<string, { bar: string; badge: string; text: string }> = {
@@ -31,7 +33,9 @@ interface JobCardProps {
 }
 
 export default function JobCard({ job }: JobCardProps) {
-  const { candidates, settings, updateJob } = useDomainStore()
+  const { settings } = useDomainStore()
+  const { candidates } = useCandidatesStore()
+  const { updateJob } = useJobsStore()
   const [copied, setCopied] = useState(false)
   const [isShareModalOpen, setIsShareModalOpen] = useState(false)
   const jobCandidates = candidates.filter(c => c.jobId === job.id)

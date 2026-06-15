@@ -4,7 +4,7 @@ import { ReactNode } from 'react'
 import { useUIStore } from '@/store/ui.store'
 import Sidebar from './Sidebar'
 import AppHeader from './AppHeader'
-import MobileBottomNav from './MobileBottomNav'
+import { MobileBottomNav } from '@/components/dashboard/MobileBottomNav'
 import DemoRoleSwitcher from '@/components/shared/DemoRoleSwitcher'
 
 export default function AppShell({ children }: { children: ReactNode }) {
@@ -14,8 +14,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
     <div className="flex h-screen overflow-hidden bg-neutral-50 font-body">
       <Sidebar />
       <div 
-        className="flex flex-col flex-grow overflow-hidden transition-all duration-300 ease-in-out"
-        style={{ paddingLeft: sidebarCollapsed ? '64px' : '260px' }}
+        className={`flex flex-col flex-grow overflow-hidden transition-all duration-300 ease-in-out ${sidebarCollapsed ? 'lg:pl-[64px]' : 'lg:pl-[260px]'}`}
       >
         <AppHeader />
         <main 

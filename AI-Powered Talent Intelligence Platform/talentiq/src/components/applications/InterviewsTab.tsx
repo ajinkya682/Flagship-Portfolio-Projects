@@ -2,6 +2,7 @@ import { Application } from '@/types/domain.types'
 import { Calendar, Video, Phone, Building2 } from 'lucide-react'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { useDomainStore } from '@/store/domain.store'
+import { useCandidatesStore } from '@/store/candidates.store'
 import Link from 'next/link'
 
 interface InterviewsTabProps {
@@ -10,6 +11,7 @@ interface InterviewsTabProps {
 
 export default function InterviewsTab({ application }: InterviewsTabProps) {
   const { interviews: allInterviews } = useDomainStore()
+  const { candidates } = useCandidatesStore()
   const interviews = allInterviews.filter(i => i.candidateId === application.candidate.id)
 
   if (!interviews || interviews.length === 0) {

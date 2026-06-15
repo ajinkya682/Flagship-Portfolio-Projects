@@ -6,6 +6,7 @@ import { useState } from 'react'
 import { useUIStore } from '@/store/ui.store'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { cn } from '@/lib/utils'
+import * as Dialog from '@radix-ui/react-dialog'
 import CheckoutModal from '@/components/marketing/CheckoutModal'
 import {
   DropdownMenu,
@@ -31,6 +32,7 @@ import {
   Bell,
   Plus,
   Zap,
+  X,
 } from 'lucide-react'
 
 interface NavItemProps {
@@ -103,8 +105,10 @@ function NavItem({ icon: Icon, label, href, isCollapsed, isActive, badge, isNew 
   )
 }
 
-export default function Sidebar() {
-  const { sidebarCollapsed, toggleSidebar } = useUIStore()
+
+function SidebarContent({ isMobile = false }: { isMobile?: boolean }) {
+
+  const { sidebarCollapsed, toggleSidebar, mobileSidebarOpen, setMobileSidebarOpen } = useUIStore()
   const pathname = usePathname()
   const { user } = useCurrentUser()
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false)
@@ -115,33 +119,46 @@ export default function Sidebar() {
     setIsCheckoutOpen(true)
   }
 
+  
+  const effectiveCollapsed = isMobile ? false : sidebarCollapsed;
+
   return (
     <div
       className={cn(
-        'fixed left-0 top-0 h-screen z-40 bg-[#FAFAFA] border-r border-neutral-200/80 transition-all duration-300 ease-in-out hidden md:flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.02)]',
-        sidebarCollapsed ? 'w-[72px]' : 'w-[260px]'
+        'flex flex-col h-full bg-[#FAFAFA] relative z-20',
+        effectiveCollapsed ? 'w-[72px]' : 'w-[260px]'
       )}
     >
       {/* Collapse toggle */}
+      {!isMobile && (
       <button
         onClick={toggleSidebar}
         className="absolute -right-[12px] top-[72px] w-[24px] h-[24px] rounded-full bg-white shadow-[0_2px_8px_rgba(0,0,0,0.08)] border border-neutral-200 flex items-center justify-center cursor-pointer z-50 hover:bg-neutral-50 hover:scale-105 transition-all"
       >
         <ChevronLeft
           size={12}
-          className={cn('text-neutral-500 transition-transform duration-300', sidebarCollapsed && 'rotate-180')}
+          className={cn('text-neutral-500 transition-transform duration-300', effectiveCollapsed && 'rotate-180')}
         />
       </button>
+      )}
+      {isMobile && (
+        <button
+          onClick={() => setMobileSidebarOpen(false)}
+          className="absolute right-[12px] top-[20px] p-[6px] rounded-[8px] bg-white border border-neutral-200 shadow-sm text-neutral-500 flex items-center justify-center cursor-pointer z-50 hover:bg-neutral-50 transition-all lg:hidden"
+        >
+          <X size={16} />
+        </button>
+      )}
 
       {/* TOP: Logo + Brand */}
       <div className={cn(
         'relative z-10 flex items-center gap-[12px] px-[16px] border-b border-neutral-200/60 bg-white/50 backdrop-blur-sm',
-        sidebarCollapsed ? 'justify-center h-[64px]' : 'h-[64px]'
+        effectiveCollapsed ? 'justify-center h-[64px]' : 'h-[64px]'
       )}>
         <div className="w-[34px] h-[34px] shrink-0 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[10px] flex items-center justify-center shadow-md shadow-blue-500/20 border border-blue-500/20">
           <Hexagon size={18} className="text-white fill-white/20" strokeWidth={2.5} />
         </div>
-        {!sidebarCollapsed && (
+        {!effectiveCollapsed && (
           <span className="font-display text-[19px] font-bold text-neutral-900 tracking-tight">
             TalentIQ
           </span>
@@ -149,7 +166,7 @@ export default function Sidebar() {
       </div>
 
       {/* Workspace Switcher */}
-      {!sidebarCollapsed && (
+      {!effectiveCollapsed && (
         <div className="relative z-10 px-[16px] mt-[16px] mb-[8px]">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -207,7 +224,7 @@ export default function Sidebar() {
           </DropdownMenu>
         </div>
       )}
-      {sidebarCollapsed && (
+      {effectiveCollapsed && (
         <div className="relative z-10 flex justify-center mt-[16px] mb-[8px]">
           <div className="w-[36px] h-[36px] rounded-[10px] bg-gradient-to-br from-neutral-800 to-neutral-900 flex items-center justify-center shadow-sm cursor-pointer border border-neutral-700">
             <span className="text-white font-bold text-[13px]">AC</span>
@@ -216,7 +233,7 @@ export default function Sidebar() {
       )}
 
       {/* Quick Create Button */}
-      {!sidebarCollapsed && (
+      {!effectiveCollapsed && (
         <div className="relative z-10 px-[16px] mb-[12px]">
           <Link href="/jobs/new" className="w-full flex items-center justify-center gap-[6px] h-[38px] rounded-[10px] bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transition-all text-white shadow-md shadow-blue-500/20 font-body text-[13px] font-semibold hover:-translate-y-[1px]">
             <Plus size={15} strokeWidth={2.5} />
@@ -229,35 +246,35 @@ export default function Sidebar() {
       <div className="relative z-10 flex-1 overflow-y-auto px-[12px] flex flex-col gap-[4px] pb-[20px] scrollbar-thin scrollbar-thumb-neutral-200 scrollbar-track-transparent">
         
         {/* Main group */}
-        {!sidebarCollapsed && (
+        {!effectiveCollapsed && (
           <p className="text-[11px] font-bold text-neutral-400 uppercase tracking-[1.2px] px-[12px] pt-[12px] pb-[6px]">Main</p>
         )}
-        <NavItem icon={LayoutDashboard} label="Dashboard" href="/dashboard" isCollapsed={sidebarCollapsed} isActive={pathname === '/dashboard'} />
-        <NavItem icon={Briefcase} label="Jobs" href="/jobs" isCollapsed={sidebarCollapsed} isActive={pathname.startsWith('/jobs')} />
-        <NavItem icon={Users} label="Candidates" href="/applications" isCollapsed={sidebarCollapsed} isActive={pathname.startsWith('/applications')} badge={12} />
-        <NavItem icon={GitMerge} label="Pipeline" href="/pipeline" isCollapsed={sidebarCollapsed} isActive={pathname.startsWith('/pipeline')} />
+        <NavItem icon={LayoutDashboard} label="Dashboard" href="/dashboard" isCollapsed={effectiveCollapsed} isActive={pathname === '/dashboard'} />
+        <NavItem icon={Briefcase} label="Jobs" href="/jobs" isCollapsed={effectiveCollapsed} isActive={pathname.startsWith('/jobs')} />
+        <NavItem icon={Users} label="Candidates" href="/applications" isCollapsed={effectiveCollapsed} isActive={pathname.startsWith('/applications')} badge={12} />
+        <NavItem icon={GitMerge} label="Pipeline" href="/pipeline" isCollapsed={effectiveCollapsed} isActive={pathname.startsWith('/pipeline')} />
 
         {/* Recruiting group */}
-        {!sidebarCollapsed && (
+        {!effectiveCollapsed && (
           <p className="text-[11px] font-bold text-neutral-400 uppercase tracking-[1.2px] px-[12px] pt-[20px] pb-[6px]">Recruiting</p>
         )}
-        {sidebarCollapsed && <div className="h-[1px] bg-neutral-200/60 mx-[12px] my-[12px]" />}
-        <NavItem icon={Calendar} label="Interviews" href="/interviews" isCollapsed={sidebarCollapsed} isActive={pathname.startsWith('/interviews')} badge={3} />
-        <NavItem icon={FileText} label="Offers" href="/offers" isCollapsed={sidebarCollapsed} isActive={pathname.startsWith('/offers')} />
-        <NavItem icon={MessageSquare} label="Messages" href="/messages" isCollapsed={sidebarCollapsed} isActive={pathname.startsWith('/messages')} />
+        {effectiveCollapsed && <div className="h-[1px] bg-neutral-200/60 mx-[12px] my-[12px]" />}
+        <NavItem icon={Calendar} label="Interviews" href="/interviews" isCollapsed={effectiveCollapsed} isActive={pathname.startsWith('/interviews')} badge={3} />
+        <NavItem icon={FileText} label="Offers" href="/offers" isCollapsed={effectiveCollapsed} isActive={pathname.startsWith('/offers')} />
+        <NavItem icon={MessageSquare} label="Messages" href="/messages" isCollapsed={effectiveCollapsed} isActive={pathname.startsWith('/messages')} />
 
         {/* Insights group */}
-        {!sidebarCollapsed && (
+        {!effectiveCollapsed && (
           <p className="text-[11px] font-bold text-neutral-400 uppercase tracking-[1.2px] px-[12px] pt-[20px] pb-[6px]">Insights</p>
         )}
-        {sidebarCollapsed && <div className="h-[1px] bg-neutral-200/60 mx-[12px] my-[12px]" />}
-        <NavItem icon={BarChart2} label="Analytics" href="/analytics" isCollapsed={sidebarCollapsed} isActive={pathname.startsWith('/analytics')} />
-        <NavItem icon={Lightbulb} label="AI Insights" href="/insights" isCollapsed={sidebarCollapsed} isActive={pathname.startsWith('/insights')} badge={5} isNew />
+        {effectiveCollapsed && <div className="h-[1px] bg-neutral-200/60 mx-[12px] my-[12px]" />}
+        <NavItem icon={BarChart2} label="Analytics" href="/analytics" isCollapsed={effectiveCollapsed} isActive={pathname.startsWith('/analytics')} />
+        <NavItem icon={Lightbulb} label="AI Insights" href="/insights" isCollapsed={effectiveCollapsed} isActive={pathname.startsWith('/insights')} badge={5} isNew />
       </div>
 
       {/* BOTTOM: User Profile + Settings */}
       <div className="relative z-10 border-t border-neutral-200/80 p-[16px] bg-white/50 backdrop-blur-sm">
-        {!sidebarCollapsed ? (
+        {!effectiveCollapsed ? (
           <div className="flex items-center gap-[12px]">
             <div className="relative shrink-0">
               <div className="w-[36px] h-[36px] rounded-[10px] bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center overflow-hidden border border-neutral-200 shadow-sm">
@@ -301,5 +318,33 @@ export default function Sidebar() {
         billingPeriod="monthly"
       />
     </div>
+  )
+}
+
+export default function Sidebar() {
+  const { sidebarCollapsed, mobileSidebarOpen, setMobileSidebarOpen } = useUIStore()
+
+  return (
+    <>
+      {/* Desktop Sidebar */}
+      <div
+        className={cn(
+          'fixed left-0 top-0 h-screen z-40 bg-[#FAFAFA] border-r border-neutral-200/80 transition-all duration-300 ease-in-out hidden lg:flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.02)]',
+          sidebarCollapsed ? 'w-[72px]' : 'w-[260px]'
+        )}
+      >
+        <SidebarContent />
+      </div>
+
+      {/* Mobile Sidebar Drawer */}
+      <Dialog.Root open={mobileSidebarOpen} onOpenChange={setMobileSidebarOpen}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 z-[100] bg-neutral-900/40 backdrop-blur-sm lg:hidden animate-in fade-in duration-200" />
+          <Dialog.Content className="fixed inset-y-0 left-0 z-[101] w-[280px] bg-white shadow-2xl lg:hidden animate-in slide-in-from-left duration-300 focus:outline-none flex flex-col">
+            <SidebarContent isMobile />
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
+    </>
   )
 }
