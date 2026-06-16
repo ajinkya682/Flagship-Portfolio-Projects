@@ -12,6 +12,7 @@ import { useDomainStore } from '@/store/domain.store'
 import { useJobsStore } from '@/store/jobs.store'
 import { useCandidatesStore } from '@/store/candidates.store'
 import { v4 as uuidv4 } from 'uuid'
+import InterviewBookingModal from '@/components/pipeline/InterviewBookingModal'
 
 const REJECT_REASONS = [
   'Not a skills fit',
@@ -56,6 +57,7 @@ export default function ApplicationDetailPage() {
   
   const [showMoveModal, setShowMoveModal] = useState(false)
   const [moveConfirmed, setMoveConfirmed] = useState(false)
+  const [showInterviewModal, setShowInterviewModal] = useState(false)
 
   const [showMoveBackModal, setShowMoveBackModal] = useState(false)
   const [moveBackConfirmed, setMoveBackConfirmed] = useState(false)
@@ -132,7 +134,12 @@ export default function ApplicationDetailPage() {
   }
 
   const handleNextStage = () => {
-    setShowMoveModal(true)
+    const nextStage = PIPELINE_STAGES[currentStageIdx + 1]
+    if (nextStage === 'Interview') {
+      setShowInterviewModal(true)
+    } else {
+      setShowMoveModal(true)
+    }
   }
 
   const handlePreviousStage = () => {
@@ -745,6 +752,16 @@ export default function ApplicationDetailPage() {
         </div>
       </div>
     )}
+
+    <InterviewBookingModal 
+      isOpen={showInterviewModal}
+      candidate={candidate}
+      onClose={() => setShowInterviewModal(false)}
+      onConfirm={() => {
+        setShowInterviewModal(false)
+        moveCandidateStage(candidate.id, 'Interview')
+      }}
+    />
   </>
   )
 }

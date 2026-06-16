@@ -30,6 +30,7 @@ import { useDomainStore } from '@/store/domain.store'
 import { useJobsStore } from '@/store/jobs.store'
 import { useCandidatesStore } from '@/store/candidates.store'
 import AddCandidateModal from '@/components/pipeline/AddCandidateModal'
+import InterviewBookingModal from '@/components/pipeline/InterviewBookingModal'
 
 const STAGE_CONFIG = [
   { id: 'Applied', name: 'Applied', color: '#94A3B8' },
@@ -50,9 +51,8 @@ function ScoreChip({ score }: { score: number }) {
   )
 }
 
-function CandidateCard({ candidate, isDragging = false, listeners, attributes, setNodeRef, transform }: any) {
+function CandidateCard({ candidate, isDragging = false, listeners, attributes, setNodeRef, transform, onMoveStage }: any) {
   const { jobs } = useJobsStore()
-  const { candidates, moveCandidateStage } = useCandidatesStore()
   
   const style = transform ? {
     transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
@@ -92,7 +92,7 @@ function CandidateCard({ candidate, isDragging = false, listeners, attributes, s
             <DropdownMenuContent align="end" className="w-[180px] bg-white rounded-[12px] shadow-xl border border-neutral-100 p-[4px] font-body z-50">
               {STAGE_CONFIG.findIndex(s => s.id === candidate.stage) < STAGE_CONFIG.length - 1 && candidate.stage !== 'Rejected' && (
                 <DropdownMenuItem 
-                  onClick={() => moveCandidateStage(candidate.id, STAGE_CONFIG[STAGE_CONFIG.findIndex(s => s.id === candidate.stage) + 1].id)}
+                  onClick={() => onMoveStage(candidate, STAGE_CONFIG[STAGE_CONFIG.findIndex(s => s.id === candidate.stage) + 1].id)}
                   className="flex items-center gap-[8px] px-[8px] py-[6px] rounded-[6px] text-[13px] text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50 cursor-pointer outline-none"
                 >
                   <CheckCircle2 size={14} className="text-blue-500" /> Move Forward
@@ -100,7 +100,7 @@ function CandidateCard({ candidate, isDragging = false, listeners, attributes, s
               )}
               {STAGE_CONFIG.findIndex(s => s.id === candidate.stage) > 0 && candidate.stage !== 'Rejected' && (
                 <DropdownMenuItem 
-                  onClick={() => moveCandidateStage(candidate.id, STAGE_CONFIG[STAGE_CONFIG.findIndex(s => s.id === candidate.stage) - 1].id)}
+                  onClick={() => onMoveStage(candidate, STAGE_CONFIG[STAGE_CONFIG.findIndex(s => s.id === candidate.stage) - 1].id)}
                   className="flex items-center gap-[8px] px-[8px] py-[6px] rounded-[6px] text-[13px] text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50 cursor-pointer outline-none"
                 >
                   <ArrowLeft size={14} className="text-neutral-400" /> Move Backward
@@ -110,7 +110,7 @@ function CandidateCard({ candidate, isDragging = false, listeners, attributes, s
                 <>
                   <DropdownMenuSeparator className="bg-neutral-100 h-[1px] my-[4px]" />
                   <DropdownMenuItem 
-                    onClick={() => moveCandidateStage(candidate.id, 'Rejected')}
+                    onClick={() => onMoveStage(candidate, 'Rejected')}
                     className="flex items-center gap-[8px] px-[8px] py-[6px] rounded-[6px] text-[13px] text-red-600 hover:bg-red-50 cursor-pointer outline-none"
                   >
                     <XCircle size={14} /> Reject
@@ -137,7 +137,7 @@ function CandidateCard({ candidate, isDragging = false, listeners, attributes, s
   )
 }
 
-function DraggableCandidate({ candidate }: { candidate: any }) {
+function DraggableCandidate({ candidate, onMoveStage }: { candidate: any, onMoveStage: (c: any, s: string) => void }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: candidate.id,
     data: { candidate },
@@ -151,6 +151,7 @@ function DraggableCandidate({ candidate }: { candidate: any }) {
       attributes={attributes} 
       setNodeRef={setNodeRef} 
       transform={transform} 
+      onMoveStage={onMoveStage}
     />
   )
 }
@@ -194,6 +195,7 @@ export default function PipelinePage() {
   const [search, setSearch] = useState('')
   const [jobFilter, setJobFilter] = useState('All Jobs')
   const [activeCandidate, setActiveCandidate] = useState<any>(null)
+  const [bookingCandidate, setBookingCandidate] = useState<any>(null)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   
   const JOBS = ['All Jobs', ...Array.from(new Set(jobs.map(j => j.title)))]
@@ -211,6 +213,14 @@ export default function PipelinePage() {
     setActiveCandidate(active.data.current?.candidate)
   }
 
+  const handleStageChange = (candidate: any, newStage: string) => {
+    if (newStage === 'Interview') {
+      setBookingCandidate(candidate)
+    } else {
+      moveCandidateStage(candidate.id, newStage)
+    }
+  }
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
     setActiveCandidate(null)
@@ -221,7 +231,7 @@ export default function PipelinePage() {
       
       const candidate = candidates.find(c => c.id === candidateId)
       if (candidate && candidate.stage !== newStage) {
-        moveCandidateStage(candidateId, newStage)
+        handleStageChange(candidate, newStage)
       }
     }
   }
@@ -325,7 +335,7 @@ export default function PipelinePage() {
                 return (
                   <DroppableColumn key={stage.id} stage={stage} count={visibleCandidates.length}>
                     {visibleCandidates.map(c => (
-                      <DraggableCandidate key={c.id} candidate={c} />
+                      <DraggableCandidate key={c.id} candidate={c} onMoveStage={handleStageChange} />
                     ))}
                   </DroppableColumn>
                 )
@@ -342,6 +352,18 @@ export default function PipelinePage() {
       </div>
 
       <AddCandidateModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} />
+      
+      <InterviewBookingModal 
+        isOpen={!!bookingCandidate}
+        candidate={bookingCandidate}
+        onClose={() => setBookingCandidate(null)}
+        onConfirm={() => {
+          if (bookingCandidate) {
+            moveCandidateStage(bookingCandidate.id, 'Interview')
+            setBookingCandidate(null)
+          }
+        }}
+      />
     </div>
   )
 }

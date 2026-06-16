@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Calendar, Video, Phone, Users, Clock, Filter,
   CheckCircle2, XCircle, FileText, ChevronRight, Play, ExternalLink
@@ -8,6 +8,7 @@ import {
 import Link from 'next/link'
 import { useDomainStore } from '@/store/domain.store'
 import { useCandidatesStore } from '@/store/candidates.store'
+import { format, isToday, isTomorrow, isYesterday } from 'date-fns'
 
 function InterviewCard({ data, candidate, isToday = false }: { data: any; candidate: any; isToday?: boolean }) {
   const Icon = data.type === 'Video' ? Video : Phone
@@ -81,13 +82,52 @@ function InterviewCard({ data, candidate, isToday = false }: { data: any; candid
 }
 
 export default function InterviewsPage() {
-  const { interviews } = useDomainStore()
-  const { candidates } = useCandidatesStore()
+  const [interviews, setInterviews] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   const [filter, setFilter] = useState('all')
 
+  useEffect(() => {
+    const fetchInterviews = async () => {
+      try {
+        const res = await fetch('/api/interviews')
+        if (res.ok) {
+          const data = await res.json()
+          const mapped = data.map((i: any) => {
+            const dateObj = new Date(i.scheduledAt)
+            let dateStr = format(dateObj, 'MMM d, yyyy')
+            if (isToday(dateObj)) dateStr = 'Today'
+            else if (isTomorrow(dateObj)) dateStr = 'Tomorrow'
+            else if (isYesterday(dateObj)) dateStr = 'Yesterday'
+
+            return {
+              id: i._id,
+              candidateId: i.candidate?._id,
+              candidate: i.candidate, // Populated from backend
+              date: dateStr,
+              dateObj: dateObj,
+              time: format(dateObj, 'h:mm a'),
+              duration: `${i.duration}m`,
+              type: i.locationType === 'phone' ? 'Phone' : 'Video',
+              interviewer: 'Alex M.',
+              status: i.status,
+              scorecardStatus: i.scorecards && i.scorecards.length > 0 ? 'submitted' : 'pending',
+              rating: null
+            }
+          })
+          setInterviews(mapped)
+        }
+      } catch (err) {
+        console.error('Failed to fetch interviews', err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchInterviews()
+  }, [])
+
   const todayInterviews = interviews.filter(i => i.date === 'Today')
-  const upcomingInterviews = interviews.filter(i => i.date !== 'Today' && i.date !== 'Yesterday' && new Date(i.date) >= new Date() || i.date === 'Tomorrow' || i.status === 'scheduled' && i.date !== 'Today')
-  const pastInterviews = interviews.filter(i => i.date === 'Yesterday' || i.status === 'completed' && i.date !== 'Today')
+  const upcomingInterviews = interviews.filter(i => i.date !== 'Today' && i.date !== 'Yesterday' && i.dateObj >= new Date() || i.date === 'Tomorrow' || i.status === 'scheduled' && i.date !== 'Today')
+  const pastInterviews = interviews.filter(i => i.date === 'Yesterday' || i.status === 'completed' && i.date !== 'Today' || i.dateObj < new Date() && i.date !== 'Today')
 
   return (
     <div className="flex flex-col h-full -mx-[16px] md:-mx-[32px] -mt-[16px] md:-mt-[32px] bg-neutral-50/50 min-h-screen">
@@ -158,7 +198,7 @@ export default function InterviewsPage() {
                 </div>
                 <div className="flex flex-col gap-[12px]">
                   {todayInterviews.map(int => (
-                    <InterviewCard key={int.id} data={int} candidate={candidates.find(c => c.id === int.candidateId)} isToday />
+                    <InterviewCard key={int.id} data={int} candidate={int.candidate} isToday />
                   ))}
                 </div>
               </section>
@@ -176,7 +216,7 @@ export default function InterviewsPage() {
                       {(i === 0 || upcomingInterviews[i-1].date !== int.date) && (
                         <p className="font-body text-[12px] font-semibold text-neutral-500 mb-[8px] ml-[4px]">{int.date}</p>
                       )}
-                      <InterviewCard data={int} candidate={candidates.find(c => c.id === int.candidateId)} />
+                      <InterviewCard data={int} candidate={int.candidate} />
                     </div>
                   ))}
                 </div>
@@ -195,7 +235,7 @@ export default function InterviewsPage() {
                       {(i === 0 || pastInterviews[i-1].date !== int.date) && (
                         <p className="font-body text-[12px] font-semibold text-neutral-500 mb-[8px] ml-[4px]">{int.date}</p>
                       )}
-                      <InterviewCard data={int} candidate={candidates.find(c => c.id === int.candidateId)} />
+                      <InterviewCard data={int} candidate={int.candidate} />
                     </div>
                   ))}
                 </div>
