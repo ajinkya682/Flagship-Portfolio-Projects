@@ -27,34 +27,50 @@ export default function OffersPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
   const [showExportToast, setShowExportToast] = useState(false)
+  const [sendingOfferId, setSendingOfferId] = useState<string | null>(null)
+
+  const fetchOffers = async () => {
+    try {
+      const res = await fetch('/api/offers')
+      if (res.ok) {
+        const data = await res.json()
+        const mapped = data.map((o: any) => ({
+          id: o._id,
+          candidateId: o.candidate?._id || o.candidate,
+          role: o.job?.title || 'Unknown Role',
+          amount: `$${o.salary.toLocaleString()}`,
+          equity: '0%', // Wait, we can extract it from letterContent or just mock it. Actually, backend doesn't save equity explicitly, but let's just show 0%.
+          status: o.status,
+          sentDate: new Date(o.sentAt || o.createdAt).toLocaleDateString(),
+          expiryDate: new Date(o.expirationDate).toLocaleDateString(),
+          candidateObj: o.candidate // populated object
+        }))
+        setOffers(mapped)
+      }
+    } catch (err) {
+      console.error('Failed to fetch offers:', err)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   useEffect(() => {
-    const fetchOffers = async () => {
-      try {
-        const res = await fetch('/api/offers')
-        if (res.ok) {
-          const data = await res.json()
-          const mapped = data.map((o: any) => ({
-            id: o._id,
-            candidateId: o.candidate?._id || o.candidate,
-            role: o.job?.title || 'Unknown Role',
-            amount: `$${o.salary.toLocaleString()}`,
-            equity: '0%', // Wait, we can extract it from letterContent or just mock it. Actually, backend doesn't save equity explicitly, but let's just show 0%.
-            status: o.status,
-            sentDate: new Date(o.sentAt || o.createdAt).toLocaleDateString(),
-            expiryDate: new Date(o.expirationDate).toLocaleDateString(),
-            candidateObj: o.candidate // populated object
-          }))
-          setOffers(mapped)
-        }
-      } catch (err) {
-        console.error('Failed to fetch offers:', err)
-      } finally {
-        setIsLoading(false)
-      }
-    }
     fetchOffers()
   }, [])
+
+  const handleSendOffer = async (offerId: string) => {
+    setSendingOfferId(offerId)
+    try {
+      const res = await fetch(`/api/offers/${offerId}/send`, { method: 'POST' })
+      if (res.ok) {
+        await fetchOffers()
+      }
+    } catch (error) {
+      console.error('Failed to send offer:', error)
+    } finally {
+      setSendingOfferId(null)
+    }
+  }
 
   const activeOffers = offers.filter(o => o.status === 'sent' || o.status === 'viewed')
   const acceptedOffers = offers.filter(o => o.status === 'accepted')
@@ -219,9 +235,20 @@ export default function OffersPage() {
                           </div>
                         </td>
                         <td className="px-[24px] py-[16px] text-right">
-                          <button className="text-neutral-400 hover:text-neutral-700 transition-colors p-[4px] rounded-md hover:bg-neutral-100">
-                            <MoreHorizontal size={18} />
-                          </button>
+                          <div className="flex items-center justify-end gap-[8px]">
+                            {offer.status === 'draft' && (
+                              <button 
+                                onClick={() => handleSendOffer(offer.id)}
+                                disabled={sendingOfferId === offer.id}
+                                className="text-[12px] font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 px-[12px] py-[6px] rounded-md transition-colors flex items-center gap-[4px] disabled:opacity-50"
+                              >
+                                <Send size={12} /> {sendingOfferId === offer.id ? 'Sending...' : 'Send Offer'}
+                              </button>
+                            )}
+                            <button className="text-neutral-400 hover:text-neutral-700 transition-colors p-[4px] rounded-md hover:bg-neutral-100">
+                              <MoreHorizontal size={18} />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     )

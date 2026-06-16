@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
       currency: 'USD',
       startDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // Default start date in 2 weeks
       expirationDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
-      status: 'draft',
+      status: 'sent',
       letterContent: `We are pleased to offer you the position. Base salary: $${amount}. Equity: ${equity || '0'}%.`,
       sentAt: new Date()
     });
