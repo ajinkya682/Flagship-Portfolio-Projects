@@ -102,7 +102,7 @@ export default function InterviewsPage() {
             return {
               id: i._id,
               candidateId: i.candidate?._id,
-              candidate: i.candidate, // Populated from backend
+              candidate: { ...i.candidate, id: i.candidate?._id }, // Populated from backend, add id for Link
               date: dateStr,
               dateObj: dateObj,
               time: format(dateObj, 'h:mm a'),

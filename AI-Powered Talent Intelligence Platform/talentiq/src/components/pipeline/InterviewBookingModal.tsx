@@ -53,7 +53,7 @@ export default function InterviewBookingModal({ isOpen, onClose, candidate, onCo
 
     while (current.getTime() + 45 * 60000 <= end.getTime()) {
       slots.push(new Date(current));
-      current = new Date(current.getTime() + 45 * 60000);
+      current = new Date(current.getTime() + 60 * 60000); // 45 mins + 15 mins break
     }
     return slots;
   };
