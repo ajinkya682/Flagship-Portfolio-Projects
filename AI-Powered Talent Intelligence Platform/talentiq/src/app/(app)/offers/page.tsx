@@ -97,90 +97,110 @@ export default function OffersPage() {
 
       {/* Main Content */}
       <div className="flex-1 p-[16px] md:p-[32px]">
-        <div className="bg-white rounded-[16px] border border-neutral-100 shadow-sm overflow-hidden">
-          
-          {/* Table Toolbar */}
-          <div className="px-[20px] py-[16px] border-b border-neutral-50 flex flex-wrap items-center justify-between gap-[16px]">
-            <div className="relative">
-              <Search size={14} className="absolute left-[12px] top-1/2 -translate-y-1/2 text-neutral-400" />
-              <input
-                type="text"
-                placeholder="Search candidates or roles..."
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                className="w-[280px] h-[36px] pl-[34px] pr-[12px] bg-neutral-50 border border-neutral-200 rounded-[8px] text-[13px] text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-primary-400 focus:bg-white transition-all"
-              />
-            </div>
-            <div className="flex items-center gap-[8px]">
-              <button className="h-[36px] px-[12px] bg-white border border-neutral-200 text-neutral-600 font-body text-[12px] font-semibold rounded-[8px] hover:bg-neutral-50 transition-colors flex items-center gap-[6px]">
-                <Filter size={14} /> Status: All
+        {offers.length === 0 ? (
+          <div className="w-full h-full min-h-[400px] flex items-center justify-center">
+            <div className="bg-white rounded-xl shadow-sm border border-[#E5E7EB] p-[40px] flex flex-col items-center justify-center text-center max-w-[400px]">
+              <div className="w-[48px] h-[48px] bg-primary-50 rounded-full flex items-center justify-center mb-[16px]">
+                <FileText size={24} className="text-primary-600" />
+              </div>
+              <h3 className="font-display text-[16px] font-bold text-neutral-900 mb-[8px]">No offers created</h3>
+              <p className="font-body text-[13px] text-neutral-500 mb-[20px]">
+                You haven't created any offers yet. Create an offer to hire your best candidates.
+              </p>
+              <button 
+                onClick={() => setIsCreateOpen(true)}
+                className="flex items-center gap-[6px] bg-primary-500 hover:bg-primary-600 text-white font-body text-[13px] font-medium px-[16px] py-[8px] rounded-md transition-colors shadow-sm"
+              >
+                <Plus size={16} /> Create Offer
               </button>
             </div>
           </div>
+        ) : (
+          <div className="bg-white rounded-[16px] border border-neutral-100 shadow-sm overflow-hidden">
+            
+            {/* Table Toolbar */}
+            <div className="px-[20px] py-[16px] border-b border-neutral-50 flex flex-wrap items-center justify-between gap-[16px]">
+              <div className="relative">
+                <Search size={14} className="absolute left-[12px] top-1/2 -translate-y-1/2 text-neutral-400" />
+                <input
+                  type="text"
+                  placeholder="Search candidates or roles..."
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  className="w-[280px] h-[36px] pl-[34px] pr-[12px] bg-neutral-50 border border-neutral-200 rounded-[8px] text-[13px] text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-primary-400 focus:bg-white transition-all"
+                />
+              </div>
+              <div className="flex items-center gap-[8px]">
+                <button className="h-[36px] px-[12px] bg-white border border-neutral-200 text-neutral-600 font-body text-[12px] font-semibold rounded-[8px] hover:bg-neutral-50 transition-colors flex items-center gap-[6px]">
+                  <Filter size={14} /> Status: All
+                </button>
+              </div>
+            </div>
 
-          {/* Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-neutral-50/50 border-b border-neutral-100">
-                  <th className="text-left px-[24px] py-[12px] font-body text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">Candidate</th>
-                  <th className="text-left px-[24px] py-[12px] font-body text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">Role & Package</th>
-                  <th className="text-left px-[24px] py-[12px] font-body text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">Status</th>
-                  <th className="text-left px-[24px] py-[12px] font-body text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">Timeline</th>
-                  <th className="px-[24px] py-[12px] w-[60px]" />
-                </tr>
-              </thead>
-              <tbody>
-                {offers.map(offer => {
-                  const candidate = candidates.find(c => c.id === offer.candidateId)
-                  if (!candidate) return null
-                  const style = STATUS_STYLES[offer.status] || STATUS_STYLES.draft
-                  const StatusIcon = style.icon
-                  
-                  return (
-                    <tr key={offer.id} className="border-b border-neutral-50 last:border-0 hover:bg-neutral-50/60 transition-colors group">
-                      <td className="px-[24px] py-[16px]">
-                        <div className="flex items-center gap-[12px]">
-                          <img src={candidate.avatar} alt={candidate.name} className="w-[40px] h-[40px] rounded-[10px] object-cover bg-neutral-100" />
-                          <div>
-                            <Link href={`/applications/${candidate.id}`} className="font-body text-[14px] font-semibold text-neutral-900 group-hover:text-primary-700 transition-colors">
-                              {candidate.name}
-                            </Link>
-                            <p className="font-body text-[12px] text-neutral-500 mt-[2px]">{candidate.email}</p>
+            {/* Table */}
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-neutral-50/50 border-b border-neutral-100">
+                    <th className="text-left px-[24px] py-[12px] font-body text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">Candidate</th>
+                    <th className="text-left px-[24px] py-[12px] font-body text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">Role & Package</th>
+                    <th className="text-left px-[24px] py-[12px] font-body text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">Status</th>
+                    <th className="text-left px-[24px] py-[12px] font-body text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">Timeline</th>
+                    <th className="px-[24px] py-[12px] w-[60px]" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {offers.map(offer => {
+                    const candidate = candidates.find(c => c.id === offer.candidateId)
+                    if (!candidate) return null
+                    const style = STATUS_STYLES[offer.status] || STATUS_STYLES.draft
+                    const StatusIcon = style.icon
+                    
+                    return (
+                      <tr key={offer.id} className="border-b border-neutral-50 last:border-0 hover:bg-neutral-50/60 transition-colors group">
+                        <td className="px-[24px] py-[16px]">
+                          <div className="flex items-center gap-[12px]">
+                            <img src={candidate.avatar} alt={candidate.name} className="w-[40px] h-[40px] rounded-[10px] object-cover bg-neutral-100" />
+                            <div>
+                              <Link href={`/applications/${candidate.id}`} className="font-body text-[14px] font-semibold text-neutral-900 group-hover:text-primary-700 transition-colors">
+                                {candidate.name}
+                              </Link>
+                              <p className="font-body text-[12px] text-neutral-500 mt-[2px]">{candidate.email}</p>
+                            </div>
                           </div>
-                        </div>
-                      </td>
-                      <td className="px-[24px] py-[16px]">
-                        <p className="font-body text-[13px] font-semibold text-neutral-900">{offer.role}</p>
-                        <p className="font-body text-[12px] text-neutral-500 mt-[2px]">{offer.amount} • {offer.equity} eq</p>
-                      </td>
-                      <td className="px-[24px] py-[16px]">
-                        <span className={`inline-flex items-center gap-[4px] px-[10px] py-[4px] rounded-full text-[11px] font-bold uppercase tracking-wide border ${style.bg} ${style.text} ${style.border}`}>
-                          <StatusIcon size={12} />
-                          {offer.status}
-                        </span>
-                      </td>
-                      <td className="px-[24px] py-[16px]">
-                        <div className="flex items-center gap-[6px] font-body text-[12px] text-neutral-600 mb-[4px]">
-                          <Send size={12} className="text-neutral-400" /> Sent: {offer.sentDate}
-                        </div>
-                        <div className="flex items-center gap-[6px] font-body text-[12px] text-neutral-500">
-                          <Clock size={12} className={offer.status === 'sent' || offer.status === 'viewed' ? 'text-amber-500' : 'text-neutral-400'} /> 
-                          Exp: {offer.expiryDate}
-                        </div>
-                      </td>
-                      <td className="px-[24px] py-[16px] text-right">
-                        <button className="text-neutral-400 hover:text-neutral-700 transition-colors p-[4px] rounded-md hover:bg-neutral-100">
-                          <MoreHorizontal size={18} />
-                        </button>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
+                        </td>
+                        <td className="px-[24px] py-[16px]">
+                          <p className="font-body text-[13px] font-semibold text-neutral-900">{offer.role}</p>
+                          <p className="font-body text-[12px] text-neutral-500 mt-[2px]">{offer.amount} • {offer.equity} eq</p>
+                        </td>
+                        <td className="px-[24px] py-[16px]">
+                          <span className={`inline-flex items-center gap-[4px] px-[10px] py-[4px] rounded-full text-[11px] font-bold uppercase tracking-wide border ${style.bg} ${style.text} ${style.border}`}>
+                            <StatusIcon size={12} />
+                            {offer.status}
+                          </span>
+                        </td>
+                        <td className="px-[24px] py-[16px]">
+                          <div className="flex items-center gap-[6px] font-body text-[12px] text-neutral-600 mb-[4px]">
+                            <Send size={12} className="text-neutral-400" /> Sent: {offer.sentDate}
+                          </div>
+                          <div className="flex items-center gap-[6px] font-body text-[12px] text-neutral-500">
+                            <Clock size={12} className={offer.status === 'sent' || offer.status === 'viewed' ? 'text-amber-500' : 'text-neutral-400'} /> 
+                            Exp: {offer.expiryDate}
+                          </div>
+                        </td>
+                        <td className="px-[24px] py-[16px] text-right">
+                          <button className="text-neutral-400 hover:text-neutral-700 transition-colors p-[4px] rounded-md hover:bg-neutral-100">
+                            <MoreHorizontal size={18} />
+                          </button>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       <CreateOfferModal isOpen={isCreateOpen} onClose={() => setIsCreateOpen(false)} />

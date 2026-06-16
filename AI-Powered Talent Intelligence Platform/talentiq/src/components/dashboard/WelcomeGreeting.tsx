@@ -4,15 +4,25 @@ import Link from 'next/link'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { Sparkles, Users, Calendar, FileText, Plus, ArrowRight } from 'lucide-react'
 
-const quickStats = [
-  { label: 'Awaiting Review', value: 14, color: 'text-amber-600', bg: 'bg-amber-50', icon: Users },
-  { label: "Today's Interviews", value: 3, color: 'text-blue-600', bg: 'bg-blue-50', icon: Calendar },
-  { label: 'AI Insights', value: 5, color: 'text-purple-600', bg: 'bg-purple-50', icon: Sparkles },
-  { label: 'Pending Offers', value: 2, color: 'text-emerald-600', bg: 'bg-emerald-50', icon: FileText },
-]
+import { useCandidatesStore } from '@/store/candidates.store'
+import { useDomainStore } from '@/store/domain.store'
 
 export default function WelcomeGreeting() {
   const { user } = useCurrentUser()
+  const { candidates } = useCandidatesStore()
+  const { interviews, offers } = useDomainStore()
+
+  const awaitingReviewCount = candidates.filter(c => c.stage === 'Screening' || c.stage === 'Review').length
+  const todaysInterviewsCount = interviews.filter(i => i.date === 'Today').length
+  const aiInsightsCount = candidates.filter(c => c.aiScore > 85).length
+  const pendingOffersCount = offers.filter(o => o.status === 'sent' || o.status === 'pending').length
+
+  const quickStats = [
+    { label: 'Awaiting Review', value: awaitingReviewCount, color: 'text-amber-600', bg: 'bg-amber-50', icon: Users },
+    { label: "Today's Interviews", value: todaysInterviewsCount, color: 'text-blue-600', bg: 'bg-blue-50', icon: Calendar },
+    { label: 'AI Insights', value: aiInsightsCount, color: 'text-purple-600', bg: 'bg-purple-50', icon: Sparkles },
+    { label: 'Pending Offers', value: pendingOffersCount, color: 'text-emerald-600', bg: 'bg-emerald-50', icon: FileText },
+  ]
   const hour = new Date().getHours()
 
   let greeting = 'Good evening'

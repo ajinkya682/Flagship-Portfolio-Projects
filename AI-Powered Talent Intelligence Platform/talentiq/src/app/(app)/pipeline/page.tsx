@@ -288,37 +288,57 @@ export default function PipelinePage() {
 
       {/* Kanban Board Area */}
       <div className="flex-1 overflow-x-auto p-[16px] md:p-[24px] snap-x snap-mandatory sm:snap-none scroll-smooth">
-        <DndContext 
-          sensors={sensors} 
-          collisionDetection={closestCorners} 
-          onDragStart={handleDragStart}
-          onDragEnd={handleDragEnd}
-        >
-          <div className="flex gap-[16px] h-full min-h-[500px]">
-            {STAGE_CONFIG.map(stage => {
-              const stageCandidates = candidates.filter(c => c.stage === stage.name)
-              const visibleCandidates = stageCandidates.filter(c => {
-                const matchSearch = c.name.toLowerCase().includes(search.toLowerCase()) || c.role.toLowerCase().includes(search.toLowerCase())
-                const matchJob = jobFilter === 'All Jobs' || c.role === jobFilter
-                return matchSearch && matchJob
-              })
-
-              return (
-                <DroppableColumn key={stage.id} stage={stage} count={visibleCandidates.length}>
-                  {visibleCandidates.map(c => (
-                    <DraggableCandidate key={c.id} candidate={c} />
-                  ))}
-                </DroppableColumn>
-              )
-            })}
+        {candidates.length === 0 ? (
+          <div className="w-full h-full min-h-[400px] flex items-center justify-center">
+            <div className="bg-white rounded-xl shadow-sm border border-[#E5E7EB] p-[40px] flex flex-col items-center justify-center text-center max-w-[400px]">
+              <div className="w-[48px] h-[48px] bg-primary-50 rounded-full flex items-center justify-center mb-[16px]">
+                <GitMerge size={24} className="text-primary-600" />
+              </div>
+              <h3 className="font-display text-[16px] font-bold text-neutral-900 mb-[8px]">Your pipeline is empty</h3>
+              <p className="font-body text-[13px] text-neutral-500 mb-[20px]">
+                You don't have any candidates yet. Add your first candidate to start tracking them through your hiring stages.
+              </p>
+              <button 
+                onClick={() => setIsAddModalOpen(true)}
+                className="flex items-center gap-[6px] bg-primary-500 hover:bg-primary-600 text-white font-body text-[13px] font-medium px-[16px] py-[8px] rounded-md transition-colors shadow-sm"
+              >
+                <Plus size={16} /> Add Candidate
+              </button>
+            </div>
           </div>
+        ) : (
+          <DndContext 
+            sensors={sensors} 
+            collisionDetection={closestCorners} 
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+          >
+            <div className="flex gap-[16px] h-full min-h-[500px]">
+              {STAGE_CONFIG.map(stage => {
+                const stageCandidates = candidates.filter(c => c.stage === stage.name)
+                const visibleCandidates = stageCandidates.filter(c => {
+                  const matchSearch = c.name.toLowerCase().includes(search.toLowerCase()) || c.role.toLowerCase().includes(search.toLowerCase())
+                  const matchJob = jobFilter === 'All Jobs' || c.role === jobFilter
+                  return matchSearch && matchJob
+                })
 
-          <DragOverlay>
-            {activeCandidate ? (
-              <CandidateCard candidate={activeCandidate} isDragging={true} />
-            ) : null}
-          </DragOverlay>
-        </DndContext>
+                return (
+                  <DroppableColumn key={stage.id} stage={stage} count={visibleCandidates.length}>
+                    {visibleCandidates.map(c => (
+                      <DraggableCandidate key={c.id} candidate={c} />
+                    ))}
+                  </DroppableColumn>
+                )
+              })}
+            </div>
+
+            <DragOverlay>
+              {activeCandidate ? (
+                <CandidateCard candidate={activeCandidate} isDragging={true} />
+              ) : null}
+            </DragOverlay>
+          </DndContext>
+        )}
       </div>
 
       <AddCandidateModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} />

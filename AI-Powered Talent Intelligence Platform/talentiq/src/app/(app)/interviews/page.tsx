@@ -126,64 +126,84 @@ export default function InterviewsPage() {
 
       {/* Main content */}
       <div className="flex-1 overflow-auto p-[16px] md:p-[32px]">
-        <div className="max-w-[1000px] mx-auto w-full flex flex-col gap-[32px]">
+        {interviews.length === 0 ? (
+          <div className="w-full h-full min-h-[400px] flex items-center justify-center">
+            <div className="bg-white rounded-xl shadow-sm border border-[#E5E7EB] p-[40px] flex flex-col items-center justify-center text-center max-w-[400px]">
+              <div className="w-[48px] h-[48px] bg-primary-50 rounded-full flex items-center justify-center mb-[16px]">
+                <Calendar size={24} className="text-primary-600" />
+              </div>
+              <h3 className="font-display text-[16px] font-bold text-neutral-900 mb-[8px]">No interviews scheduled</h3>
+              <p className="font-body text-[13px] text-neutral-500 mb-[20px]">
+                You haven't scheduled any interviews yet. Start scheduling interviews with your top candidates to build your team.
+              </p>
+              <Link 
+                href="/applications"
+                className="flex items-center gap-[6px] bg-primary-500 hover:bg-primary-600 text-white font-body text-[13px] font-medium px-[16px] py-[8px] rounded-md transition-colors shadow-sm"
+              >
+                View Candidates
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <div className="max-w-[1000px] mx-auto w-full flex flex-col gap-[32px]">
 
-          {/* Today */}
-          {todayInterviews.length > 0 && (
-            <section>
-              <div className="flex items-center gap-[10px] mb-[16px]">
-                <h2 className="font-display text-[18px] font-bold text-neutral-900">Today</h2>
-                <span className="bg-blue-100 text-blue-700 text-[11px] font-bold px-[8px] py-[2px] rounded-full">
-                  {todayInterviews.length}
-                </span>
-              </div>
-              <div className="flex flex-col gap-[12px]">
-                {todayInterviews.map(int => (
-                  <InterviewCard key={int.id} data={int} candidate={candidates.find(c => c.id === int.candidateId)} isToday />
-                ))}
-              </div>
-            </section>
-          )}
+            {/* Today */}
+            {todayInterviews.length > 0 && (
+              <section>
+                <div className="flex items-center gap-[10px] mb-[16px]">
+                  <h2 className="font-display text-[18px] font-bold text-neutral-900">Today</h2>
+                  <span className="bg-blue-100 text-blue-700 text-[11px] font-bold px-[8px] py-[2px] rounded-full">
+                    {todayInterviews.length}
+                  </span>
+                </div>
+                <div className="flex flex-col gap-[12px]">
+                  {todayInterviews.map(int => (
+                    <InterviewCard key={int.id} data={int} candidate={candidates.find(c => c.id === int.candidateId)} isToday />
+                  ))}
+                </div>
+              </section>
+            )}
 
-          {/* Upcoming */}
-          {upcomingInterviews.length > 0 && (
-            <section>
-              <div className="flex items-center gap-[10px] mb-[16px]">
-                <h2 className="font-display text-[18px] font-bold text-neutral-900">Upcoming</h2>
-              </div>
-              <div className="flex flex-col gap-[12px]">
-                {upcomingInterviews.map((int, i) => (
-                  <div key={int.id}>
-                    {(i === 0 || upcomingInterviews[i-1].date !== int.date) && (
-                      <p className="font-body text-[12px] font-semibold text-neutral-500 mb-[8px] ml-[4px]">{int.date}</p>
-                    )}
-                    <InterviewCard data={int} candidate={candidates.find(c => c.id === int.candidateId)} />
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
+            {/* Upcoming */}
+            {upcomingInterviews.length > 0 && (
+              <section>
+                <div className="flex items-center gap-[10px] mb-[16px]">
+                  <h2 className="font-display text-[18px] font-bold text-neutral-900">Upcoming</h2>
+                </div>
+                <div className="flex flex-col gap-[12px]">
+                  {upcomingInterviews.map((int, i) => (
+                    <div key={int.id}>
+                      {(i === 0 || upcomingInterviews[i-1].date !== int.date) && (
+                        <p className="font-body text-[12px] font-semibold text-neutral-500 mb-[8px] ml-[4px]">{int.date}</p>
+                      )}
+                      <InterviewCard data={int} candidate={candidates.find(c => c.id === int.candidateId)} />
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
 
-          {/* Past */}
-          {pastInterviews.length > 0 && (
-            <section>
-              <div className="flex items-center gap-[10px] mb-[16px]">
-                <h2 className="font-display text-[18px] font-bold text-neutral-900">Past</h2>
-              </div>
-              <div className="flex flex-col gap-[12px]">
-                {pastInterviews.map((int, i) => (
-                  <div key={int.id}>
-                    {(i === 0 || pastInterviews[i-1].date !== int.date) && (
-                      <p className="font-body text-[12px] font-semibold text-neutral-500 mb-[8px] ml-[4px]">{int.date}</p>
-                    )}
-                    <InterviewCard data={int} candidate={candidates.find(c => c.id === int.candidateId)} />
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
+            {/* Past */}
+            {pastInterviews.length > 0 && (
+              <section>
+                <div className="flex items-center gap-[10px] mb-[16px]">
+                  <h2 className="font-display text-[18px] font-bold text-neutral-900">Past</h2>
+                </div>
+                <div className="flex flex-col gap-[12px]">
+                  {pastInterviews.map((int, i) => (
+                    <div key={int.id}>
+                      {(i === 0 || pastInterviews[i-1].date !== int.date) && (
+                        <p className="font-body text-[12px] font-semibold text-neutral-500 mb-[8px] ml-[4px]">{int.date}</p>
+                      )}
+                      <InterviewCard data={int} candidate={candidates.find(c => c.id === int.candidateId)} />
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
 
-        </div>
+          </div>
+        )}
       </div>
     </div>
   )

@@ -15,29 +15,7 @@ import { useCandidatesStore } from '@/store/candidates.store'
 const sparkline = [18, 22, 19, 28, 34, 40, 36, 44, 51, 58]
 const scoreSparkline = [74, 76, 75, 78, 80, 79, 82, 81, 83, 85]
 
-const aiInsights = [
-  {
-    type: 'warning' as const,
-    title: '3 Candidates Stalled in Screening',
-    description: 'Jennifer Park, Kevin Liu, and Priya Sharma have been in Screening for 5+ days with no action.',
-    actionLabel: 'Review now',
-    actionHref: '/applications?stage=Screening',
-  },
-  {
-    type: 'info' as const,
-    title: '45% Drop-off at Screening',
-    description: 'Senior Engineer role has a high drop-off vs. the 28% platform average. Consider revising your screening criteria.',
-    actionLabel: 'View analysis',
-    actionHref: '/analytics',
-  },
-  {
-    type: 'success' as const,
-    title: '5 New Top Matches Available',
-    description: '5 candidates scored 85+ for open roles and have not been reviewed yet. Act fast — top talent moves quickly.',
-    actionLabel: 'View matches',
-    actionHref: '/applications?score=85',
-  },
-]
+// Moved inside component
 
 function ScoreChip({ score }: { score: number }) {
   const cls = score >= 85 ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : score >= 70 ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-red-50 text-red-600 border-red-200'
@@ -84,13 +62,37 @@ export default function DashboardPage() {
   })
 
   // Mock activity based on actual data counts
-  const activityItems = [
+  const activityItems = candidates.length === 0 ? [] : [
     { id: '1', text: `AI screened ${candidates.length} new applications for open roles`, timestamp: '2 min ago', type: 'ai' as const },
     { id: '2', text: `${interviews.length} interviews scheduled across the team`, timestamp: '1h ago', type: 'manual' as const, actor: 'System' },
     { id: '3', text: `${messages.length} recent messages sent to candidates`, timestamp: '2h ago', type: 'manual' as const },
     { id: '4', text: 'AI detected 3 candidates stalled in Screening for 5+ days', timestamp: '3h ago', type: 'ai' as const },
     { id: '5', text: `${pendingOffers.length} offer letters currently pending response`, timestamp: '5h ago', type: 'manual' as const, actor: 'System' },
     { id: '6', text: `${jobs.length} jobs currently open and accepting applications`, timestamp: '1d ago', type: 'manual' as const },
+  ]
+
+  const aiInsights = candidates.length === 0 ? [] : [
+    {
+      type: 'warning' as const,
+      title: '3 Candidates Stalled in Screening',
+      description: 'Jennifer Park, Kevin Liu, and Priya Sharma have been in Screening for 5+ days with no action.',
+      actionLabel: 'Review now',
+      actionHref: '/applications?stage=Screening',
+    },
+    {
+      type: 'info' as const,
+      title: '45% Drop-off at Screening',
+      description: 'Senior Engineer role has a high drop-off vs. the 28% platform average. Consider revising your screening criteria.',
+      actionLabel: 'View analysis',
+      actionHref: '/analytics',
+    },
+    {
+      type: 'success' as const,
+      title: '5 New Top Matches Available',
+      description: '5 candidates scored 85+ for open roles and have not been reviewed yet. Act fast — top talent moves quickly.',
+      actionLabel: 'View matches',
+      actionHref: '/applications?score=85',
+    },
   ]
 
   const recentApplications = [...candidates].sort((a, b) => new Date(b.appliedAt).getTime() - new Date(a.appliedAt).getTime()).slice(0, 5)

@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { useUIStore } from '@/store/ui.store'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { useCandidatesStore } from '@/store/candidates.store'
+import { useDomainStore } from '@/store/domain.store'
 import { cn } from '@/lib/utils'
 import * as Dialog from '@radix-ui/react-dialog'
 import CheckoutModal from '@/components/marketing/CheckoutModal'
@@ -111,6 +113,8 @@ function SidebarContent({ isMobile = false }: { isMobile?: boolean }) {
   const { sidebarCollapsed, toggleSidebar, mobileSidebarOpen, setMobileSidebarOpen } = useUIStore()
   const pathname = usePathname()
   const { user } = useCurrentUser()
+  const { candidates } = useCandidatesStore()
+  const { interviews } = useDomainStore()
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false)
   const [selectedPlan, setSelectedPlan] = useState<'Startup' | 'Growth' | 'Enterprise'>('Growth')
 
@@ -251,7 +255,7 @@ function SidebarContent({ isMobile = false }: { isMobile?: boolean }) {
         )}
         <NavItem icon={LayoutDashboard} label="Dashboard" href="/dashboard" isCollapsed={effectiveCollapsed} isActive={pathname === '/dashboard'} />
         <NavItem icon={Briefcase} label="Jobs" href="/jobs" isCollapsed={effectiveCollapsed} isActive={pathname.startsWith('/jobs')} />
-        <NavItem icon={Users} label="Candidates" href="/applications" isCollapsed={effectiveCollapsed} isActive={pathname.startsWith('/applications')} badge={12} />
+        <NavItem icon={Users} label="Candidates" href="/applications" isCollapsed={effectiveCollapsed} isActive={pathname.startsWith('/applications')} badge={candidates.length > 0 ? candidates.length : undefined} />
         <NavItem icon={GitMerge} label="Pipeline" href="/pipeline" isCollapsed={effectiveCollapsed} isActive={pathname.startsWith('/pipeline')} />
 
         {/* Recruiting group */}
@@ -259,7 +263,7 @@ function SidebarContent({ isMobile = false }: { isMobile?: boolean }) {
           <p className="text-[11px] font-bold text-neutral-400 uppercase tracking-[1.2px] px-[12px] pt-[20px] pb-[6px]">Recruiting</p>
         )}
         {effectiveCollapsed && <div className="h-[1px] bg-neutral-200/60 mx-[12px] my-[12px]" />}
-        <NavItem icon={Calendar} label="Interviews" href="/interviews" isCollapsed={effectiveCollapsed} isActive={pathname.startsWith('/interviews')} badge={3} />
+        <NavItem icon={Calendar} label="Interviews" href="/interviews" isCollapsed={effectiveCollapsed} isActive={pathname.startsWith('/interviews')} badge={interviews.length > 0 ? interviews.length : undefined} />
         <NavItem icon={FileText} label="Offers" href="/offers" isCollapsed={effectiveCollapsed} isActive={pathname.startsWith('/offers')} />
         <NavItem icon={MessageSquare} label="Messages" href="/messages" isCollapsed={effectiveCollapsed} isActive={pathname.startsWith('/messages')} />
 
@@ -269,7 +273,7 @@ function SidebarContent({ isMobile = false }: { isMobile?: boolean }) {
         )}
         {effectiveCollapsed && <div className="h-[1px] bg-neutral-200/60 mx-[12px] my-[12px]" />}
         <NavItem icon={BarChart2} label="Analytics" href="/analytics" isCollapsed={effectiveCollapsed} isActive={pathname.startsWith('/analytics')} />
-        <NavItem icon={Lightbulb} label="AI Insights" href="/insights" isCollapsed={effectiveCollapsed} isActive={pathname.startsWith('/insights')} badge={5} isNew />
+        <NavItem icon={Lightbulb} label="AI Insights" href="/insights" isCollapsed={effectiveCollapsed} isActive={pathname.startsWith('/insights')} />
       </div>
 
       {/* BOTTOM: User Profile + Settings */}

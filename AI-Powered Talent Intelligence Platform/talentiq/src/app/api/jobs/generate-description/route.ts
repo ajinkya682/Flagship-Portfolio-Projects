@@ -53,19 +53,26 @@ CRITICAL INSTRUCTIONS FOR FORMATTING:
 - Keep it concise, around 150-200 words.`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-flash-latest',
       contents: prompt,
     });
 
-    const text = response.text;
+    let text = response.text;
 
     if (!text) {
       throw new Error('No text generated from Gemini');
     }
 
+    // Actively strip out markdown formatting that the AI might incorrectly include
+    text = text.replace(/\*\*/g, ''); // Remove bold asterisks
+    text = text.replace(/##/g, ''); // Remove headings
+    text = text.replace(/#/g, ''); // Remove headings
+    text = text.replace(/_/g, ''); // Remove italics underscores
+    text = text.trim();
+
     return NextResponse.json({ description: text });
   } catch (error: any) {
     console.error('Job generation error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Internal server error', stack: error.stack }, { status: 500 });
   }
 }

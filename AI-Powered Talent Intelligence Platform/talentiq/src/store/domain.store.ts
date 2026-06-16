@@ -159,6 +159,8 @@ interface DomainState {
   updateSettings: (updates: Partial<Settings>) => void
 
   resetStore: () => void
+  loadDemoData: () => void
+  clearData: () => void
 }
 
 // ── Initial Data ─────────────────────────────────────────────────────
@@ -169,16 +171,10 @@ const INITIAL_SETTINGS: Settings = {
   portalThemeColor: '#0ea5e9',
 }
 
-const INITIAL_INTERVIEWS: Interview[] = MOCK_INTERVIEWS as Interview[]
-const INITIAL_OFFERS: Offer[] = MOCK_OFFERS as Offer[]
-const INITIAL_MESSAGES: Message[] = MOCK_MESSAGES as Message[]
-const INITIAL_USERS: User[] = DEMO_USERS.map(u => ({
-  id: u.id,
-  name: u.name,
-  email: u.email,
-  role: u.role,
-  avatar: u.avatar
-}))
+const INITIAL_INTERVIEWS: Interview[] = []
+const INITIAL_OFFERS: Offer[] = []
+const INITIAL_MESSAGES: Message[] = []
+const INITIAL_USERS: User[] = []
 
 // ── Store ───────────────────────────────────────────────────────────
 
@@ -223,6 +219,28 @@ export const useDomainStore = create<DomainState>()(
           messages: INITIAL_MESSAGES,
           offers: INITIAL_OFFERS,
           settings: INITIAL_SETTINGS,
+        }),
+        
+      loadDemoData: () =>
+        set({
+          interviews: MOCK_INTERVIEWS as Interview[],
+          offers: MOCK_OFFERS as Offer[],
+          messages: MOCK_MESSAGES as Message[],
+          users: DEMO_USERS.map(u => ({
+            id: u.id,
+            name: u.name,
+            email: u.email,
+            role: u.role,
+            avatar: u.avatar
+          })),
+        }),
+        
+      clearData: () =>
+        set({
+          interviews: [],
+          offers: [],
+          messages: [],
+          users: [],
         }),
     }),
     {

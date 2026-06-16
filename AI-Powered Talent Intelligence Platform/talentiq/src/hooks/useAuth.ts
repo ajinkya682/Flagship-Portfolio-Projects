@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useAuthStore } from '@/store/auth.store'
 import { useJobsStore } from '@/store/jobs.store'
 import { useCandidatesStore } from '@/store/candidates.store'
+import { useDomainStore } from '@/store/domain.store'
 import type { User } from '@/types/domain.types'
 import api from '@/lib/api'
 
@@ -34,9 +35,11 @@ export function useAuth() {
       if (appUser.email === 'demo@talentiq.com') {
         useJobsStore.getState().loadDemoData()
         useCandidatesStore.getState().loadDemoData()
+        useDomainStore.getState().loadDemoData()
       } else {
         useJobsStore.getState().clearData()
         useCandidatesStore.getState().clearData()
+        useDomainStore.getState().clearData()
       }
 
       return appUser
@@ -59,9 +62,11 @@ export function useAuth() {
       if (appUser.email === 'demo@talentiq.com') {
         useJobsStore.getState().loadDemoData()
         useCandidatesStore.getState().loadDemoData()
+        useDomainStore.getState().loadDemoData()
       } else {
         useJobsStore.getState().clearData()
         useCandidatesStore.getState().clearData()
+        useDomainStore.getState().clearData()
       }
 
       return appUser
