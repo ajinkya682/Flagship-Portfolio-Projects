@@ -59,6 +59,7 @@ export default function RegisterPage() {
   const [step, setStep] = useState<1 | 2>(1);
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Step 1 Form
   const form1 = useForm<z.infer<typeof step1Schema>>({
@@ -89,9 +90,11 @@ export default function RegisterPage() {
         email: step1Data.email,
         password: step1Data.password,
       });
-      router.push("/onboarding/step/1");
-    } catch (error) {
-      console.error(error);
+      window.location.href = "/dashboard";
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.error || err.message || 'Failed to create account';
+      setError(errorMessage);
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -315,6 +318,11 @@ export default function RegisterPage() {
           onSubmit={form2.handleSubmit(onStep2Submit)}
           className="flex flex-col gap-6 animate-in fade-in slide-in-from-right-4 duration-500"
         >
+          {error && (
+            <div className="bg-red-50 text-red-600 text-[13px] font-body p-[12px] rounded-md border border-red-100">
+              {error}
+            </div>
+          )}
           <div className="flex flex-col gap-3">
             <label className="font-body text-[13px] font-bold text-neutral-800">
               Company Size

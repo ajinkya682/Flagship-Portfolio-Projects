@@ -35,7 +35,8 @@ export default function LoginPage() {
       await login(data)
       window.location.href = '/dashboard'
     } catch (err: any) {
-      setError(err.message || 'Failed to sign in')
+      const errorMessage = err.response?.data?.error || err.message || 'Failed to sign in'
+      setError(errorMessage)
     } finally {
       setIsSubmitting(false)
     }
