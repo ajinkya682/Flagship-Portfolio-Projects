@@ -2,88 +2,90 @@ import { NextResponse } from 'next/server';
 import connectToDatabase from '@/core/database/mongoose';
 import { Application } from '@/core/database/models/Application';
 import { Candidate } from '@/core/database/models/Candidate';
-import { verifyAccessToken } from '@/core/auth/jwt';
+import { Job } from '@/core/database/models/Job';
 
-/**
- * PATCH /api/applications/[id]/rescore
- * 
- * Re-runs AI scoring for an existing application.
- * Accepts { aiScore } body with the full score object from /api/candidates/score.
- * Requires recruiter authentication.
- */
-export async function PATCH(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
+export async function POST(req: Request, { params }: { params: { id: string } }) {
   try {
     await connectToDatabase();
-
-    // Auth check
-    let token = req.headers.get('authorization')?.split(' ')[1];
-    if (!token) {
-      token = req.headers.get('cookie')
-        ?.split(';')
-        .find(c => c.trim().startsWith('accessToken='))
-        ?.split('=')[1];
+    
+    const applicationId = params.id;
+    if (!applicationId) {
+      return NextResponse.json({ error: 'Application ID is required' }, { status: 400 });
     }
 
-    if (!token) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    try {
-      verifyAccessToken(token);
-    } catch {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
-    }
-
-    const body = await req.json();
-    const { aiScore, extractedSkills, extractedCompanies, extractedEducation } = body;
-
-    if (!aiScore) {
-      return NextResponse.json({ error: 'aiScore data is required' }, { status: 400 });
-    }
-
-    // Update Application's aiScore
-    const updatedApplication = await Application.findByIdAndUpdate(
-      params.id,
-      {
-        aiScore: {
-          score: aiScore.score ?? 0,
-          skillsMatch: aiScore.skillsMatch ?? 0,
-          experienceMatch: aiScore.experienceMatch ?? 0,
-          educationMatch: aiScore.educationMatch ?? 0,
-          keywordsMatch: aiScore.keywordsMatch ?? 0,
-          strengths: aiScore.strengths ?? [],
-          gaps: aiScore.gaps ?? [],
-          reasons: aiScore.reasons ?? [],
-          scoredAt: new Date(),
-        },
-      },
-      { new: true }
-    ).populate('candidate');
-
-    if (!updatedApplication) {
+    const application = await Application.findById(applicationId);
+    if (!application) {
       return NextResponse.json({ error: 'Application not found' }, { status: 404 });
     }
 
-    // Optionally update extracted entities on the Candidate document
-    if (extractedSkills || extractedCompanies || extractedEducation) {
-      const candidateId = (updatedApplication.candidate as any)._id;
-      await Candidate.findByIdAndUpdate(candidateId, {
-        ...(extractedSkills && { extractedSkills }),
-        ...(extractedCompanies && { extractedCompanies }),
-        ...(extractedEducation && { extractedEducation }),
-      });
+    const candidate = await Candidate.findById(application.candidate);
+    if (!candidate) {
+      return NextResponse.json({ error: 'Candidate not found' }, { status: 404 });
     }
 
-    return NextResponse.json({
-      success: true,
-      applicationId: params.id,
-      score: aiScore.score,
+    const job = await Job.findById(application.job);
+    if (!job) {
+      return NextResponse.json({ error: 'Job not found' }, { status: 404 });
+    }
+
+    if (!candidate.resumeUrl) {
+      return NextResponse.json({ error: 'Candidate has no resume uploaded' }, { status: 400 });
+    }
+
+    // Call our internal score endpoint
+    const scoreUrl = new URL('/api/candidates/score', req.url);
+    const scoreRes = await fetch(scoreUrl.toString(), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ resumeUrl: candidate.resumeUrl, job: job })
     });
+
+    if (!scoreRes.ok) {
+      const err = await scoreRes.json();
+      return NextResponse.json({ error: err.error || 'Failed to score resume' }, { status: scoreRes.status });
+    }
+
+    const scoreData = await scoreRes.json();
+
+    // Update Application
+    application.aiScore = {
+      score: scoreData.aiScore || 0,
+      skillsMatch: scoreData.skillsMatch || scoreData.aiScore || 0,
+      experienceMatch: scoreData.experienceMatch || scoreData.aiScore || 0,
+      educationMatch: scoreData.educationMatch || scoreData.aiScore || 0,
+      keywordsMatch: scoreData.keywordsMatch || scoreData.aiScore || 0,
+      strengths: scoreData.strengths || [],
+      gaps: scoreData.gaps || [],
+      reasons: scoreData.reasons || [],
+      scoredAt: new Date()
+    };
+    await application.save();
+
+    // Update Candidate
+    candidate.extractedSkills = scoreData.extractedSkills || [];
+    candidate.extractedCompanies = scoreData.extractedCompanies || [];
+    candidate.extractedEducation = scoreData.extractedEducation || [];
+    await candidate.save();
+
+    // Return updated fields for the frontend
+    return NextResponse.json({
+      aiScore: application.aiScore.score,
+      scoreBreakdown: {
+        skills: application.aiScore.skillsMatch,
+        experience: application.aiScore.experienceMatch,
+        education: application.aiScore.educationMatch,
+        keywords: application.aiScore.keywordsMatch,
+      },
+      strengths: application.aiScore.strengths,
+      gaps: application.aiScore.gaps,
+      reasons: application.aiScore.reasons,
+      extractedSkills: candidate.extractedSkills,
+      extractedCompanies: candidate.extractedCompanies,
+      extractedEducation: candidate.extractedEducation,
+    });
+
   } catch (error: any) {
     console.error('Rescore error:', error);
-    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

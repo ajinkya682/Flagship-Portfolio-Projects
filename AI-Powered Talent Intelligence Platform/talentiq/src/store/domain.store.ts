@@ -63,6 +63,7 @@ export interface Job {
 
 export interface Candidate {
   id: string
+  applicationId?: string
   name: string
   email: string
   phone: string
@@ -86,6 +87,7 @@ export interface Candidate {
   scoreBreakdown?: { skills: number; experience: number; education: number; keywords: number }
   strengths?: string[]
   gaps?: string[]
+  reasons?: Array<{ text: string; positive: boolean }>
   tags?: string[]
   assignedTo?: string
   aiScore: number

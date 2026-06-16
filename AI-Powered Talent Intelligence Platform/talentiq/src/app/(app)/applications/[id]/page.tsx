@@ -5,7 +5,8 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
   ArrowLeft, Sparkles, Mail, Phone, Linkedin, Globe, FileText, MessageSquare,
-  CheckCircle2, XCircle, ChevronRight, Tag, Clock, Star, Plus, Send, AlertTriangle
+  CheckCircle2, XCircle, ChevronRight, Tag, Clock, Star, Plus, Send, AlertTriangle,
+  Code, GraduationCap, Search, ThumbsUp, ThumbsDown, Briefcase
 } from 'lucide-react'
 import { useDomainStore } from '@/store/domain.store'
 import { useJobsStore } from '@/store/jobs.store'
@@ -44,7 +45,7 @@ export default function ApplicationDetailPage() {
   const candidateId = params?.id as string
 
   const { jobs } = useJobsStore()
-  const { candidates, moveCandidateStage, addCandidateNote } = useCandidatesStore()
+  const { candidates, moveCandidateStage, addCandidateNote, updateCandidate } = useCandidatesStore()
   const candidate = candidates.find(c => c.id === candidateId)
   const job = jobs.find(j => j.id === candidate?.jobId)
 
@@ -58,6 +59,9 @@ export default function ApplicationDetailPage() {
 
   const [showMoveBackModal, setShowMoveBackModal] = useState(false)
   const [moveBackConfirmed, setMoveBackConfirmed] = useState(false)
+
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [analyzeError, setAnalyzeError] = useState('')
 
   if (!candidate || !job) {
     return (
@@ -144,6 +148,27 @@ export default function ApplicationDetailPage() {
     }, 1500)
   }
 
+  const handleAnalyzeResume = async () => {
+    setIsAnalyzing(true)
+    setAnalyzeError('')
+    try {
+      const targetId = candidate.applicationId || candidate.id; 
+      const res = await fetch(`/api/applications/${targetId}/rescore`, {
+        method: 'POST',
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Failed to analyze resume')
+      }
+      const updatedData = await res.json()
+      updateCandidate(candidate.id, updatedData)
+    } catch (err: any) {
+      setAnalyzeError(err.message)
+    } finally {
+      setIsAnalyzing(false)
+    }
+  }
+
   return (
     <>
     <div className="flex flex-col h-full -mx-[16px] md:-mx-[32px] -mt-[16px] md:-mt-[32px] bg-neutral-50/50 min-h-screen">
@@ -208,8 +233,34 @@ export default function ApplicationDetailPage() {
                 </div>
 
                 <h2 className="font-display text-[22px] font-bold text-neutral-900">{candidate.name}</h2>
-                <p className="font-body text-[13px] text-neutral-500 mt-[2px]">{candidate.role}{location ? ` · ${location}` : ''}</p>
-                <p className="font-body text-[12px] text-neutral-400 mt-[2px]">{yearsExp ? `${yearsExp} years experience · ` : ''}Applied {new Date(candidate.appliedAt).toLocaleDateString('en-US')}</p>
+                <div className="flex items-center justify-between mt-[2px]">
+                  <p className="font-body text-[13px] text-neutral-500">{candidate.role}</p>
+                  {candidate.aiScore > 0 && (
+                    <div className="flex items-center gap-[4px] px-[8px] py-[4px] bg-emerald-50 rounded-[6px] border border-emerald-100">
+                      <Sparkles size={11} className="text-emerald-500" />
+                      <span className="font-body text-[10px] font-bold text-emerald-700 uppercase tracking-wide">AI-Powered Match</span>
+                    </div>
+                  )}
+                </div>
+                
+                <div className="flex flex-wrap gap-[12px] mt-[12px]">
+                  {location && (
+                    <div className="flex items-center gap-[4px] text-neutral-500">
+                      <Briefcase size={12} />
+                      <span className="font-body text-[11px] font-medium">{location}</span>
+                    </div>
+                  )}
+                  {yearsExp !== null && (
+                    <div className="flex items-center gap-[4px] text-neutral-500">
+                      <Star size={12} />
+                      <span className="font-body text-[11px] font-medium">{yearsExp} Years Experience</span>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-[4px] text-neutral-500">
+                    <Clock size={12} />
+                    <span className="font-body text-[11px] font-medium">Full-time</span>
+                  </div>
+                </div>
 
                 {/* Contact links */}
                 <div className="flex flex-wrap gap-[8px] mt-[14px]">
@@ -229,108 +280,140 @@ export default function ApplicationDetailPage() {
               </div>
             </div>
 
-            {/* AI Score Breakdown */}
-            <div className="bg-white rounded-[16px] border border-neutral-100 shadow-sm p-[20px]">
-              <div className="flex items-center gap-[8px] mb-[16px]">
-                <div className="w-[32px] h-[32px] rounded-[8px] bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-sm">
-                  <Sparkles size={14} className="text-white" />
+            {/* AI Score Breakdown & Skills (Redesigned) */}
+            {candidate.aiScore === 0 ? (
+              <div className="flex flex-col items-center justify-center py-[40px] text-center gap-[12px] bg-neutral-50/50 rounded-[24px] border border-neutral-100 mt-[0px]">
+                <Sparkles size={32} className="text-neutral-300" />
+                <p className="font-display text-[16px] font-bold text-neutral-700">Resume not yet analyzed</p>
+                <p className="font-body text-[13px] text-neutral-500 max-w-[280px]">Run the AI analysis to extract skills, experience, and calculate a match score against the job description.</p>
+                {analyzeError && <p className="font-body text-[12px] text-red-500">{analyzeError}</p>}
+                <button 
+                  onClick={handleAnalyzeResume} 
+                  disabled={isAnalyzing}
+                  className="mt-[8px] h-[36px] px-[16px] bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 text-white font-body text-[13px] font-semibold rounded-[8px] shadow-sm transition-all flex items-center justify-center gap-[6px]"
+                >
+                  <Sparkles size={14} /> {isAnalyzing ? 'Analyzing...' : 'Analyze Resume'}
+                </button>
+              </div>
+            ) : (
+              <div className="bg-white rounded-[24px] shadow-sm border border-neutral-100 overflow-hidden">
+                {/* Top Gradient Background Area */}
+                <div className="relative pt-[40px] pb-[32px] px-[32px] bg-gradient-to-b from-[#f0f7ff] via-white to-white flex flex-col items-center text-center">
+                  
+                  {/* Decorative Sparkles */}
+                  <Sparkles size={16} className="absolute top-[30px] left-[20%] text-blue-200" />
+                  <Sparkles size={20} className="absolute top-[40px] right-[25%] text-purple-200" />
+                  <Sparkles size={12} className="absolute top-[120px] left-[30%] text-emerald-200" />
+                  <Sparkles size={14} className="absolute top-[100px] right-[20%] text-amber-200" />
+
+                  {/* Score Circle */}
+                  <div className="relative mb-[24px]">
+                    <svg className="w-[140px] h-[140px] transform -rotate-90">
+                      <circle cx="70" cy="70" r="60" stroke="#f3f4f6" strokeWidth="8" fill="none" />
+                      <circle cx="70" cy="70" r="60" stroke={scoreColor} strokeWidth="8" fill="none" 
+                              strokeDasharray="377" strokeDashoffset={377 - (candidate.aiScore / 100) * 377} 
+                              strokeLinecap="round" className="transition-all duration-1000 ease-out" />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <span className="font-display text-[42px] font-bold leading-none" style={{ color: scoreColor }}>
+                        {candidate.aiScore}
+                      </span>
+                      <span className="font-body text-[11px] text-neutral-400 font-medium mt-[4px]">
+                        out of 100
+                      </span>
+                    </div>
+                  </div>
+
+                  <h3 className="font-display text-[20px] font-bold" style={{ color: scoreColor }}>
+                    {candidate.aiScore >= 85 ? 'Strong match for this role' : candidate.aiScore >= 70 ? 'Good match for this role' : 'Moderate match for this role'}
+                  </h3>
+                  <p className="font-body text-[13px] text-neutral-500 mt-[6px] max-w-[340px]">
+                    {candidate.name.split(' ')[0]} demonstrates {candidate.aiScore >= 85 ? 'strong' : candidate.aiScore >= 70 ? 'good' : 'moderate'} alignment with the key requirements and responsibilities.
+                  </p>
+
+                  {/* Horizontal Progress Bars */}
+                  <div className="w-full mt-[32px] bg-white rounded-[16px] shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-neutral-100 p-[24px]">
+                    <div className="flex flex-col gap-[20px]">
+                      {[
+                        { label: 'Skills Match', value: scoreBreakdown.skills, color: '#10B981', icon: <Code size={14} className="text-blue-500" /> },
+                        { label: 'Experience', value: scoreBreakdown.experience, color: '#10B981', icon: <Briefcase size={14} className="text-blue-500" /> },
+                        { label: 'Education', value: scoreBreakdown.education, color: '#F59E0B', icon: <GraduationCap size={14} className="text-blue-500" /> },
+                        { label: 'Keywords', value: scoreBreakdown.keywords, color: '#10B981', icon: <Search size={14} className="text-blue-500" /> },
+                      ].map(row => (
+                        <div key={row.label} className="flex flex-col gap-[8px]">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-[8px]">
+                              {row.icon}
+                              <span className="font-body text-[13px] text-neutral-700 font-medium">{row.label}</span>
+                            </div>
+                            <span className="font-body text-[13px] font-bold text-neutral-900">{row.value}%</span>
+                          </div>
+                          <div className="h-[6px] bg-neutral-100 rounded-full overflow-hidden w-full">
+                            <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${row.value}%`, backgroundColor: row.color }} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-display text-[14px] font-bold text-neutral-900">AI Match Score</h3>
-                  <p className="font-body text-[11px] text-neutral-400">Powered by TalentIQ Intelligence</p>
-                </div>
-                <div className="ml-auto text-center">
-                  <p className="font-display text-[32px] font-bold leading-none" style={{ color: scoreColor }}>{candidate.aiScore}</p>
-                  <p className="font-body text-[10px] text-neutral-400">/ 100</p>
+
+                {/* Why this score */}
+                <div className="bg-neutral-50/30 p-[32px] border-t border-neutral-100">
+                  <h4 className="font-display text-[15px] font-bold text-neutral-900 mb-[16px] flex items-center gap-[6px]">
+                    <Sparkles size={16} className="text-purple-500" /> Why this score
+                  </h4>
+                  <div className="flex flex-col gap-[14px]">
+                    {candidate.reasons && candidate.reasons.length > 0 ? (
+                      candidate.reasons.map((r, i) => (
+                        <div key={i} className="flex items-start gap-[12px]">
+                          {r.positive ? (
+                            <div className="mt-[2px]"><ThumbsUp size={15} className="text-emerald-500" /></div>
+                          ) : (
+                            <div className="mt-[2px]"><ThumbsDown size={15} className="text-red-400" /></div>
+                          )}
+                          <span className={`font-body text-[13px] leading-relaxed ${r.positive ? 'text-neutral-700' : 'text-neutral-600'}`}>{r.text}</span>
+                        </div>
+                      ))
+                    ) : (
+                      // Fallback to old strengths/gaps if reasons array is empty
+                      <>
+                        {strengths.map((s, i) => (
+                          <div key={'s'+i} className="flex items-start gap-[12px]">
+                            <div className="mt-[2px]"><ThumbsUp size={15} className="text-emerald-500" /></div>
+                            <span className="font-body text-[13px] leading-relaxed text-neutral-700">{s}</span>
+                          </div>
+                        ))}
+                        {gaps.map((g, i) => (
+                          <div key={'g'+i} className="flex items-start gap-[12px]">
+                            <div className="mt-[2px]"><ThumbsDown size={15} className="text-red-400" /></div>
+                            <span className="font-body text-[13px] leading-relaxed text-neutral-600">{g}</span>
+                          </div>
+                        ))}
+                      </>
+                    )}
+                  </div>
+
+                  {/* Top Skills */}
+                  <h4 className="font-display text-[15px] font-bold text-neutral-900 mt-[32px] mb-[16px] flex items-center gap-[6px]">
+                    <Star size={16} className="text-purple-500" /> Top Skills
+                  </h4>
+                  <div className="flex flex-wrap gap-[8px]">
+                    {extractedSkills.length > 0 ? (
+                      extractedSkills.map((skill, i) => {
+                        const isTechnical = i % 2 === 0; // Alternating colors
+                        return (
+                          <span key={skill} className={`px-[12px] py-[6px] rounded-full font-body text-[12px] font-medium ${isTechnical ? 'bg-emerald-100/50 text-emerald-700' : 'bg-amber-100/50 text-amber-700'}`}>
+                            {skill}
+                          </span>
+                        )
+                      })
+                    ) : (
+                      <p className="text-[12px] text-neutral-400">No skills extracted.</p>
+                    )}
+                  </div>
                 </div>
               </div>
-
-              {candidate.aiScore === 0 ? (
-                <div className="flex flex-col items-center justify-center py-[20px] text-center gap-[8px] bg-neutral-50 rounded-[10px]">
-                  <Sparkles size={24} className="text-neutral-300" />
-                  <p className="font-body text-[13px] font-semibold text-neutral-500">Resume not yet analyzed</p>
-                  <p className="font-body text-[11px] text-neutral-400">AI analysis runs automatically on new applications.<br />Use the Rescore button in the AI Assessment tab.</p>
-                </div>
-              ) : (
-                <>
-                  <div className="flex flex-col gap-[10px] mb-[16px]">
-                    {[
-                      { label: 'Skills Match', value: scoreBreakdown.skills, color: '#3B82F6' },
-                      { label: 'Experience', value: scoreBreakdown.experience, color: '#8B5CF6' },
-                      { label: 'Education', value: scoreBreakdown.education, color: '#10B981' },
-                      { label: 'Keyword Density', value: scoreBreakdown.keywords, color: '#F59E0B' },
-                    ].map(row => (
-                      <div key={row.label}>
-                        <div className="flex justify-between mb-[4px]">
-                          <span className="font-body text-[12px] text-neutral-600">{row.label}</span>
-                        </div>
-                        <ProgressBar value={row.value} color={row.color} />
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Strengths + Gaps */}
-                  {(strengths.length > 0 || gaps.length > 0) && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-[12px]">
-                      {strengths.length > 0 && (
-                        <div className="bg-emerald-50 rounded-[10px] border border-emerald-100 p-[12px]">
-                          <p className="font-body text-[11px] font-bold text-emerald-700 uppercase tracking-wide mb-[8px]">✓ Strengths</p>
-                          <ul className="flex flex-col gap-[6px]">
-                            {strengths.map((s, i) => (
-                              <li key={i} className="font-body text-[11px] text-emerald-800 leading-snug">{s}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                      {gaps.length > 0 && (
-                        <div className="bg-amber-50 rounded-[10px] border border-amber-100 p-[12px]">
-                          <p className="font-body text-[11px] font-bold text-amber-700 uppercase tracking-wide mb-[8px]">⚠ Gaps</p>
-                          <ul className="flex flex-col gap-[6px]">
-                            {gaps.map((g, i) => (
-                              <li key={i} className="font-body text-[11px] text-amber-800 leading-snug">{g}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-
-            {/* Skills */}
-            <div className="bg-white rounded-[16px] border border-neutral-100 shadow-sm p-[20px]">
-              <h3 className="font-display text-[14px] font-bold text-neutral-900 mb-[12px]">Extracted Skills</h3>
-              {extractedSkills.length > 0 ? (
-                <div className="flex flex-wrap gap-[7px]">
-                  {extractedSkills.map(skill => (
-                    <span key={skill} className="px-[10px] py-[4px] bg-blue-50 border border-blue-200/60 text-blue-700 rounded-full text-[12px] font-semibold">
-                      {skill}
-                    </span>
-                  ))}
-                </div>
-              ) : (
-                <p className="font-body text-[12px] text-neutral-400 italic">No skills extracted yet — AI analysis pending.</p>
-              )}
-              {extractedCompanies.length > 0 && (
-                <div className="mt-[14px] pt-[14px] border-t border-neutral-50">
-                  <p className="font-body text-[11px] font-semibold text-neutral-400 uppercase tracking-wide mb-[8px]">Previous Companies</p>
-                  <div className="flex flex-wrap gap-[6px]">
-                    {extractedCompanies.map(c => (
-                      <span key={c} className="px-[8px] py-[3px] bg-neutral-100 text-neutral-700 rounded-full text-[11px] font-semibold">{c}</span>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {extractedEducation.length > 0 && (
-                <div className="mt-[10px]">
-                  <p className="font-body text-[11px] font-semibold text-neutral-400 uppercase tracking-wide mb-[6px]">Education</p>
-                  {extractedEducation.map(e => (
-                    <p key={e} className="font-body text-[12px] text-neutral-700">{e}</p>
-                  ))}
-                </div>
-              )}
-            </div>
+            )}
 
             {/* Recruiter Notes */}
             <div className="bg-white rounded-[16px] border border-neutral-100 shadow-sm p-[20px]">
