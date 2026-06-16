@@ -3,20 +3,29 @@ import connectToDatabase from '@/core/database/mongoose';
 import { Message } from '@/core/database/models/Message';
 import { Candidate } from '@/core/database/models/Candidate';
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
     await connectToDatabase();
+    
+    const url = new URL(req.url);
+    const requestedCandidateId = url.searchParams.get('candidateId');
 
     // Find all distinct candidateIds that have messages
     const distinctCandidateIds = await Message.distinct('candidateId');
 
-    if (!distinctCandidateIds.length) {
+    // If requestedCandidateId is present but not in distinct list, we still want to fetch them
+    const candidateIdsToFetch = new Set<string>(distinctCandidateIds.map(id => id.toString()));
+    if (requestedCandidateId) {
+      candidateIdsToFetch.add(requestedCandidateId);
+    }
+
+    if (candidateIdsToFetch.size === 0) {
       return NextResponse.json([]);
     }
 
     // Fetch candidate info for each
     const candidates = await Candidate.find({
-      _id: { $in: distinctCandidateIds },
+      _id: { $in: Array.from(candidateIdsToFetch) },
     }).select('_id name email avatar');
 
     // For each candidate, get the last message
@@ -41,8 +50,12 @@ export async function GET() {
       })
     );
 
-    // Sort by most recent message first
+    // Sort by most recent message first, but keep requestedCandidateId at top if they have no messages
     contacts.sort((a, b) => {
+      if (requestedCandidateId) {
+        if (a.id === requestedCandidateId && !a.lastMessageAt) return -1;
+        if (b.id === requestedCandidateId && !b.lastMessageAt) return 1;
+      }
       if (!a.lastMessageAt) return 1;
       if (!b.lastMessageAt) return -1;
       return new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime();

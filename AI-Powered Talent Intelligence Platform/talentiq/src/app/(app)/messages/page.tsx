@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { io, Socket } from 'socket.io-client'
 import Link from 'next/link'
+import { useCandidatesStore } from '@/store/candidates.store'
 
 interface Contact {
   id: string
@@ -45,6 +46,8 @@ export default function MessagesPage() {
   const [isLoadingMessages, setIsLoadingMessages] = useState(false)
   const [showMobileChat, setShowMobileChat] = useState(false)
 
+  const { candidates } = useCandidatesStore()
+
   const socketRef = useRef<Socket | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const joinedRoomRef = useRef<string | null>(null)
@@ -58,19 +61,20 @@ export default function MessagesPage() {
   )
 
   // Fetch contacts who have active conversations
-  const fetchContacts = useCallback(async () => {
+  const fetchContacts = useCallback(async (forcedCandidateId?: string | null) => {
     try {
-      const res = await fetch('/api/messages/contacts')
+      const targetId = forcedCandidateId !== undefined ? forcedCandidateId : candidateIdParam
+      const url = targetId ? `/api/messages/contacts?candidateId=${targetId}` : '/api/messages/contacts'
+      const res = await fetch(url)
       if (res.ok) {
         const data = await res.json()
         setContacts(data)
-        // If there's a candidateId param and contact isn't in list yet, we need to handle it
-        if (candidateIdParam && !data.find((c: Contact) => c.id === candidateIdParam)) {
-          // New conversation — candidate will appear after first message is sent
-          setActiveContactId(candidateIdParam)
-        } else if (!activeContactId && data.length > 0) {
-          setActiveContactId(data[0].id)
-        }
+        
+        setActiveContactId(prev => {
+          if (targetId) return targetId
+          if (!prev && data.length > 0) return data[0].id
+          return prev
+        })
       }
     } catch (err) {
       console.error('Failed to fetch contacts:', err)
@@ -95,12 +99,20 @@ export default function MessagesPage() {
     }
   }, [])
 
-  // Initialize Socket.io
+  // Initialize Socket.io and Contacts
   useEffect(() => {
-    fetchContacts()
+    // If a candidateIdParam is provided but not in contacts, fetch it.
+    // We also fetch on initial mount.
+    const exists = contacts.find(c => c.id === candidateIdParam)
+    if ((candidateIdParam && !exists) || contacts.length === 0) {
+      fetchContacts(candidateIdParam)
+    }
+  }, [candidateIdParam, contacts.length])
 
+  useEffect(() => {
+    let socket: Socket | null = null;
     fetch('/api/socket/io').finally(() => {
-      const socket = io({ path: '/api/socket/io' })
+      socket = io({ path: '/api/socket/io' })
       socketRef.current = socket
 
       socket.on('connect', () => setIsConnected(true))
