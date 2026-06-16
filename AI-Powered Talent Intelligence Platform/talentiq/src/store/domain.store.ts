@@ -245,8 +245,8 @@ export const useDomainStore = create<DomainState>()(
     }),
     {
       name: 'talentiq-domain-demo-v2',
-      // Use sessionStorage to avoid localStorage quota issues with large datasets
-      storage: createJSONStorage(() => sessionStorage),
+      // Use localStorage to share settings across tabs (specifically for job share links)
+      storage: createJSONStorage(() => localStorage),
       // Don't persist the full dataset — re-seed on every session from imports
       partialize: (state) => ({
         settings: state.settings,

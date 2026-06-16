@@ -15,7 +15,8 @@ export default function ShareJobModal({ job, companySlug, onClose }: ShareJobMod
   const [copiedLink, setCopiedLink] = useState(false)
   const [copiedEmbed, setCopiedEmbed] = useState(false)
   
-  const publicUrl = `https://talentiq.co/careers/${companySlug}/${job.slug || job.id}`
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://talentiq.co'
+  const publicUrl = `${origin}/careers/${companySlug}/${job.slug || job.id}`
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(publicUrl)

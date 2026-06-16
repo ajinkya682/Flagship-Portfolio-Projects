@@ -55,7 +55,7 @@ export const useCandidatesStore = create<CandidatesState>()(
     }),
     {
       name: 'talentiq-candidates-store',
-      storage: createJSONStorage(() => sessionStorage),
+      storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({ candidates: state.candidates }),
     }
   )
