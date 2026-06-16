@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Settings, User, CreditCard, LogOut, Menu } from 'lucide-react'
 import { useUIStore } from '@/store/ui.store'
+import { useAuth } from '@/hooks/useAuth'
 
 const MOCK_NOTIFICATIONS = [
   {
@@ -50,6 +51,7 @@ const MOCK_NOTIFICATIONS = [
 
 export default function AppHeader() {
   const { user } = useCurrentUser()
+  const { logout } = useAuth()
   const { setMobileSidebarOpen } = useUIStore()
   const [searchOpen, setSearchOpen] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
@@ -179,7 +181,7 @@ export default function AppHeader() {
             <div className="p-[4px]">
               <DropdownMenuItem asChild>
                 <button 
-                  onClick={() => window.location.href = '/login'}
+                  onClick={() => logout()}
                   className="flex items-center gap-[8px] w-full px-[8px] py-[6px] rounded-[6px] text-[13px] text-red-600 hover:bg-red-50 cursor-pointer transition-colors outline-none text-left"
                 >
                   <LogOut size={14} /> Log Out

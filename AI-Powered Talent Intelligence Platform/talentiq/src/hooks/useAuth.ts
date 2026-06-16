@@ -80,10 +80,15 @@ export function useAuth() {
 
   const logout = async () => {
     clearUser()
-    // If you have a backend logout route to clear cookies, call it here.
-    // await api.post('/auth/logout')
+    try {
+      await api.post('/auth/logout')
+    } catch (e) {
+      console.error('Logout API failed:', e)
+    }
     
     if (typeof window !== 'undefined') {
+      import('@/lib/auth').then(({ clearToken }) => clearToken())
+      localStorage.removeItem('talentiq-auth-token')
       sessionStorage.clear()
       window.location.href = '/login'
     }
