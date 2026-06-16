@@ -10,11 +10,16 @@ interface AuthStore {
   updatePlan: (plan: 'starter' | 'growth' | 'enterprise') => void
   setLoading: (loading: boolean) => void
   fetchUser: () => Promise<void>
+  demoRole: any | null
+  switchRole: (user: any) => void
 }
 
 export const useAuthStore = create<AuthStore>()((set) => ({
   user: null, // Start logged out
   isLoading: false,
+  demoRole: null,
+
+  switchRole: (user: any) => set({ demoRole: user }),
 
   setUser: (user) => set({ user }),
 

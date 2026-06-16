@@ -38,9 +38,9 @@ export async function GET(req: Request) {
         email: user.email,
         role: user.role,
         companyId: companyIdStr,
-        companyName: user.company.name || 'TalentIQ Demo',
-        companySlug: user.company.slug || 'talentiq-demo',
-        companyLogo: user.company.logo
+        companyName: (user.company as any).name || 'TalentIQ Demo',
+        companySlug: (user.company as any).slug || 'talentiq-demo',
+        companyLogo: (user.company as any).logo
       }
     });
 

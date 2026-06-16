@@ -47,7 +47,7 @@ export async function GET(req: Request) {
       description: j.description,
       requirements: j.requirements,
       skills: j.skills,
-      postedAt: j.publishedAt || j.createdAt,
+      postedAt: j.publishedAt || (j as any).createdAt,
       slug: j.slug,
       applicationFormConfig: j.applicationFormConfig
     }));
@@ -109,7 +109,7 @@ export async function POST(req: Request) {
       salaryMin: newJob.salaryMin,
       salaryMax: newJob.salaryMax,
       description: newJob.description,
-      postedAt: newJob.publishedAt || newJob.createdAt,
+      postedAt: newJob.publishedAt || (newJob as any).createdAt,
       slug: newJob.slug,
       applicationFormConfig: newJob.applicationFormConfig
     };

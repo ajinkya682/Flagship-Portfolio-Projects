@@ -52,7 +52,7 @@ export default function JobAnalyticsPage() {
     <div className="flex flex-col h-full bg-neutral-50/50">
       
       <div className="flex items-center gap-[12px] mb-[24px]">
-        <Link href={`/jobs/${params.id}`} className="text-neutral-500 hover:text-neutral-900 transition-colors p-[4px] rounded-md hover:bg-neutral-100">
+        <Link href={`/jobs/${params?.id}`} className="text-neutral-500 hover:text-neutral-900 transition-colors p-[4px] rounded-md hover:bg-neutral-100">
           <ArrowLeft size={18} />
         </Link>
         <span className="font-body text-[14px] text-neutral-500">Back to Job Details</span>

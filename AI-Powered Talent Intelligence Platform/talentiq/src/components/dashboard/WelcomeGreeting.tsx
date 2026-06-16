@@ -15,7 +15,7 @@ export default function WelcomeGreeting() {
   const awaitingReviewCount = candidates.filter(c => c.stage === 'Screening' || c.stage === 'Review').length
   const todaysInterviewsCount = interviews.filter(i => i.date === 'Today').length
   const aiInsightsCount = candidates.filter(c => c.aiScore > 85).length
-  const pendingOffersCount = offers.filter(o => o.status === 'sent' || o.status === 'pending').length
+  const pendingOffersCount = offers.filter(o => o.status === 'draft' || o.status === 'viewed').length
 
   const quickStats = [
     { label: 'Awaiting Review', value: awaitingReviewCount, color: 'text-amber-600', bg: 'bg-amber-50', icon: Users },

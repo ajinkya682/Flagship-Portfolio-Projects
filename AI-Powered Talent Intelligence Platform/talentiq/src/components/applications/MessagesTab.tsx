@@ -1,40 +1,107 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Application } from '@/types/domain.types'
-import { useDomainStore } from '@/store/domain.store'
-import { useCandidatesStore } from '@/store/candidates.store'
-import { Send, User, Briefcase } from 'lucide-react'
+import { Send, User } from 'lucide-react'
+import { io, Socket } from 'socket.io-client'
 
 interface MessagesTabProps {
   application: Application
 }
 
-export default function MessagesTab({ application }: MessagesTabProps) {
-  const { messages, addMessage } = useDomainStore()
-  const { candidates } = useCandidatesStore()
-  const [newMessage, setNewMessage] = useState('')
+interface Message {
+  id: string
+  candidateId: string
+  senderId: string
+  text: string
+  time: string
+}
 
-  const candidateMessages = messages.filter(m => m.candidateId === application.candidate.id)
+export default function MessagesTab({ application }: MessagesTabProps) {
+  const [messages, setMessages] = useState<Message[]>([])
+  const [newMessage, setNewMessage] = useState('')
+  const [isConnected, setIsConnected] = useState(false)
+  const socketRef = useRef<Socket | null>(null)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  const candidateId = application.candidate.id
+
+  useEffect(() => {
+    // 1. Fetch initial message history
+    const fetchMessages = async () => {
+      try {
+        const res = await fetch(`/api/messages?candidateId=${candidateId}`)
+        if (res.ok) {
+          const data = await res.json()
+          setMessages(data)
+        }
+      } catch (error) {
+        console.error('Failed to fetch messages:', error)
+      }
+    }
+    fetchMessages()
+
+    // 2. Initialize socket connection
+    fetch('/api/socket/io').finally(() => {
+      const socket = io({
+        path: '/api/socket/io',
+      })
+
+      socketRef.current = socket
+
+      socket.on('connect', () => {
+        setIsConnected(true)
+        // Join the candidate's specific room
+        socket.emit('join_room', candidateId)
+      })
+
+      socket.on('receive_message', (message: Message) => {
+        setMessages((prev) => [...prev, message])
+      })
+
+      socket.on('disconnect', () => {
+        setIsConnected(false)
+      })
+    })
+
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.disconnect()
+      }
+    }
+  }, [candidateId])
+
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!newMessage.trim()) return
+    if (!newMessage.trim() || !socketRef.current) return
 
-    addMessage({
-      id: `m_${Date.now()}`,
-      candidateId: application.candidate.id,
+    const messageData = {
+      candidateId: candidateId,
       senderId: 'me', // Business owner is sending
       text: newMessage,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    })
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    }
+
+    // Emit message to server (server will save it and broadcast back to the room)
+    socketRef.current.emit('send_message', messageData)
     setNewMessage('')
   }
 
   return (
-    <div className="flex flex-col h-[600px] border-t border-neutral-100">
+    <div className="flex flex-col h-[600px] border-t border-neutral-100 relative">
+      {!isConnected && (
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 z-10 bg-neutral-800 text-white text-[11px] px-3 py-1 rounded-full opacity-70">
+          Connecting to chat...
+        </div>
+      )}
+      
       <div className="flex-1 overflow-y-auto p-[24px] flex flex-col gap-[16px] bg-neutral-50/50">
-        {candidateMessages.length === 0 ? (
+        {messages.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center">
             <div className="w-[48px] h-[48px] bg-white rounded-full flex items-center justify-center mb-[12px] shadow-sm border border-neutral-100">
               <User className="text-neutral-400" size={24} />
@@ -42,7 +109,7 @@ export default function MessagesTab({ application }: MessagesTabProps) {
             <p className="font-body text-[14px] text-neutral-500">No messages yet. Send a message to start chatting via the Candidate Portal.</p>
           </div>
         ) : (
-          candidateMessages.map(msg => {
+          messages.map(msg => {
             const isMine = msg.senderId === 'me'
             return (
               <div key={msg.id} className={`flex max-w-[80%] ${isMine ? 'self-end' : 'self-start'}`}>
@@ -65,6 +132,7 @@ export default function MessagesTab({ application }: MessagesTabProps) {
             )
           })
         )}
+        <div ref={messagesEndRef} />
       </div>
 
       <form onSubmit={handleSendMessage} className="p-[16px] border-t border-neutral-100 bg-white">
@@ -78,7 +146,7 @@ export default function MessagesTab({ application }: MessagesTabProps) {
           />
           <button
             type="submit"
-            disabled={!newMessage.trim()}
+            disabled={!newMessage.trim() || !isConnected}
             className="w-[44px] h-[44px] rounded-full bg-primary-600 hover:bg-primary-700 text-white flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
           >
             <Send size={18} className="ml-[2px]" />

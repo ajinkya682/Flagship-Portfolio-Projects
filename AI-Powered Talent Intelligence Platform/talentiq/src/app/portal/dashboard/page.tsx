@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import { io, Socket } from 'socket.io-client'
 import {
   LogOut, Clock, User, Briefcase, FileText, Video, MessageSquare,
   Linkedin, Github, Globe, Phone, Mail, Image as ImageIcon, Calendar,
@@ -61,6 +62,11 @@ export default function CandidateDashboard() {
   const [activeTab, setActiveTab] = useState<TabType>('overview')
   const [resumeFullscreen, setResumeFullscreen] = useState(false)
 
+  const [realtimeMessages, setRealtimeMessages] = useState<any[]>([])
+  const [isConnected, setIsConnected] = useState(false)
+  const socketRef = useRef<Socket | null>(null)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+
   useEffect(() => {
     fetch('/api/portal/me')
       .then(res => {
@@ -72,9 +78,64 @@ export default function CandidateDashboard() {
       .finally(() => setIsLoading(false))
   }, [router])
 
+  useEffect(() => {
+    if (!portalData) return
+    const candidateId = portalData.candidate.id
+
+    fetch(`/api/messages?candidateId=${candidateId}`)
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setRealtimeMessages(data)
+      })
+      .catch(console.error)
+
+    fetch('/api/socket/io').finally(() => {
+      const socket = io({ path: '/api/socket/io' })
+      socketRef.current = socket
+
+      socket.on('connect', () => {
+        setIsConnected(true)
+        socket.emit('join_room', candidateId)
+      })
+
+      socket.on('receive_message', (message: any) => {
+        setRealtimeMessages(prev => [...prev, message])
+      })
+
+      socket.on('disconnect', () => {
+        setIsConnected(false)
+      })
+    })
+
+    return () => {
+      if (socketRef.current) socketRef.current.disconnect()
+    }
+  }, [portalData?.candidate?.id])
+
+  useEffect(() => {
+    if (activeTab === 'messages') {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    }
+  }, [realtimeMessages, activeTab])
+
   const handleLogout = async () => {
     await fetch('/api/portal/logout', { method: 'POST' })
     router.push('/portal/login')
+  }
+
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newMessage.trim() || !socketRef.current || !portalData) return
+
+    const messageData = {
+      candidateId: portalData.candidate.id,
+      senderId: 'candidate',
+      text: newMessage,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    }
+
+    socketRef.current.emit('send_message', messageData)
+    setNewMessage('')
   }
 
   if (isLoading) {
@@ -550,9 +611,14 @@ export default function CandidateDashboard() {
 
               {/* MESSAGES TAB */}
               {activeTab === 'messages' && (
-                <div className="flex flex-col h-[500px]">
+                <div className="flex flex-col h-[500px] relative">
+                  {!isConnected && (
+                    <div className="absolute top-2 left-1/2 -translate-x-1/2 z-10 bg-neutral-800 text-white text-[11px] px-3 py-1 rounded-full opacity-70">
+                      Connecting to chat...
+                    </div>
+                  )}
                   <div className="flex-1 overflow-y-auto p-[24px] flex flex-col gap-[14px]">
-                    {messages.length === 0 ? (
+                    {realtimeMessages.length === 0 ? (
                       <div className="flex-1 flex flex-col items-center justify-center text-center h-full">
                         <div className="w-[52px] h-[52px] bg-neutral-50 rounded-full flex items-center justify-center mb-[12px] border border-neutral-100">
                           <MessageSquare className="text-neutral-300" size={24} />
@@ -560,16 +626,20 @@ export default function CandidateDashboard() {
                         <p className="font-body text-[14px] text-neutral-400 font-medium">No messages yet</p>
                         <p className="font-body text-[12px] text-neutral-300 mt-[4px]">Messages from your recruiter will appear here.</p>
                       </div>
-                    ) : messages.map((msg: any) => (
-                      <div key={msg.id} className="flex max-w-[80%] self-start">
-                        <div className="p-[14px] rounded-[16px] bg-neutral-100 text-neutral-900 rounded-bl-[4px]">
-                          <p className="text-[14px] leading-relaxed">{msg.text}</p>
-                          <p className="text-[10px] mt-[6px] text-neutral-400">{msg.time}</p>
+                    ) : realtimeMessages.map((msg: any) => {
+                      const isMine = msg.senderId === 'candidate';
+                      return (
+                        <div key={msg.id} className={`flex max-w-[80%] ${isMine ? 'self-end' : 'self-start'}`}>
+                          <div className={`p-[14px] rounded-[16px] ${isMine ? 'bg-blue-600 text-white rounded-br-[4px]' : 'bg-neutral-100 text-neutral-900 rounded-bl-[4px]'}`}>
+                            <p className="text-[14px] leading-relaxed">{msg.text}</p>
+                            <p className={`text-[10px] mt-[6px] ${isMine ? 'text-blue-200' : 'text-neutral-400'}`}>{msg.time}</p>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
+                    <div ref={messagesEndRef} />
                   </div>
-                  <form onSubmit={(e) => e.preventDefault()} className="p-[16px] border-t border-neutral-100 shrink-0 bg-neutral-50/50">
+                  <form onSubmit={handleSendMessage} className="p-[16px] border-t border-neutral-100 shrink-0 bg-neutral-50/50">
                     <div className="flex items-center gap-[10px]">
                       <input
                         type="text"
@@ -580,7 +650,7 @@ export default function CandidateDashboard() {
                       />
                       <button
                         type="submit"
-                        disabled={!newMessage.trim()}
+                        disabled={!newMessage.trim() || !isConnected}
                         className="w-[42px] h-[42px] rounded-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center transition-colors disabled:opacity-40 shrink-0"
                       >
                         <Send size={16} className="ml-[1px]" />

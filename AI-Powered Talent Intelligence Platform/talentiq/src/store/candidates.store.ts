@@ -7,7 +7,7 @@ interface CandidatesState {
   isLoading: boolean
   addCandidate: (candidate: Partial<Candidate>) => Promise<void>
   updateCandidate: (id: string, updates: Partial<Candidate>) => void
-  moveCandidateStage: (candidateId: string, newStage: string) => void
+  moveCandidateStage: (candidateId: string, newStage: string) => Promise<void>
   addCandidateNote: (candidateId: string, note: any) => void
   fetchCandidates: () => Promise<void>
   clearData: () => void
@@ -55,7 +55,8 @@ export const useCandidatesStore = create<CandidatesState>()(
         ),
       })),
       
-    moveCandidateStage: (candidateId, newStage) =>
+    moveCandidateStage: async (candidateId, newStage) => {
+      // Optimitistic update
       set((state) => ({
         candidates: state.candidates.map((c) =>
           c.id === candidateId
@@ -70,7 +71,19 @@ export const useCandidatesStore = create<CandidatesState>()(
               }
             : c,
         ),
-      })),
+      }))
+
+      // Persist to backend
+      try {
+        const state = useCandidatesStore.getState();
+        const candidate = state.candidates.find(c => c.id === candidateId);
+        if (candidate && candidate.applicationId) {
+          await api.put(`/applications/${candidate.applicationId}`, { stage: newStage });
+        }
+      } catch (error) {
+        console.error('Failed to save stage change to MongoDB:', error);
+      }
+    },
       
     addCandidateNote: (candidateId, note) =>
       set((state) => ({

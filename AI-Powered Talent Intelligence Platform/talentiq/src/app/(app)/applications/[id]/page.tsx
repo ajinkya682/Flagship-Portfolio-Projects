@@ -63,6 +63,35 @@ export default function ApplicationDetailPage() {
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [analyzeError, setAnalyzeError] = useState('')
 
+  const handleAnalyzeResume = async () => {
+    if (!candidate) return
+    setIsAnalyzing(true)
+    setAnalyzeError('')
+    try {
+      const targetId = candidate.applicationId || candidate.id; 
+      const res = await fetch(`/api/applications/${targetId}/rescore`, {
+        method: 'POST',
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Failed to analyze resume')
+      }
+      const updatedData = await res.json()
+      updateCandidate(candidate.id, updatedData)
+    } catch (err: any) {
+      setAnalyzeError(err.message)
+    } finally {
+      setIsAnalyzing(false)
+    }
+  }
+
+  // Auto-analyze on load if score is 0
+  useEffect(() => {
+    if (candidate && candidate.aiScore === 0 && candidate.resumeUrl && !isAnalyzing && !analyzeError) {
+      handleAnalyzeResume()
+    }
+  }, [candidate?.aiScore, candidate?.resumeUrl])
+
   if (!candidate || !job) {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-4">
@@ -148,33 +177,7 @@ export default function ApplicationDetailPage() {
     }, 1500)
   }
 
-  const handleAnalyzeResume = async () => {
-    setIsAnalyzing(true)
-    setAnalyzeError('')
-    try {
-      const targetId = candidate.applicationId || candidate.id; 
-      const res = await fetch(`/api/applications/${targetId}/rescore`, {
-        method: 'POST',
-      })
-      if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.error || 'Failed to analyze resume')
-      }
-      const updatedData = await res.json()
-      updateCandidate(candidate.id, updatedData)
-    } catch (err: any) {
-      setAnalyzeError(err.message)
-    } finally {
-      setIsAnalyzing(false)
-    }
-  }
 
-  // Auto-analyze on load if score is 0
-  useEffect(() => {
-    if (candidate && candidate.aiScore === 0 && candidate.resumeUrl && !isAnalyzing && !analyzeError) {
-      handleAnalyzeResume()
-    }
-  }, [candidate?.aiScore, candidate?.resumeUrl])
 
   return (
     <>
@@ -283,6 +286,12 @@ export default function ApplicationDetailPage() {
                   <a href={resumeUrl} className="flex items-center gap-[5px] h-[30px] px-[10px] bg-neutral-50 border border-neutral-200 rounded-[7px] text-[11px] font-medium text-neutral-700 hover:border-neutral-300 transition-colors">
                     <FileText size={12} />Resume
                   </a>
+                  <Link
+                    href={`/messages?candidateId=${candidate.id}`}
+                    className="flex items-center gap-[5px] h-[30px] px-[10px] bg-emerald-50 border border-emerald-200 rounded-[7px] text-[11px] font-medium text-emerald-700 hover:bg-emerald-100 transition-colors"
+                  >
+                    <MessageSquare size={12} />Message
+                  </Link>
                 </div>
               </div>
             </div>

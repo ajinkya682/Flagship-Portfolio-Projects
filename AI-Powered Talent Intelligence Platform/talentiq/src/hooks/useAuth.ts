@@ -35,8 +35,8 @@ export function useAuth() {
       setUser(appUser)
 
       if (appUser.email === 'demo@talentiq.com') {
-        useJobsStore.getState().loadDemoData()
-        useCandidatesStore.getState().loadDemoData()
+        useJobsStore.getState().fetchJobs()
+        useCandidatesStore.getState().fetchCandidates()
         useDomainStore.getState().loadDemoData()
       } else {
         useJobsStore.getState().clearData()
@@ -62,8 +62,8 @@ export function useAuth() {
       setUser(appUser)
 
       if (appUser.email === 'demo@talentiq.com') {
-        useJobsStore.getState().loadDemoData()
-        useCandidatesStore.getState().loadDemoData()
+        useJobsStore.getState().fetchJobs()
+        useCandidatesStore.getState().fetchCandidates()
         useDomainStore.getState().loadDemoData()
       } else {
         useJobsStore.getState().clearData()

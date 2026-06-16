@@ -111,7 +111,7 @@ function NavItem({ icon: Icon, label, href, isCollapsed, isActive, badge, isNew 
 function SidebarContent({ isMobile = false }: { isMobile?: boolean }) {
 
   const { sidebarCollapsed, toggleSidebar, mobileSidebarOpen, setMobileSidebarOpen } = useUIStore()
-  const pathname = usePathname()
+  const pathname = usePathname() ?? ''
   const { user } = useCurrentUser()
   const { candidates } = useCandidatesStore()
   const { interviews } = useDomainStore()
