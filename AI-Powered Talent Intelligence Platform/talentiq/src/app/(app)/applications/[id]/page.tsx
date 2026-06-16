@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
@@ -168,6 +168,13 @@ export default function ApplicationDetailPage() {
       setIsAnalyzing(false)
     }
   }
+
+  // Auto-analyze on load if score is 0
+  useEffect(() => {
+    if (candidate && candidate.aiScore === 0 && candidate.resumeUrl && !isAnalyzing && !analyzeError) {
+      handleAnalyzeResume()
+    }
+  }, [candidate?.aiScore, candidate?.resumeUrl])
 
   return (
     <>
