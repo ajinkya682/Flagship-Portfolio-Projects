@@ -85,17 +85,30 @@ export default function ApplicationForm({ job, companySlug, companyName }: { job
     setIsSubmitting(true)
     
     try {
-      let aiResult = { aiScore: 0, strengths: [], gaps: [], extractedSkills: [] }
+      let aiResult = {
+        aiScore: 0,
+        skillsMatch: 0,
+        experienceMatch: 0,
+        educationMatch: 0,
+        keywordsMatch: 0,
+        strengths: [] as string[],
+        gaps: [] as string[],
+        reasons: [] as Array<{ text: string; positive: boolean }>,
+        extractedSkills: [] as string[],
+        extractedCompanies: [] as string[],
+        extractedEducation: [] as string[],
+      }
       
       if (resumeUrl && job) {
-        // Run AI Resume Scoring
+        // Run AI Resume Scanning & Scoring
         const scoreRes = await fetch('/api/candidates/score', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ resumeUrl, job })
         })
         if (scoreRes.ok) {
-          aiResult = await scoreRes.json()
+          const scored = await scoreRes.json()
+          aiResult = { ...aiResult, ...scored }
         } else {
           console.error("AI scoring failed", await scoreRes.text())
         }
@@ -117,17 +130,22 @@ export default function ApplicationForm({ job, companySlug, companyName }: { job
         stage: 'Screening',
         source: 'Career Site',
         aiScore: aiResult.aiScore || 0,
+        skillsMatch: aiResult.skillsMatch || 0,
+        experienceMatch: aiResult.experienceMatch || 0,
+        educationMatch: aiResult.educationMatch || 0,
+        keywordsMatch: aiResult.keywordsMatch || 0,
         daysInStage: 0,
         appliedAt: new Date().toISOString(),
         notes: [],
         timeline: [{ event: 'Applied via Career Site', date: 'Just now', type: 'applied' }],
         portalToken: newToken,
-        hasPortalAccess: false,
+        hasPortalAccess: true,
         extractedSkills: aiResult.extractedSkills || [],
-        extractedCompanies: [], // Not extracted yet
-        extractedEducation: [], // Not extracted yet
+        extractedCompanies: aiResult.extractedCompanies || [],
+        extractedEducation: aiResult.extractedEducation || [],
         strengths: aiResult.strengths || [],
         gaps: aiResult.gaps || [],
+        reasons: aiResult.reasons || [],
         linkedinUrl: data.linkedin,
         githubUrl: data.github,
         portfolioUrl: data.portfolio,

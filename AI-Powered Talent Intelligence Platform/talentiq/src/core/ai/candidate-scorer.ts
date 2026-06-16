@@ -1,21 +1,34 @@
 import { ai } from '@/lib/gemini';
 import { Type, Schema } from '@google/genai';
-import { IJob } from '@/core/database/models/Job';
 
-export async function scoreCandidateWithGemini(resumeText: string, job: IJob) {
+// Accept both Mongoose IJob documents and plain job objects from frontend/DB
+interface JobLike {
+  title: string;
+  department?: string;
+  description: string;
+  requirements: string[];
+  skills: string[];
+}
+
+export async function scoreCandidateWithGemini(resumeText: string, job: JobLike) {
   try {
+    // Defensive: ensure arrays exist even if job has incomplete data
+    const requirements = Array.isArray(job.requirements) ? job.requirements : [];
+    const skills = Array.isArray(job.skills) ? job.skills : [];
+
     const prompt = `
       You are an expert technical recruiter evaluating a candidate for the following job:
       Job Title: ${job.title}
+      Department: ${job.department || 'Not specified'}
       Description: ${job.description}
-      Requirements: ${job.requirements.join(', ')}
-      Skills needed: ${job.skills.join(', ')}
+      Required Skills: ${skills.length > 0 ? skills.join(', ') : 'Not specified'}
+      Requirements: ${requirements.length > 0 ? requirements.join(', ') : 'Not specified'}
       
       Candidate's Resume:
       ${resumeText}
       
       Based on this resume, evaluate the candidate against the job requirements.
-      Score each category from 0 to 100. Provide a detailed analysis.
+      Score each category from 0 to 100. Be fair and accurate.
     `;
 
     const responseSchema: Schema = {
@@ -66,8 +79,11 @@ export async function scoreCandidateWithGemini(resumeText: string, job: IJob) {
     }
 
     return JSON.parse(response.text);
-  } catch (error) {
-    console.error('Gemini scoring error:', error);
+  } catch (error: any) {
+    console.error('[candidate-scorer] Gemini scoring error:', error?.message || error);
+    if (error?.message?.includes('API_KEY') || error?.message?.includes('401') || error?.message?.includes('INVALID_ARGUMENT')) {
+      console.error('[candidate-scorer] ⚠️  Gemini API key may be invalid. Check GEMINI_API_KEY in .env — it should start with "AIza".');
+    }
     // Return a default low score on error to indicate failure
     return {
       score: 0,
@@ -76,7 +92,7 @@ export async function scoreCandidateWithGemini(resumeText: string, job: IJob) {
       educationMatch: 0,
       keywordsMatch: 0,
       strengths: [],
-      gaps: ['Failed to analyze resume due to AI error'],
+      gaps: ['AI analysis failed — please use the Rescore button after verifying the Gemini API key'],
       reasons: [{ text: 'AI Analysis Failed', positive: false }],
       scoredAt: new Date()
     };

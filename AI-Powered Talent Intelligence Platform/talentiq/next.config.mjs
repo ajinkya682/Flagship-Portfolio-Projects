@@ -9,7 +9,7 @@ const nextConfig = {
     ],
   },
   experimental: {
-    serverComponentsExternalPackages: ['dompurify'],
+    serverComponentsExternalPackages: ['dompurify', 'pdf-parse', 'mammoth'],
   },
 }
 

@@ -47,8 +47,11 @@ export async function parseResumeWithGemini(resumeText: string) {
     }
 
     return JSON.parse(response.text);
-  } catch (error) {
-    console.error('Gemini parsing error:', error);
+  } catch (error: any) {
+    console.error('[resume-parser] Gemini parsing error:', error?.message || error);
+    if (error?.message?.includes('API_KEY') || error?.message?.includes('401') || error?.message?.includes('INVALID_ARGUMENT')) {
+      console.error('[resume-parser] ⚠️  Gemini API key may be invalid. Check GEMINI_API_KEY in .env — it should start with "AIza".');
+    }
     // Return empty fallback on failure
     return { skills: [], companies: [], education: [] };
   }

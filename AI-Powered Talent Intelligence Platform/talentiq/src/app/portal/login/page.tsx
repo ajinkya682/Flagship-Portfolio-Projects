@@ -2,28 +2,37 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useDomainStore } from '@/store/domain.store'
-import { useCandidatesStore } from '@/store/candidates.store'
-import { Sparkles, ArrowRight, AlertCircle } from 'lucide-react'
+import { Sparkles, ArrowRight, AlertCircle, Loader2 } from 'lucide-react'
 
 export default function PortalLogin() {
   const [code, setCode] = useState('')
   const [error, setError] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
-  const { candidates } = useCandidatesStore()
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError('')
+    setIsLoading(true)
     
-    // Find candidate by portal token (in a real app, this would be an API call)
-    const candidate = candidates.find(c => c.portalToken === code.toUpperCase())
-    
-    if (candidate) {
-      // Mock session set
-      localStorage.setItem('portal_candidate_id', candidate.id)
-      router.push('/portal/dashboard')
-    } else {
-      setError('Invalid access code. Please check and try again.')
+    try {
+      const res = await fetch('/api/portal/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ portalToken: code })
+      })
+      
+      const data = await res.json()
+      
+      if (res.ok && data.success) {
+        router.push('/portal/dashboard')
+      } else {
+        setError(data.error || 'Invalid access code. Please check and try again.')
+      }
+    } catch (err) {
+      setError('An error occurred. Please try again later.')
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -65,9 +74,11 @@ export default function PortalLogin() {
 
           <button
             type="submit"
-            className="w-full h-[52px] mt-[8px] bg-neutral-900 hover:bg-neutral-800 text-white font-semibold rounded-[12px] transition-colors flex items-center justify-center gap-[8px]"
+            disabled={isLoading}
+            className="w-full h-[52px] mt-[8px] bg-neutral-900 hover:bg-neutral-800 text-white font-semibold rounded-[12px] transition-colors flex items-center justify-center gap-[8px] disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            Access Portal <ArrowRight size={18} />
+            {isLoading ? <Loader2 size={18} className="animate-spin" /> : null}
+            {isLoading ? 'Verifying...' : 'Access Portal'} {!isLoading && <ArrowRight size={18} />}
           </button>
         </form>
       </div>

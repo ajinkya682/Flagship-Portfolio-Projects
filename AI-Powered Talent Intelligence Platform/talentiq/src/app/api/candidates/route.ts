@@ -11,21 +11,26 @@ export async function POST(req: Request) {
     
     const body = await req.json();
 
-    // The frontend sends a unified "Candidate" object
     const {
       name, email, phone, avatar, jobId,
       linkedinUrl, githubUrl, portfolioUrl, resumeUrl, passportPhotoUrl,
       signature, availableStartDate,
       extractedSkills, extractedCompanies, extractedEducation,
-      aiScore, strengths, gaps, source
+      aiScore, skillsMatch, experienceMatch, educationMatch, keywordsMatch,
+      strengths, gaps, reasons, source, portalToken
     } = body;
 
     if (!jobId || !name || !email) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Verify job exists
-    const job = await Job.findById(jobId);
+    // Verify job exists - handle invalid ObjectId format gracefully
+    let job;
+    try {
+      job = await Job.findById(jobId);
+    } catch (e) {
+      return NextResponse.json({ error: 'Invalid job ID format' }, { status: 400 });
+    }
     if (!job) {
       return NextResponse.json({ error: 'Job not found' }, { status: 404 });
     }
@@ -46,7 +51,8 @@ export async function POST(req: Request) {
       extractedSkills,
       extractedCompanies,
       extractedEducation,
-      hasPortalAccess: false
+      hasPortalAccess: true,  // Grant access immediately on application
+      portalToken
     });
 
     // 2. Create the Application document
@@ -57,13 +63,13 @@ export async function POST(req: Request) {
       source: source || 'Career Site',
       aiScore: {
         score: aiScore || 0,
-        skillsMatch: aiScore || 0,
-        experienceMatch: aiScore || 0,
-        educationMatch: aiScore || 0,
-        keywordsMatch: aiScore || 0,
+        skillsMatch: skillsMatch || aiScore || 0,
+        experienceMatch: experienceMatch || aiScore || 0,
+        educationMatch: educationMatch || aiScore || 0,
+        keywordsMatch: keywordsMatch || aiScore || 0,
         strengths: strengths || [],
         gaps: gaps || [],
-        reasons: [],
+        reasons: reasons || [],
         scoredAt: new Date()
       },
       appliedAt: new Date(),
@@ -87,11 +93,20 @@ export async function POST(req: Request) {
       stage: application.stage,
       source: application.source,
       aiScore: application.aiScore?.score || 0,
+      // Full score breakdown for the detail page
+      scoreBreakdown: {
+        skills: application.aiScore?.skillsMatch || 0,
+        experience: application.aiScore?.experienceMatch || 0,
+        education: application.aiScore?.educationMatch || 0,
+        keywords: application.aiScore?.keywordsMatch || 0,
+      },
       daysInStage: application.daysInStage,
       appliedAt: application.appliedAt,
       notes: [],
       timeline: [{ event: 'Applied via Career Site', date: 'Just now', type: 'applied' }],
-      extractedSkills: newCandidate.extractedSkills,
+      extractedSkills: newCandidate.extractedSkills || [],
+      extractedCompanies: newCandidate.extractedCompanies || [],
+      extractedEducation: newCandidate.extractedEducation || [],
       strengths: application.aiScore?.strengths || [],
       gaps: application.aiScore?.gaps || [],
       linkedinUrl: newCandidate.linkedinUrl,
@@ -159,10 +174,17 @@ export async function GET(req: Request) {
         stage: app.stage,
         source: app.source,
         aiScore: app.aiScore?.score || 0,
+        // Full score breakdown for the detail page
+        scoreBreakdown: {
+          skills: app.aiScore?.skillsMatch || 0,
+          experience: app.aiScore?.experienceMatch || 0,
+          education: app.aiScore?.educationMatch || 0,
+          keywords: app.aiScore?.keywordsMatch || 0,
+        },
         daysInStage: app.daysInStage,
         appliedAt: app.appliedAt,
-        notes: [], // Need Note model if implemented later
-        timeline: [], // Need Timeline model
+        notes: [],
+        timeline: [],
         extractedSkills: c.extractedSkills || [],
         extractedCompanies: c.extractedCompanies || [],
         extractedEducation: c.extractedEducation || [],

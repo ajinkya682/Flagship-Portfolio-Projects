@@ -72,19 +72,19 @@ export default function ApplicationDetailPage() {
 
   const scoreColor = candidate.aiScore >= 85 ? '#10B981' : candidate.aiScore >= 70 ? '#F59E0B' : '#EF4444'
 
-  // Fallbacks for rich UI if fields are missing
-  const location = candidate.location || 'San Francisco, CA'
-  const yearsExp = candidate.yearsExp || 5
+  // Use real data from DB — no fallback mock values
+  const location = candidate.location || ''
+  const yearsExp = candidate.yearsExp || null
   const linkedinUrl = candidate.linkedinUrl || '#'
   const resumeUrl = candidate.resumeUrl || '#'
-  const extractedSkills = candidate.extractedSkills || ['React', 'TypeScript', 'Node.js', 'System Design']
-  const extractedCompanies = candidate.extractedCompanies || ['Google', 'Stripe']
-  const extractedEducation = candidate.extractedEducation || ['B.S. Computer Science']
-  const scoreBreakdown = candidate.scoreBreakdown || { skills: 90, experience: 85, education: 95, keywords: 88 }
-  const strengths = candidate.strengths || ['Strong technical skills', 'Relevant experience']
-  const gaps = candidate.gaps || ['Missing some keyword matches']
-  const tags = candidate.tags || ['Top-tier']
-  const assignedTo = candidate.assignedTo || 'Alex Manager'
+  const extractedSkills = candidate.extractedSkills || []
+  const extractedCompanies = candidate.extractedCompanies || []
+  const extractedEducation = candidate.extractedEducation || []
+  const scoreBreakdown = candidate.scoreBreakdown || { skills: 0, experience: 0, education: 0, keywords: 0 }
+  const strengths = candidate.strengths || []
+  const gaps = candidate.gaps || []
+  const tags = candidate.tags || []
+  const assignedTo = candidate.assignedTo || ''
 
   const handleAddNote = () => {
     if (!noteText.trim()) return
@@ -208,8 +208,8 @@ export default function ApplicationDetailPage() {
                 </div>
 
                 <h2 className="font-display text-[22px] font-bold text-neutral-900">{candidate.name}</h2>
-                <p className="font-body text-[13px] text-neutral-500 mt-[2px]">{candidate.role} · {location}</p>
-                <p className="font-body text-[12px] text-neutral-400 mt-[2px]">{yearsExp} years experience · Applied {candidate.appliedAt.slice(0, 10)}</p>
+                <p className="font-body text-[13px] text-neutral-500 mt-[2px]">{candidate.role}{location ? ` · ${location}` : ''}</p>
+                <p className="font-body text-[12px] text-neutral-400 mt-[2px]">{yearsExp ? `${yearsExp} years experience · ` : ''}Applied {new Date(candidate.appliedAt).toLocaleDateString('en-US')}</p>
 
                 {/* Contact links */}
                 <div className="flex flex-wrap gap-[8px] mt-[14px]">
@@ -245,67 +245,91 @@ export default function ApplicationDetailPage() {
                 </div>
               </div>
 
-              <div className="flex flex-col gap-[10px] mb-[16px]">
-                {[
-                  { label: 'Skills Match', value: scoreBreakdown.skills, color: '#3B82F6' },
-                  { label: 'Experience', value: scoreBreakdown.experience, color: '#8B5CF6' },
-                  { label: 'Education', value: scoreBreakdown.education, color: '#10B981' },
-                  { label: 'Keyword Density', value: scoreBreakdown.keywords, color: '#F59E0B' },
-                ].map(row => (
-                  <div key={row.label}>
-                    <div className="flex justify-between mb-[4px]">
-                      <span className="font-body text-[12px] text-neutral-600">{row.label}</span>
-                    </div>
-                    <ProgressBar value={row.value} color={row.color} />
+              {candidate.aiScore === 0 ? (
+                <div className="flex flex-col items-center justify-center py-[20px] text-center gap-[8px] bg-neutral-50 rounded-[10px]">
+                  <Sparkles size={24} className="text-neutral-300" />
+                  <p className="font-body text-[13px] font-semibold text-neutral-500">Resume not yet analyzed</p>
+                  <p className="font-body text-[11px] text-neutral-400">AI analysis runs automatically on new applications.<br />Use the Rescore button in the AI Assessment tab.</p>
+                </div>
+              ) : (
+                <>
+                  <div className="flex flex-col gap-[10px] mb-[16px]">
+                    {[
+                      { label: 'Skills Match', value: scoreBreakdown.skills, color: '#3B82F6' },
+                      { label: 'Experience', value: scoreBreakdown.experience, color: '#8B5CF6' },
+                      { label: 'Education', value: scoreBreakdown.education, color: '#10B981' },
+                      { label: 'Keyword Density', value: scoreBreakdown.keywords, color: '#F59E0B' },
+                    ].map(row => (
+                      <div key={row.label}>
+                        <div className="flex justify-between mb-[4px]">
+                          <span className="font-body text-[12px] text-neutral-600">{row.label}</span>
+                        </div>
+                        <ProgressBar value={row.value} color={row.color} />
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
 
-              {/* Strengths + Gaps */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-[12px]">
-                <div className="bg-emerald-50 rounded-[10px] border border-emerald-100 p-[12px]">
-                  <p className="font-body text-[11px] font-bold text-emerald-700 uppercase tracking-wide mb-[8px]">✓ Strengths</p>
-                  <ul className="flex flex-col gap-[6px]">
-                    {strengths.map((s, i) => (
-                      <li key={i} className="font-body text-[11px] text-emerald-800 leading-snug">{s}</li>
-                    ))}
-                  </ul>
-                </div>
-                <div className="bg-amber-50 rounded-[10px] border border-amber-100 p-[12px]">
-                  <p className="font-body text-[11px] font-bold text-amber-700 uppercase tracking-wide mb-[8px]">⚠ Gaps</p>
-                  <ul className="flex flex-col gap-[6px]">
-                    {gaps.map((g, i) => (
-                      <li key={i} className="font-body text-[11px] text-amber-800 leading-snug">{g}</li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
+                  {/* Strengths + Gaps */}
+                  {(strengths.length > 0 || gaps.length > 0) && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-[12px]">
+                      {strengths.length > 0 && (
+                        <div className="bg-emerald-50 rounded-[10px] border border-emerald-100 p-[12px]">
+                          <p className="font-body text-[11px] font-bold text-emerald-700 uppercase tracking-wide mb-[8px]">✓ Strengths</p>
+                          <ul className="flex flex-col gap-[6px]">
+                            {strengths.map((s, i) => (
+                              <li key={i} className="font-body text-[11px] text-emerald-800 leading-snug">{s}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {gaps.length > 0 && (
+                        <div className="bg-amber-50 rounded-[10px] border border-amber-100 p-[12px]">
+                          <p className="font-body text-[11px] font-bold text-amber-700 uppercase tracking-wide mb-[8px]">⚠ Gaps</p>
+                          <ul className="flex flex-col gap-[6px]">
+                            {gaps.map((g, i) => (
+                              <li key={i} className="font-body text-[11px] text-amber-800 leading-snug">{g}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
             </div>
 
             {/* Skills */}
             <div className="bg-white rounded-[16px] border border-neutral-100 shadow-sm p-[20px]">
               <h3 className="font-display text-[14px] font-bold text-neutral-900 mb-[12px]">Extracted Skills</h3>
-              <div className="flex flex-wrap gap-[7px]">
-                {extractedSkills.map(skill => (
-                  <span key={skill} className="px-[10px] py-[4px] bg-blue-50 border border-blue-200/60 text-blue-700 rounded-full text-[12px] font-semibold">
-                    {skill}
-                  </span>
-                ))}
-              </div>
-              <div className="mt-[14px] pt-[14px] border-t border-neutral-50">
-                <p className="font-body text-[11px] font-semibold text-neutral-400 uppercase tracking-wide mb-[8px]">Previous Companies</p>
-                <div className="flex flex-wrap gap-[6px]">
-                  {extractedCompanies.map(c => (
-                    <span key={c} className="px-[8px] py-[3px] bg-neutral-100 text-neutral-700 rounded-full text-[11px] font-semibold">{c}</span>
+              {extractedSkills.length > 0 ? (
+                <div className="flex flex-wrap gap-[7px]">
+                  {extractedSkills.map(skill => (
+                    <span key={skill} className="px-[10px] py-[4px] bg-blue-50 border border-blue-200/60 text-blue-700 rounded-full text-[12px] font-semibold">
+                      {skill}
+                    </span>
                   ))}
                 </div>
-              </div>
-              <div className="mt-[10px]">
-                <p className="font-body text-[11px] font-semibold text-neutral-400 uppercase tracking-wide mb-[6px]">Education</p>
-                {extractedEducation.map(e => (
-                  <p key={e} className="font-body text-[12px] text-neutral-700">{e}</p>
-                ))}
-              </div>
+              ) : (
+                <p className="font-body text-[12px] text-neutral-400 italic">No skills extracted yet — AI analysis pending.</p>
+              )}
+              {extractedCompanies.length > 0 && (
+                <div className="mt-[14px] pt-[14px] border-t border-neutral-50">
+                  <p className="font-body text-[11px] font-semibold text-neutral-400 uppercase tracking-wide mb-[8px]">Previous Companies</p>
+                  <div className="flex flex-wrap gap-[6px]">
+                    {extractedCompanies.map(c => (
+                      <span key={c} className="px-[8px] py-[3px] bg-neutral-100 text-neutral-700 rounded-full text-[11px] font-semibold">{c}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {extractedEducation.length > 0 && (
+                <div className="mt-[10px]">
+                  <p className="font-body text-[11px] font-semibold text-neutral-400 uppercase tracking-wide mb-[6px]">Education</p>
+                  {extractedEducation.map(e => (
+                    <p key={e} className="font-body text-[12px] text-neutral-700">{e}</p>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Recruiter Notes */}
