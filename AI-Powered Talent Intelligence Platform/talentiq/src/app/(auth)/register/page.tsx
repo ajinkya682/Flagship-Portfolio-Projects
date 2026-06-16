@@ -97,6 +97,8 @@ export default function RegisterPage() {
         companyName: step1Data.companyName,
         email: step1Data.email,
         password: step1Data.password,
+        companySize: data.companySize,
+        hearAbout: data.hearAbout,
       });
       window.location.href = "/dashboard";
     } catch (err: any) {
@@ -156,22 +158,6 @@ export default function RegisterPage() {
 
       {step === 1 && (
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <button
-            type="button"
-            className="w-full h-[48px] mb-6 flex items-center justify-center gap-3 bg-white border border-neutral-200 rounded-lg text-[15px] font-semibold text-neutral-700 hover:bg-neutral-50 transition-colors shadow-sm"
-          >
-            <GoogleIcon />
-            Sign up with Google
-          </button>
-
-          <div className="flex items-center gap-4 mb-6">
-            <div className="h-px flex-1 bg-neutral-200"></div>
-            <span className="text-[11px] font-bold text-neutral-400 uppercase tracking-widest">
-              OR CONTINUE WITH EMAIL
-            </span>
-            <div className="h-px flex-1 bg-neutral-200"></div>
-          </div>
-
           <form
             onSubmit={form1.handleSubmit(onStep1Submit)}
             className="flex flex-col gap-4"

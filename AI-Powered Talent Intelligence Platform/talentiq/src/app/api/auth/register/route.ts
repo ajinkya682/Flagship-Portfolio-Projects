@@ -10,7 +10,7 @@ export async function POST(req: Request) {
     await connectToDatabase();
     
     const body = await req.json();
-    const { name, email, password, companyName } = body;
+    const { name, email, password, companyName, companySize, hearAbout } = body;
 
     if (!name || !email || !password || !companyName) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -32,6 +32,7 @@ export async function POST(req: Request) {
       company = await Company.create({
         name: companyName,
         slug,
+        size: companySize || '1-10',
       });
     }
 
@@ -41,7 +42,8 @@ export async function POST(req: Request) {
       email,
       passwordHash,
       company: company._id,
-      role: 'admin' // First user is admin
+      role: 'admin', // First user is admin
+      hearAbout: hearAbout || '',
     });
 
     // Generate tokens
@@ -61,7 +63,9 @@ export async function POST(req: Request) {
         name: user.name,
         email: user.email,
         role: user.role,
-        companyId: company._id
+        companyId: company._id,
+        companyName: company.name,
+        companySlug: company.slug
       },
       accessToken,
       refreshToken

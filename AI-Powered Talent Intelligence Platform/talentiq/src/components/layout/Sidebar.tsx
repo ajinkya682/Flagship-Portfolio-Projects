@@ -176,10 +176,14 @@ function SidebarContent({ isMobile = false }: { isMobile?: boolean }) {
             <DropdownMenuTrigger asChild>
               <button className="w-full flex items-center gap-[12px] px-[12px] py-[10px] rounded-[12px] bg-white border border-neutral-200/80 shadow-sm hover:border-neutral-300 hover:shadow-md transition-all group outline-none">
                 <div className="w-[32px] h-[32px] shrink-0 rounded-[8px] bg-gradient-to-br from-neutral-800 to-neutral-900 flex items-center justify-center shadow-inner">
-                  <span className="text-white font-bold text-[12px]">AC</span>
+                  <span className="text-white font-bold text-[12px]">
+                    {user?.company?.name ? user.company.name.substring(0, 2).toUpperCase() : 'AC'}
+                  </span>
                 </div>
                 <div className="flex-1 text-left overflow-hidden">
-                  <p className="text-[13px] font-semibold text-neutral-900 truncate">Acme Corp</p>
+                  <p className="text-[13px] font-semibold text-neutral-900 truncate">
+                    {user?.company?.name || 'Acme Corp'}
+                  </p>
                   <div className="flex items-center gap-[4px] mt-[2px]">
                     <Zap size={10} className="text-amber-500 fill-amber-500/20" />
                     <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider">Growth Plan</span>
@@ -231,7 +235,9 @@ function SidebarContent({ isMobile = false }: { isMobile?: boolean }) {
       {effectiveCollapsed && (
         <div className="relative z-10 flex justify-center mt-[16px] mb-[8px]">
           <div className="w-[36px] h-[36px] rounded-[10px] bg-gradient-to-br from-neutral-800 to-neutral-900 flex items-center justify-center shadow-sm cursor-pointer border border-neutral-700">
-            <span className="text-white font-bold text-[13px]">AC</span>
+            <span className="text-white font-bold text-[13px]">
+              {user?.company?.name ? user.company.name.substring(0, 2).toUpperCase() : 'AC'}
+            </span>
           </div>
         </div>
       )}

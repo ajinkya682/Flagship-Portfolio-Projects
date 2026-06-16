@@ -16,6 +16,8 @@ interface RegisterData {
   email: string
   password: string
   companyName?: string
+  companySize?: string
+  hearAbout?: string
 }
 
 export function useAuth() {
@@ -124,7 +126,7 @@ function buildUserFromResponse(apiUser: any): User {
       currency: 'USD',
       careerPageUrl: '',
       subdomain: '',
-      slug: '',
+      slug: apiUser.companySlug || '',
     },
     plan: 'growth',
     createdAt: apiUser.createdAt || new Date().toISOString(),

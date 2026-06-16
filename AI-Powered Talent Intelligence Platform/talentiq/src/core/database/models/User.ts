@@ -10,6 +10,7 @@ export interface IUser extends Document {
   role: 'admin' | 'recruiter' | 'hiring-manager' | 'viewer';
   company: mongoose.Types.ObjectId;
   plan: 'starter' | 'growth' | 'enterprise';
+  hearAbout?: string;
   createdAt: Date;
   lastActiveAt: Date;
 }
@@ -24,6 +25,7 @@ const UserSchema: Schema = new Schema({
   role: { type: String, enum: ['admin', 'recruiter', 'hiring-manager', 'viewer'], default: 'admin' },
   company: { type: Schema.Types.ObjectId, ref: 'Company', required: true },
   plan: { type: String, enum: ['starter', 'growth', 'enterprise'], default: 'starter' },
+  hearAbout: { type: String },
   lastActiveAt: { type: Date, default: Date.now }
 }, { timestamps: true });
 

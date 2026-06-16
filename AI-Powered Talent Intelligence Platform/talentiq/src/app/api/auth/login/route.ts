@@ -16,7 +16,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing credentials' }, { status: 400 });
     }
 
-    let user = await User.findOne({ email }).select('+passwordHash');
+    let user = await User.findOne({ email }).select('+passwordHash').populate('company');
     
     // Auto-seed demo user if they try to log in but it doesn't exist yet
     if (!user && email === 'demo@talentiq.com' && password === 'Demo@123') {
@@ -48,10 +48,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
+    const companyIdStr = user.company._id ? user.company._id.toString() : user.company.toString();
+
     // Generate tokens
     const { accessToken, refreshToken } = generateTokens({
       userId: user._id.toString(),
-      companyId: user.company.toString(),
+      companyId: companyIdStr,
       role: user.role
     });
 
@@ -66,7 +68,9 @@ export async function POST(req: Request) {
         name: user.name,
         email: user.email,
         role: user.role,
-        companyId: user.company
+        companyId: companyIdStr,
+        companyName: user.company.name || 'TalentIQ Demo',
+        companySlug: user.company.slug || 'talentiq-demo'
       },
       accessToken,
       refreshToken
