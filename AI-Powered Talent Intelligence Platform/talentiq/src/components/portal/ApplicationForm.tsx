@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { UploadCloud, CheckCircle, ArrowRight, Image as ImageIcon } from 'lucide-react'
+import { useState, useRef } from 'react'
+import { UploadCloud, CheckCircle, ArrowRight, Image as ImageIcon, Loader2 } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { useDomainStore } from '@/store/domain.store'
 import { useCandidatesStore } from '@/store/candidates.store'
@@ -16,6 +16,14 @@ export default function ApplicationForm({ job, companySlug }: { job?: Job, compa
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [candidateToken, setCandidateToken] = useState('')
 
+  const [resumeUrl, setResumeUrl] = useState<string | null>(null)
+  const [passportPhotoUrl, setPassportPhotoUrl] = useState<string | null>(null)
+  const [isUploadingResume, setIsUploadingResume] = useState(false)
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false)
+
+  const resumeInputRef = useRef<HTMLInputElement>(null)
+  const photoInputRef = useRef<HTMLInputElement>(null)
+
   // Default config if none provided on older jobs
   const config = job?.applicationFormConfig || {
     requireFullName: true,
@@ -29,9 +37,74 @@ export default function ApplicationForm({ job, companySlug }: { job?: Job, compa
     requireSignature: false,
   }
 
-  const onSubmit = (data: any) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'resume' | 'photo') => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Simple validation
+    if (type === 'resume' && file.size > 5 * 1024 * 1024) {
+      alert("Resume must be less than 5MB.")
+      return
+    }
+    if (type === 'photo' && file.size > 2 * 1024 * 1024) {
+      alert("Passport photo must be less than 2MB.")
+      return
+    }
+
+    if (type === 'resume') setIsUploadingResume(true)
+    else setIsUploadingPhoto(true)
+
+    const formData = new FormData()
+    formData.append('file', file)
+
+    try {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      })
+      if (!res.ok) throw new Error('Upload failed')
+      const data = await res.json()
+      
+      if (type === 'resume') setResumeUrl(data.url)
+      else setPassportPhotoUrl(data.url)
+    } catch (err) {
+      console.error(err)
+      alert("Failed to upload file")
+    } finally {
+      if (type === 'resume') setIsUploadingResume(false)
+      else setIsUploadingPhoto(false)
+    }
+  }
+
+  const onSubmit = async (data: any) => {
+    if (config.requireResume && !resumeUrl) {
+      alert("Please upload your resume first.")
+      return
+    }
+    if (config.requirePassportPhoto && !passportPhotoUrl) {
+      alert("Please upload your passport photo first.")
+      return
+    }
+
     setIsSubmitting(true)
-    setTimeout(() => {
+    
+    try {
+      let aiResult = { aiScore: 0, strengths: [], gaps: [], extractedSkills: [] }
+      
+      if (resumeUrl && job) {
+        // Run AI Resume Scoring
+        const scoreRes = await fetch('/api/candidates/score', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ resumeUrl, job })
+        })
+        if (scoreRes.ok) {
+          aiResult = await scoreRes.json()
+        } else {
+          console.error("AI scoring failed", await scoreRes.text())
+        }
+      }
+
       const newToken = Math.random().toString(36).substring(2, 10).toUpperCase()
       
       const candidateName = config.requireFullName && data.fullName 
@@ -43,34 +116,40 @@ export default function ApplicationForm({ job, companySlug }: { job?: Job, compa
         name: candidateName,
         email: data.email,
         phone: data.phone || '',
-        avatar: '', // In a real app, this would be the uploaded passport photo URL
+        avatar: passportPhotoUrl || '',
         role: job?.title || 'Unknown Role',
         jobId: job?.id || '',
         stage: 'Screening',
         source: 'Career Site',
-        aiScore: 0,
+        aiScore: aiResult.aiScore || 0,
         daysInStage: 0,
         appliedAt: new Date().toISOString(),
         notes: [],
         timeline: [{ event: 'Applied via Career Site', date: 'Just now', type: 'applied' }],
         portalToken: newToken,
         hasPortalAccess: false,
-        extractedSkills: [],
-        extractedCompanies: [],
-        extractedEducation: [],
+        extractedSkills: aiResult.extractedSkills || [],
+        extractedCompanies: [], // Not extracted yet
+        extractedEducation: [], // Not extracted yet
+        strengths: aiResult.strengths || [],
+        gaps: aiResult.gaps || [],
         linkedinUrl: data.linkedin,
         githubUrl: data.github,
         portfolioUrl: data.portfolio,
-        resumeUrl: config.requireResume ? '#' : undefined, // Mock resume upload
-        passportPhotoUrl: config.requirePassportPhoto ? '#' : undefined,
+        resumeUrl: resumeUrl || undefined,
+        passportPhotoUrl: passportPhotoUrl || undefined,
         signature: data.signature,
         availableStartDate: data.startDate,
       })
       
       setCandidateToken(newToken)
-      setIsSubmitting(false)
       setSubmitted(true)
-    }, 1500)
+    } catch (err) {
+      console.error(err)
+      alert("An error occurred while submitting your application.")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   if (submitted) {
@@ -172,17 +251,60 @@ export default function ApplicationForm({ job, companySlug }: { job?: Job, compa
           <h3 className="font-display text-[20px] font-bold text-neutral-900 mt-[8px]">Documents & Media</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-[16px]">
             {config.requireResume && (
-              <div className="w-full border-2 border-dashed border-neutral-200 hover:border-blue-500 hover:bg-blue-50/50 rounded-xl p-[24px] flex flex-col items-center justify-center cursor-pointer transition-colors">
-                <UploadCloud className="w-[24px] h-[24px] text-blue-600 mb-[12px]" />
-                <p className="font-body text-[13px] font-semibold text-neutral-900">Upload Resume / CV</p>
-                <p className="font-body text-[11px] text-neutral-500 mt-[4px]">PDF or DOCX (max 5MB)</p>
+              <div 
+                onClick={() => resumeInputRef.current?.click()}
+                className={`w-full border-2 border-dashed border-neutral-200 hover:border-blue-500 hover:bg-blue-50/50 rounded-xl p-[24px] flex flex-col items-center justify-center cursor-pointer transition-colors ${resumeUrl ? 'bg-blue-50/50 border-blue-500' : ''}`}
+              >
+                <input 
+                  type="file" 
+                  accept=".pdf,.doc,.docx" 
+                  className="hidden" 
+                  ref={resumeInputRef}
+                  onChange={(e) => handleFileUpload(e, 'resume')}
+                />
+                {isUploadingResume ? (
+                  <Loader2 className="w-[24px] h-[24px] text-blue-600 mb-[12px] animate-spin" />
+                ) : resumeUrl ? (
+                  <CheckCircle className="w-[24px] h-[24px] text-emerald-500 mb-[12px]" />
+                ) : (
+                  <UploadCloud className="w-[24px] h-[24px] text-blue-600 mb-[12px]" />
+                )}
+                
+                <p className="font-body text-[13px] font-semibold text-neutral-900">
+                  {isUploadingResume ? 'Uploading...' : resumeUrl ? 'Resume Uploaded' : 'Upload Resume / CV'}
+                </p>
+                {!resumeUrl && !isUploadingResume && (
+                  <p className="font-body text-[11px] text-neutral-500 mt-[4px]">PDF or DOCX (max 5MB)</p>
+                )}
               </div>
             )}
+            
             {config.requirePassportPhoto && (
-              <div className="w-full border-2 border-dashed border-neutral-200 hover:border-blue-500 hover:bg-blue-50/50 rounded-xl p-[24px] flex flex-col items-center justify-center cursor-pointer transition-colors">
-                <ImageIcon className="w-[24px] h-[24px] text-blue-600 mb-[12px]" />
-                <p className="font-body text-[13px] font-semibold text-neutral-900">Upload Passport Photo</p>
-                <p className="font-body text-[11px] text-neutral-500 mt-[4px]">JPG or PNG (max 2MB)</p>
+              <div 
+                onClick={() => photoInputRef.current?.click()}
+                className={`w-full border-2 border-dashed border-neutral-200 hover:border-blue-500 hover:bg-blue-50/50 rounded-xl p-[24px] flex flex-col items-center justify-center cursor-pointer transition-colors ${passportPhotoUrl ? 'bg-blue-50/50 border-blue-500' : ''}`}
+              >
+                <input 
+                  type="file" 
+                  accept="image/jpeg, image/png" 
+                  className="hidden" 
+                  ref={photoInputRef}
+                  onChange={(e) => handleFileUpload(e, 'photo')}
+                />
+                {isUploadingPhoto ? (
+                  <Loader2 className="w-[24px] h-[24px] text-blue-600 mb-[12px] animate-spin" />
+                ) : passportPhotoUrl ? (
+                  <CheckCircle className="w-[24px] h-[24px] text-emerald-500 mb-[12px]" />
+                ) : (
+                  <ImageIcon className="w-[24px] h-[24px] text-blue-600 mb-[12px]" />
+                )}
+                
+                <p className="font-body text-[13px] font-semibold text-neutral-900">
+                  {isUploadingPhoto ? 'Uploading...' : passportPhotoUrl ? 'Photo Uploaded' : 'Upload Passport Photo'}
+                </p>
+                {!passportPhotoUrl && !isUploadingPhoto && (
+                  <p className="font-body text-[11px] text-neutral-500 mt-[4px]">JPG or PNG (max 2MB)</p>
+                )}
               </div>
             )}
           </div>
@@ -205,8 +327,9 @@ export default function ApplicationForm({ job, companySlug }: { job?: Job, compa
         </p>
       </div>
 
-      <button type="submit" disabled={isSubmitting} className="w-full h-[56px] bg-blue-600 hover:bg-blue-700 text-white font-semibold text-[16px] rounded-xl shadow-sm transition-colors mt-[8px] disabled:opacity-70">
-        {isSubmitting ? 'Submitting...' : 'Submit Application'}
+      <button type="submit" disabled={isSubmitting || isUploadingResume || isUploadingPhoto} className="w-full h-[56px] flex items-center justify-center gap-[8px] bg-blue-600 hover:bg-blue-700 text-white font-semibold text-[16px] rounded-xl shadow-sm transition-colors mt-[8px] disabled:opacity-70">
+        {isSubmitting && <Loader2 size={18} className="animate-spin" />}
+        {isSubmitting ? 'Submitting & Analyzing Resume...' : 'Submit Application'}
       </button>
     </form>
   )
