@@ -39,7 +39,8 @@ export async function GET(req: Request) {
         role: user.role,
         companyId: companyIdStr,
         companyName: user.company.name || 'TalentIQ Demo',
-        companySlug: user.company.slug || 'talentiq-demo'
+        companySlug: user.company.slug || 'talentiq-demo',
+        companyLogo: user.company.logo
       }
     });
 

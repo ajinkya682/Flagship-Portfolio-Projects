@@ -65,7 +65,8 @@ export async function POST(req: Request) {
         role: user.role,
         companyId: company._id,
         companyName: company.name,
-        companySlug: company.slug
+        companySlug: company.slug,
+        companyLogo: company.logo
       },
       accessToken,
       refreshToken

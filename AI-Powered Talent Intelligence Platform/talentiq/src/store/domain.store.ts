@@ -178,81 +178,66 @@ const INITIAL_USERS: User[] = []
 
 // ── Store ───────────────────────────────────────────────────────────
 
-export const useDomainStore = create<DomainState>()(
-  persist(
-    (set) => ({
-      settings: INITIAL_SETTINGS,
+export const useDomainStore = create<DomainState>()((set) => ({
+  settings: INITIAL_SETTINGS,
+  interviews: INITIAL_INTERVIEWS,
+  messages: INITIAL_MESSAGES,
+  offers: INITIAL_OFFERS,
+  users: INITIAL_USERS,
+
+  updateSettings: (updates) =>
+    set((state) => ({ settings: { ...state.settings, ...updates } })),
+
+  addUser: (user) => set((state) => ({ users: [user, ...state.users] })),
+
+  addInterview: (interview) =>
+    set((state) => ({ interviews: [interview, ...state.interviews] })),
+  updateInterview: (id, updates) =>
+    set((state) => ({
+      interviews: state.interviews.map((i) =>
+        i.id === id ? { ...i, ...updates } : i,
+      ),
+    })),
+
+  addMessage: (message) =>
+    set((state) => ({ messages: [...state.messages, message] })),
+
+  addOffer: (offer) =>
+    set((state) => ({ offers: [offer, ...state.offers] })),
+  updateOffer: (id, updates) =>
+    set((state) => ({
+      offers: state.offers.map((o) =>
+        o.id === id ? { ...o, ...updates } : o,
+      ),
+    })),
+
+  resetStore: () =>
+    set({
       interviews: INITIAL_INTERVIEWS,
       messages: INITIAL_MESSAGES,
       offers: INITIAL_OFFERS,
-      users: INITIAL_USERS,
-
-      updateSettings: (updates) =>
-        set((state) => ({ settings: { ...state.settings, ...updates } })),
-
-      addUser: (user) => set((state) => ({ users: [user, ...state.users] })),
-
-      addInterview: (interview) =>
-        set((state) => ({ interviews: [interview, ...state.interviews] })),
-      updateInterview: (id, updates) =>
-        set((state) => ({
-          interviews: state.interviews.map((i) =>
-            i.id === id ? { ...i, ...updates } : i,
-          ),
-        })),
-
-      addMessage: (message) =>
-        set((state) => ({ messages: [...state.messages, message] })),
-
-      addOffer: (offer) =>
-        set((state) => ({ offers: [offer, ...state.offers] })),
-      updateOffer: (id, updates) =>
-        set((state) => ({
-          offers: state.offers.map((o) =>
-            o.id === id ? { ...o, ...updates } : o,
-          ),
-        })),
-
-      resetStore: () =>
-        set({
-          interviews: INITIAL_INTERVIEWS,
-          messages: INITIAL_MESSAGES,
-          offers: INITIAL_OFFERS,
-          settings: INITIAL_SETTINGS,
-        }),
-        
-      loadDemoData: () =>
-        set({
-          interviews: MOCK_INTERVIEWS as Interview[],
-          offers: MOCK_OFFERS as Offer[],
-          messages: MOCK_MESSAGES as Message[],
-          users: DEMO_USERS.map(u => ({
-            id: u.id,
-            name: u.name,
-            email: u.email,
-            role: u.role,
-            avatar: u.avatar
-          })),
-        }),
-        
-      clearData: () =>
-        set({
-          interviews: [],
-          offers: [],
-          messages: [],
-          users: [],
-        }),
+      settings: INITIAL_SETTINGS,
     }),
-    {
-      name: 'talentiq-domain-demo-v2',
-      // Use localStorage to share settings across tabs (specifically for job share links)
-      storage: createJSONStorage(() => localStorage),
-      // Don't persist the full dataset — re-seed on every session from imports
-      partialize: (state) => ({
-        settings: state.settings,
-      }),
-      // Merge: always start fresh from mock data, never from stale session storage
-      merge: (_persisted, current) => current,
-    },
-  ),
-)
+    
+  loadDemoData: () =>
+    set({
+      interviews: MOCK_INTERVIEWS as Interview[],
+      offers: MOCK_OFFERS as Offer[],
+      messages: MOCK_MESSAGES as Message[],
+      users: DEMO_USERS.map(u => ({
+        id: u.id,
+        name: u.name,
+        email: u.email,
+        role: u.role,
+        avatar: u.avatar
+      })),
+    }),
+    
+  clearData: () =>
+    set({
+      interviews: [],
+      offers: [],
+      messages: [],
+      users: [],
+    }),
+}));

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import connectToDatabase from '@/core/database/mongoose';
 import { Company } from '@/core/database/models/Company';
-import { verifyAuth } from '@/core/auth/jwt';
+import { verifyAccessToken } from '@/core/auth/jwt';
 import { cookies } from 'next/headers';
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
@@ -15,17 +15,22 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const payload = verifyAuth(token);
+    const payload = verifyAccessToken(token);
     if (!payload || payload.companyId !== params.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await req.json();
-    const { name, slug } = body;
+    const { name, slug, logo } = body;
+
+    const updateData: any = { name, slug };
+    if (logo !== undefined) {
+      updateData.logo = logo;
+    }
 
     const company = await Company.findByIdAndUpdate(
       params.id,
-      { $set: { name, slug } },
+      { $set: updateData },
       { new: true }
     );
 

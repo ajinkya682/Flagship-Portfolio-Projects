@@ -11,7 +11,7 @@ import { MobileBottomNav } from '@/components/dashboard/MobileBottomNav'
 
 export default function AppShell({ children }: { children: ReactNode }) {
   const { sidebarCollapsed } = useUIStore()
-  const { user, fetchUser } = useAuthStore()
+  const { user, fetchUser, isLoading } = useAuthStore()
   const { fetchJobs } = useJobsStore()
   const { fetchCandidates } = useCandidatesStore()
 
@@ -24,6 +24,17 @@ export default function AppShell({ children }: { children: ReactNode }) {
     fetchJobs()
     fetchCandidates()
   }, [fetchJobs, fetchCandidates, fetchUser, user])
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-neutral-50">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-neutral-500 font-body text-sm">Loading your workspace...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex h-screen overflow-hidden bg-neutral-50 font-body">

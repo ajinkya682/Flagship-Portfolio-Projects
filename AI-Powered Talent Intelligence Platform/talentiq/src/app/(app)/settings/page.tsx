@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Upload } from 'lucide-react'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useAuthStore } from '@/store/auth.store'
@@ -13,6 +13,41 @@ export default function SettingsPage() {
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false)
+  const [logoUrl, setLogoUrl] = useState(user?.company?.logo || '')
+  const logoInputRef = useRef<HTMLInputElement>(null)
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (file.size > 2 * 1024 * 1024) {
+      setError("Logo must be less than 2MB.")
+      return
+    }
+
+    setIsUploadingLogo(true)
+    setError(null)
+
+    const formData = new FormData()
+    formData.append('file', file)
+
+    try {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      })
+      if (!res.ok) throw new Error('Upload failed')
+      const data = await res.json()
+      setLogoUrl(data.url)
+    } catch (err) {
+      console.error(err)
+      setError("Failed to upload logo")
+    } finally {
+      setIsUploadingLogo(false)
+    }
+  }
 
   const handleSettingsSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -27,7 +62,7 @@ export default function SettingsPage() {
     const slug = formData.get('companySlug') as string
 
     try {
-      const { data } = await api.patch(`/companies/${user.company.id}`, { name, slug })
+      const { data } = await api.patch(`/companies/${user.company.id}`, { name, slug, logo: logoUrl })
       
       // Update global auth store with new company name/slug
       setUser({
@@ -36,6 +71,7 @@ export default function SettingsPage() {
           ...user.company,
           name: data.company.name,
           slug: data.company.slug,
+          logo: data.company.logo,
         }
       })
       
@@ -60,11 +96,31 @@ export default function SettingsPage() {
         <h3 className="font-display text-[16px] font-bold text-neutral-900 mb-[4px]">Workspace Logo</h3>
         <p className="font-body text-[13px] text-neutral-500 mb-[16px]">This logo will appear on your career site and emails.</p>
         <div className="flex items-center gap-[20px]">
-          <div className="w-[80px] h-[80px] rounded-[16px] border-2 border-dashed border-neutral-200 bg-neutral-50 flex items-center justify-center hover:bg-neutral-100 transition-colors cursor-pointer group overflow-hidden">
-            <Upload size={20} className="text-neutral-400 group-hover:text-blue-500 transition-colors" />
+          <div 
+            onClick={() => logoInputRef.current?.click()}
+            className="w-[80px] h-[80px] rounded-[16px] border-2 border-dashed border-neutral-200 bg-neutral-50 flex items-center justify-center hover:bg-neutral-100 transition-colors cursor-pointer group overflow-hidden relative"
+          >
+            <input 
+              type="file" 
+              accept="image/jpeg, image/png, image/svg+xml, image/gif" 
+              className="hidden" 
+              ref={logoInputRef}
+              onChange={handleLogoUpload}
+            />
+            {isUploadingLogo ? (
+              <LoadingSpinner size="sm" />
+            ) : logoUrl ? (
+              <img src={logoUrl} alt="Workspace Logo" className="w-full h-full object-cover" />
+            ) : (
+              <Upload size={20} className="text-neutral-400 group-hover:text-blue-500 transition-colors" />
+            )}
           </div>
           <div>
-            <button className="h-[34px] px-[14px] bg-white border border-neutral-200 text-neutral-700 font-body text-[12px] font-semibold rounded-[8px] hover:bg-neutral-50 transition-colors">
+            <button 
+              type="button"
+              onClick={() => logoInputRef.current?.click()}
+              className="h-[34px] px-[14px] bg-white border border-neutral-200 text-neutral-700 font-body text-[12px] font-semibold rounded-[8px] hover:bg-neutral-50 transition-colors"
+            >
               Upload Image
             </button>
             <p className="font-body text-[11px] text-neutral-400 mt-[8px]">SVG, PNG, JPG or GIF (max. 800x400px)</p>

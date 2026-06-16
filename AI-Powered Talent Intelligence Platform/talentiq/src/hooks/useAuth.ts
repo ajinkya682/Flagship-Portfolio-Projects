@@ -120,7 +120,7 @@ function buildUserFromResponse(apiUser: any): User {
     company: {
       id: apiUser.companyId,
       name: apiUser.companyName || 'My Company',
-      logo: undefined,
+      logo: apiUser.companyLogo,
       industry: 'Software',
       size: '1-10',
       timezone: 'UTC',
