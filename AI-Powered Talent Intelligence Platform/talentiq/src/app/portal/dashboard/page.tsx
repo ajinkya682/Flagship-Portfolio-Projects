@@ -51,9 +51,17 @@ interface PortalData {
   timeline: { event: string; date: string; type: string }[]
   interviews: any[]
   messages: any[]
+  offer?: {
+    id: string
+    salary: number
+    currency: string
+    startDate: string
+    letterContent: string
+    status: 'draft' | 'sent' | 'accepted' | 'declined' | 'expired'
+  } | null
 }
 
-type TabType = 'overview' | 'resume' | 'messages' | 'profile'
+type TabType = 'overview' | 'resume' | 'messages' | 'profile' | 'offer'
 
 export default function CandidateDashboard() {
   const router = useRouter()
@@ -139,6 +147,27 @@ export default function CandidateDashboard() {
     setNewMessage('')
   }
 
+  const handleUpdateOfferStatus = async (status: 'accepted' | 'declined') => {
+    if (!portalData?.offer) return
+    setIsLoading(true)
+    try {
+      const res = await fetch(`/api/portal/offers/${portalData.offer.id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+      })
+      if (res.ok) {
+        // Refresh portal data
+        const freshData = await fetch('/api/portal/me').then(r => r.json())
+        setPortalData(freshData)
+      }
+    } catch (error) {
+      console.error('Failed to update offer status', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
@@ -160,6 +189,7 @@ export default function CandidateDashboard() {
 
   const tabs: { id: TabType; label: string; icon: React.ReactNode }[] = [
     { id: 'overview', label: 'Overview', icon: <Sparkles size={15} /> },
+    ...(portalData.offer ? [{ id: 'offer' as TabType, label: 'Offer', icon: <FileText size={15} /> }] : []),
     { id: 'profile', label: 'My Profile', icon: <User size={15} /> },
     ...(candidate.resumeUrl ? [{ id: 'resume' as TabType, label: 'Resume', icon: <FileText size={15} /> }] : []),
     { id: 'messages', label: 'Messages', icon: <MessageSquare size={15} /> },
@@ -607,6 +637,82 @@ export default function CandidateDashboard() {
                     {/* Subtle vignette overlay bottom */}
                     <div className="absolute bottom-0 left-0 right-0 h-[8px] bg-gradient-to-t from-black/10 to-transparent z-10 pointer-events-none" />
                   </div>
+                </div>
+              )}
+
+              {/* OFFER TAB */}
+              {activeTab === 'offer' && portalData.offer && (
+                <div className="p-[28px] flex flex-col gap-[24px]">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="font-display text-[20px] font-bold text-neutral-900">Your Job Offer</h2>
+                      <p className="text-[14px] text-neutral-500">Please review the details below</p>
+                    </div>
+                    <div>
+                      {portalData.offer.status === 'sent' && (
+                        <span className="px-[12px] py-[6px] bg-yellow-100 text-yellow-800 rounded-full text-[12px] font-bold tracking-wide uppercase">
+                          Pending Your Review
+                        </span>
+                      )}
+                      {portalData.offer.status === 'accepted' && (
+                        <span className="px-[12px] py-[6px] bg-emerald-100 text-emerald-800 rounded-full text-[12px] font-bold tracking-wide uppercase flex items-center gap-[6px]">
+                          <CheckCircle2 size={14} /> Accepted
+                        </span>
+                      )}
+                      {portalData.offer.status === 'declined' && (
+                        <span className="px-[12px] py-[6px] bg-red-100 text-red-800 rounded-full text-[12px] font-bold tracking-wide uppercase">
+                          Declined
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-[16px]">
+                    <div className="p-[20px] bg-neutral-50 rounded-[16px] border border-neutral-200">
+                      <p className="text-[11px] text-neutral-500 font-bold uppercase tracking-wider mb-[4px]">Base Salary</p>
+                      <p className="text-[24px] font-display font-bold text-neutral-900">
+                        {portalData.offer.currency === 'USD' ? '$' : portalData.offer.currency}
+                        {portalData.offer.salary.toLocaleString()}
+                      </p>
+                      <p className="text-[12px] text-neutral-500 mt-[2px]">Per year</p>
+                    </div>
+                    <div className="p-[20px] bg-neutral-50 rounded-[16px] border border-neutral-200">
+                      <p className="text-[11px] text-neutral-500 font-bold uppercase tracking-wider mb-[4px]">Proposed Start Date</p>
+                      <p className="text-[20px] font-display font-bold text-neutral-900 mt-[4px]">
+                        {new Date(portalData.offer.startDate).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-[8px]">
+                    <h3 className="text-[14px] font-bold text-neutral-900 mb-[12px]">Offer Letter</h3>
+                    <div className="p-[24px] bg-white border border-neutral-200 rounded-[16px] shadow-sm whitespace-pre-wrap font-serif leading-relaxed text-neutral-800">
+                      {portalData.offer.letterContent}
+                    </div>
+                  </div>
+
+                  {portalData.offer.status === 'sent' && (
+                    <div className="mt-[16px] pt-[24px] border-t border-neutral-100 flex items-center gap-[12px] justify-end">
+                      <button
+                        onClick={() => handleUpdateOfferStatus('declined')}
+                        className="px-[20px] py-[10px] text-neutral-600 font-semibold text-[14px] hover:bg-neutral-100 rounded-[12px] transition-colors"
+                      >
+                        Decline Offer
+                      </button>
+                      <button
+                        onClick={() => handleUpdateOfferStatus('accepted')}
+                        className="px-[24px] py-[10px] bg-blue-600 hover:bg-blue-700 text-white font-bold text-[14px] rounded-[12px] shadow-[0_4px_14px_rgba(37,99,235,0.2)] transition-all flex items-center gap-[8px]"
+                      >
+                        <CheckCircle2 size={16} /> Accept Offer
+                      </button>
+                    </div>
+                  )}
+                  {portalData.offer.status === 'accepted' && (
+                    <div className="mt-[16px] p-[16px] bg-emerald-50 border border-emerald-100 rounded-[16px] text-center">
+                      <h4 className="text-[15px] font-bold text-emerald-900 mb-[4px]">Congratulations!</h4>
+                      <p className="text-[13px] text-emerald-700">We're thrilled to have you join the team. Our HR team will be in touch shortly with next steps.</p>
+                    </div>
+                  )}
                 </div>
               )}
 

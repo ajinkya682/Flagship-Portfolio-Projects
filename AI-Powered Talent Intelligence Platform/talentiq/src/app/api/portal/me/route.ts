@@ -4,6 +4,7 @@ import { Candidate } from '@/core/database/models/Candidate';
 import { Application } from '@/core/database/models/Application';
 import { Job } from '@/core/database/models/Job';
 import { Company } from '@/core/database/models/Company';
+import { Offer } from '@/core/database/models/Offer';
 import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret';
@@ -49,6 +50,9 @@ export async function GET(req: Request) {
     // Get the company
     const company = await Company.findById(job.company);
 
+    // Get the offer
+    const offer = await Offer.findOne({ candidate: candidate._id, status: { $ne: 'draft' } }).sort({ createdAt: -1 });
+
     const payload = {
       candidate: {
         id: candidate._id.toString(),
@@ -89,7 +93,15 @@ export async function GET(req: Request) {
       },
       timeline: [{ event: 'Applied via Career Site', date: new Date(application.appliedAt).toLocaleDateString(), type: 'applied' }],
       interviews: [],
-      messages: []
+      messages: [],
+      offer: offer ? {
+        id: offer._id.toString(),
+        salary: offer.salary,
+        currency: offer.currency,
+        startDate: offer.startDate,
+        letterContent: offer.letterContent,
+        status: offer.status,
+      } : null
     };
 
     return NextResponse.json(payload);
