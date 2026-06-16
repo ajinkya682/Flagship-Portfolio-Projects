@@ -3,15 +3,11 @@
 import { useState, useRef } from 'react'
 import { UploadCloud, CheckCircle, ArrowRight, Image as ImageIcon, Loader2 } from 'lucide-react'
 import { useForm } from 'react-hook-form'
-import { useDomainStore } from '@/store/domain.store'
-import { useCandidatesStore } from '@/store/candidates.store'
 import { Job } from '@/types/domain.types'
 import Link from 'next/link'
 
-export default function ApplicationForm({ job, companySlug }: { job?: Job, companySlug?: string }) {
+export default function ApplicationForm({ job, companySlug, companyName }: { job?: Job, companySlug?: string, companyName?: string }) {
   const { register, handleSubmit } = useForm()
-  const { settings } = useDomainStore()
-  const { addCandidate } = useCandidatesStore()
   const [submitted, setSubmitted] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [candidateToken, setCandidateToken] = useState('')
@@ -111,8 +107,7 @@ export default function ApplicationForm({ job, companySlug }: { job?: Job, compa
         ? data.fullName 
         : `${data.firstName || ''} ${data.lastName || ''}`.trim() || 'Unknown'
 
-      await addCandidate({
-        id: `c_${Date.now()}`,
+      const candidateData = {
         name: candidateName,
         email: data.email,
         phone: data.phone || '',
@@ -140,7 +135,17 @@ export default function ApplicationForm({ job, companySlug }: { job?: Job, compa
         passportPhotoUrl: passportPhotoUrl || undefined,
         signature: data.signature,
         availableStartDate: data.startDate,
+      }
+
+      const postRes = await fetch('/api/candidates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(candidateData)
       })
+
+      if (!postRes.ok) {
+        throw new Error('Failed to submit application')
+      }
       
       setCandidateToken(newToken)
       setSubmitted(true)
@@ -160,7 +165,7 @@ export default function ApplicationForm({ job, companySlug }: { job?: Job, compa
           Application Submitted!
         </h2>
         <p className="font-body text-[15px] text-neutral-500 mt-[12px] max-w-[400px]">
-          Thank you for applying to {settings.companyName}. We've created a Candidate Portal for you to track your application status.
+          Thank you for applying to {companyName || 'our company'}. We've created a Candidate Portal for you to track your application status.
         </p>
         
         <div className="mt-[24px] p-[16px] bg-neutral-50 rounded-xl border border-neutral-200 w-full max-w-[300px]">
@@ -323,7 +328,7 @@ export default function ApplicationForm({ job, companySlug }: { job?: Job, compa
 
       <div className="mt-[8px] bg-neutral-50 p-[16px] rounded-lg border border-neutral-200">
         <p className="font-body text-[12px] text-neutral-500 leading-relaxed">
-          By submitting this application, you agree to {settings.companyName || 'our'} Privacy Policy and consent to the processing of your personal data.
+          By submitting this application, you agree to {companyName || 'our'} Privacy Policy and consent to the processing of your personal data.
         </p>
       </div>
 

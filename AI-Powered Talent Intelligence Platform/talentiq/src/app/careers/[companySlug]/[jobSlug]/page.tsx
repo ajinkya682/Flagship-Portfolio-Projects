@@ -1,46 +1,52 @@
-"use client";
-
-import { useDomainStore } from "@/store/domain.store";
-import { useJobsStore } from "@/store/jobs.store";
-import { MapPin, Briefcase, Building2, Calendar } from "lucide-react";
+import { MapPin, Briefcase, Building2 } from "lucide-react";
 import ApplicationForm from "@/components/portal/ApplicationForm";
 import { notFound } from "next/navigation";
+import connectToDatabase from "@/core/database/mongoose";
+import { Company } from "@/core/database/models/Company";
+import { Job } from "@/core/database/models/Job";
 
-export default function PublicJobPage({
+export default async function PublicJobPage({
   params,
 }: {
   params: { companySlug: string; jobSlug: string };
 }) {
-  const { settings } = useDomainStore();
-  const { jobs } = useJobsStore();
+  await connectToDatabase();
 
-  // In a real app, we would query the backend by companySlug and jobSlug.
-  // Here we check if the requested slug matches the store's settings and find the job.
-  if (params.companySlug !== settings.companySlug) {
+  const company = await Company.findOne({ slug: params.companySlug });
+  if (!company) {
     notFound();
   }
 
-  const job = jobs.find(
-    (j) =>
-      (j.slug === params.jobSlug || j.id === params.jobSlug) &&
-      j.status === "published",
-  );
+  // Attempt to find job by slug or ID
+  const job = await Job.findOne({
+    company: company._id,
+    $or: [{ slug: params.jobSlug }, { _id: params.jobSlug.length === 24 ? params.jobSlug : null }],
+    status: "published",
+  });
 
   if (!job) {
     notFound();
   }
+
+  // Map for the frontend component
+  const jobObj = JSON.parse(JSON.stringify(job));
+  jobObj.id = jobObj._id;
 
   return (
     <div className="min-h-screen bg-neutral-50/50 font-body pb-[64px]">
       {/* Header */}
       <header className="bg-white border-b border-neutral-100 py-[20px]">
         <div className="max-w-[800px] mx-auto px-[24px] flex items-center gap-[12px]">
-          <div className="w-[40px] h-[40px] bg-blue-600 rounded-[10px] flex items-center justify-center text-white font-display font-bold text-[18px]">
-            {settings.companyName.charAt(0)}
+          <div className="w-[40px] h-[40px] bg-blue-600 rounded-[10px] flex items-center justify-center text-white font-display font-bold text-[18px] overflow-hidden">
+            {company.logo ? (
+              <img src={company.logo} alt={company.name} className="w-full h-full object-cover" />
+            ) : (
+              company.name.charAt(0)
+            )}
           </div>
           <div>
             <h2 className="font-display font-bold text-[18px] text-neutral-900 leading-tight">
-              {settings.companyName}
+              {company.name}
             </h2>
             <p className="text-[13px] text-neutral-500">Career Portal</p>
           </div>
@@ -52,48 +58,48 @@ export default function PublicJobPage({
         {/* Job Header */}
         <div className="mb-[32px]">
           <h1 className="font-display text-[32px] md:text-[40px] font-bold text-neutral-900 leading-tight">
-            {job.title}
+            {jobObj.title}
           </h1>
           <div className="flex flex-wrap items-center gap-[16px] mt-[16px]">
             <div className="flex items-center gap-[6px] text-neutral-600 font-medium text-[14px]">
               <Building2 size={16} className="text-neutral-400" />
-              {job.department}
+              {jobObj.department}
             </div>
             <div className="flex items-center gap-[6px] text-neutral-600 font-medium text-[14px]">
               <MapPin size={16} className="text-neutral-400" />
-              {job.location} ({job.remote})
+              {jobObj.location} ({jobObj.remote})
             </div>
             <div className="flex items-center gap-[6px] text-neutral-600 font-medium text-[14px]">
               <Briefcase size={16} className="text-neutral-400" />
-              {job.type}
+              {jobObj.type || jobObj.employmentType}
             </div>
-            {job.salaryMin && job.salaryMax && (
+            {jobObj.salaryMin && jobObj.salaryMax && (
               <div className="flex items-center gap-[6px] text-neutral-600 font-medium text-[14px]">
                 <span className="text-emerald-600 font-semibold px-[8px] py-[2px] bg-emerald-50 rounded-full text-[12px]">
-                  ${(job.salaryMin / 1000).toFixed(0)}k - $
-                  {(job.salaryMax / 1000).toFixed(0)}k
+                  ${(jobObj.salaryMin / 1000).toFixed(0)}k - $
+                  {(jobObj.salaryMax / 1000).toFixed(0)}k
                 </span>
               </div>
             )}
           </div>
         </div>
 
-        {/* Job Description (Mocked text since store has '...' mostly) */}
+        {/* Job Description */}
         <div className="prose prose-neutral max-w-none mb-[48px] bg-white p-[32px] rounded-[24px] shadow-sm border border-neutral-100">
           <h3 className="font-display text-[18px] font-bold text-neutral-900 mb-[12px]">
             About the role
           </h3>
           <p className="text-[15px] text-neutral-600 leading-relaxed mb-[24px]">
-            {job.description === "..."
+            {jobObj.description === "..."
               ? "We are looking for an experienced professional to join our team. You will be responsible for driving key initiatives and working closely with cross-functional teams to deliver high-quality results. If you are passionate about what you do and thrive in a fast-paced environment, we want to hear from you."
-              : job.description}
+              : jobObj.description}
           </p>
 
           <h3 className="font-display text-[18px] font-bold text-neutral-900 mb-[12px]">
             Requirements
           </h3>
           <ul className="list-disc pl-[20px] text-[15px] text-neutral-600 space-y-[8px]">
-            {job.requirements?.map((req, i) => <li key={i}>{req}</li>) || (
+            {jobObj.requirements?.map((req: string, i: number) => <li key={i}>{req}</li>) || (
               <>
                 <li>5+ years of relevant experience.</li>
                 <li>Strong communication and collaboration skills.</li>
@@ -108,7 +114,7 @@ export default function PublicJobPage({
           <h3 className="font-display text-[24px] font-bold text-neutral-900 mb-[16px]">
             Apply for this job
           </h3>
-          <ApplicationForm job={job as any} companySlug={params.companySlug} />
+          <ApplicationForm job={jobObj} companySlug={params.companySlug} companyName={company.name} />
         </div>
       </div>
     </div>
