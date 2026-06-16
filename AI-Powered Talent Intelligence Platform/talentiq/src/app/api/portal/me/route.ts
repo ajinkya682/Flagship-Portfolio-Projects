@@ -66,6 +66,7 @@ export async function GET(req: Request) {
         extractedSkills: candidate.extractedSkills || [],
         extractedCompanies: candidate.extractedCompanies || [],
         extractedEducation: candidate.extractedEducation || [],
+        isBlocked: candidate.isBlocked || false,
       },
       application: {
         id: application._id.toString(),

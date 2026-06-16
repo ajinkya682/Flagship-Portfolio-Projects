@@ -26,7 +26,7 @@ export async function GET(req: Request) {
     // Fetch candidate info for each
     const candidates = await Candidate.find({
       _id: { $in: Array.from(candidateIdsToFetch) },
-    }).select('_id name email avatar');
+    }).select('_id name email avatar isBlocked');
 
     // For each candidate, get the last message
     const contacts = await Promise.all(
@@ -42,6 +42,7 @@ export async function GET(req: Request) {
           name: candidate.name,
           email: candidate.email,
           avatar: candidate.avatar || null,
+          isBlocked: candidate.isBlocked || false,
           lastMessageText: lastMessage ? lastMessage.text : '',
           lastMessageTime: lastMessage ? lastMessage.time : '',
           lastMessageSender: lastMessage ? lastMessage.senderId : '',

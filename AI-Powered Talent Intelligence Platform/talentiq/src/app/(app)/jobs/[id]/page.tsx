@@ -43,7 +43,7 @@ export default function JobDetailPage() {
   const job = jobs.find(j => j.id === jobId)
   const jobCandidates = candidates.filter(c => c.jobId === jobId)
 
-  const [editedStatus, setEditedStatus] = useState(job?.status || 'published')
+  const [editedStatus, setEditedStatus] = useState<string>(job?.status || 'published')
   const [statusToConfirm, setStatusToConfirm] = useState<string | null>(null)
   const [isUpdating, setIsUpdating] = useState(false)
 
@@ -399,7 +399,7 @@ export default function JobDetailPage() {
               <label className="font-body text-[13px] font-semibold text-neutral-700">Status</label>
               <select 
                 value={editedStatus}
-                onChange={(e) => setEditedStatus(e.target.value as "published" | "draft" | "closed")}
+                onChange={(e) => setEditedStatus(e.target.value)}
                 className="h-[42px] rounded-[10px] border border-neutral-200 px-[12px] font-body text-[14px] focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 bg-white"
               >
                 <option value="published">Active — accepting applications</option>

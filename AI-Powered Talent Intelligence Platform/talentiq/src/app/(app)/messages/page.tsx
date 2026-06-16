@@ -4,8 +4,10 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import {
   MessageSquare, Search, Send, MoreVertical,
-  CheckCheck, Phone, Video, User, ArrowLeft
+  CheckCheck, Phone, Video, User, ArrowLeft,
+  Trash, ShieldAlert, ShieldCheck, Eraser
 } from 'lucide-react'
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { io, Socket } from 'socket.io-client'
 import Link from 'next/link'
 import { useCandidatesStore } from '@/store/candidates.store'
@@ -20,6 +22,7 @@ interface Contact {
   lastMessageSender: string
   lastMessageAt: string | null
   unread?: number
+  isBlocked?: boolean
 }
 
 interface Message {
@@ -236,6 +239,49 @@ export default function MessagesPage() {
     e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px'
   }
 
+  const handleClearChat = async () => {
+    if (!activeContactId) return
+    try {
+      const res = await fetch(`/api/messages?candidateId=${activeContactId}`, { method: 'DELETE' })
+      if (res.ok) {
+        setActiveMessages([])
+      }
+    } catch (e) {
+      console.error('Failed to clear chat', e)
+    }
+  }
+
+  const handleDeleteChat = async () => {
+    if (!activeContactId) return
+    try {
+      const res = await fetch(`/api/messages?candidateId=${activeContactId}`, { method: 'DELETE' })
+      if (res.ok) {
+        setActiveMessages([])
+        setContacts(prev => prev.filter(c => c.id !== activeContactId))
+        setActiveContactId(null)
+      }
+    } catch (e) {
+      console.error('Failed to delete chat', e)
+    }
+  }
+
+  const handleToggleBlock = async () => {
+    if (!activeContact || !activeContactId) return
+    const newStatus = !activeContact.isBlocked
+    try {
+      const res = await fetch(`/api/candidates/${activeContactId}/block`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isBlocked: newStatus })
+      })
+      if (res.ok) {
+        setContacts(prev => prev.map(c => c.id === activeContactId ? { ...c, isBlocked: newStatus } : c))
+      }
+    } catch (e) {
+      console.error('Failed to toggle block status', e)
+    }
+  }
+
   // --- Render helpers ---
 
   const ContactAvatar = ({ contact, size = 44 }: { contact: Contact; size?: number }) => (
@@ -363,15 +409,68 @@ export default function MessagesPage() {
                 </div>
 
                 <div className="flex items-center gap-[6px]">
-                  <Link
-                    href={`/applications/${activeContact.id}`}
-                    className="h-[32px] px-[12px] flex items-center text-[12px] font-semibold text-neutral-600 border border-neutral-200 rounded-[8px] hover:bg-neutral-50 transition-colors shrink-0"
-                  >
-                    View Profile
-                  </Link>
-                  <button className="h-[32px] w-[32px] flex items-center justify-center text-neutral-500 border border-neutral-200 rounded-[8px] hover:bg-neutral-50 transition-colors shrink-0">
-                    <MoreVertical size={16} />
-                  </button>
+                  <DropdownMenu.Root>
+                    <DropdownMenu.Trigger asChild>
+                      <button className="h-[32px] w-[32px] flex items-center justify-center text-neutral-500 border border-neutral-200 rounded-[8px] hover:bg-neutral-50 transition-colors shrink-0 outline-none">
+                        <MoreVertical size={16} />
+                      </button>
+                    </DropdownMenu.Trigger>
+                    
+                    <DropdownMenu.Portal>
+                      <DropdownMenu.Content 
+                        align="end" 
+                        sideOffset={5}
+                        className="min-w-[180px] bg-white rounded-[12px] p-[6px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-neutral-100 z-50 animate-in fade-in zoom-in-95 duration-200"
+                      >
+                        <DropdownMenu.Item className="outline-none" asChild>
+                          <Link
+                            href={`/applications/${activeContact.id}`}
+                            className="flex items-center gap-[8px] w-full px-[12px] py-[10px] text-[13px] font-medium text-neutral-700 hover:bg-neutral-50 rounded-[8px] cursor-pointer"
+                          >
+                            <User size={15} className="text-neutral-400" />
+                            View Profile
+                          </Link>
+                        </DropdownMenu.Item>
+
+                        <DropdownMenu.Separator className="h-[1px] bg-neutral-100 my-[4px]" />
+
+                        <DropdownMenu.Item 
+                          onSelect={handleClearChat}
+                          className="flex items-center gap-[8px] w-full px-[12px] py-[10px] text-[13px] font-medium text-neutral-700 hover:bg-neutral-50 rounded-[8px] cursor-pointer outline-none"
+                        >
+                          <Eraser size={15} className="text-neutral-400" />
+                          Clear Chat
+                        </DropdownMenu.Item>
+
+                        <DropdownMenu.Item 
+                          onSelect={handleDeleteChat}
+                          className="flex items-center gap-[8px] w-full px-[12px] py-[10px] text-[13px] font-medium text-red-600 hover:bg-red-50 rounded-[8px] cursor-pointer outline-none"
+                        >
+                          <Trash size={15} className="text-red-500" />
+                          Delete Chat
+                        </DropdownMenu.Item>
+
+                        <DropdownMenu.Separator className="h-[1px] bg-neutral-100 my-[4px]" />
+
+                        <DropdownMenu.Item 
+                          onSelect={handleToggleBlock}
+                          className="flex items-center gap-[8px] w-full px-[12px] py-[10px] text-[13px] font-medium text-neutral-700 hover:bg-neutral-50 rounded-[8px] cursor-pointer outline-none"
+                        >
+                          {activeContact.isBlocked ? (
+                            <>
+                              <ShieldCheck size={15} className="text-emerald-500" />
+                              Unblock Candidate
+                            </>
+                          ) : (
+                            <>
+                              <ShieldAlert size={15} className="text-neutral-400" />
+                              Block Candidate
+                            </>
+                          )}
+                        </DropdownMenu.Item>
+                      </DropdownMenu.Content>
+                    </DropdownMenu.Portal>
+                  </DropdownMenu.Root>
                 </div>
               </div>
 
@@ -441,7 +540,14 @@ export default function MessagesPage() {
               </div>
 
               {/* Input Area */}
-              <div className="px-[16px] py-[14px] bg-white border-t border-neutral-100 shrink-0">
+              <div className="px-[16px] py-[14px] bg-white border-t border-neutral-100 shrink-0 relative">
+                {activeContact.isBlocked && (
+                  <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] z-10 flex items-center justify-center">
+                    <p className="text-[13px] font-semibold text-neutral-600 bg-white px-[16px] py-[8px] rounded-full shadow-sm border border-neutral-200">
+                      This candidate is blocked. You cannot send messages.
+                    </p>
+                  </div>
+                )}
                 <div className="flex items-end gap-[10px] bg-neutral-50 border border-neutral-200 rounded-[14px] px-[14px] py-[10px] focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100 transition-all">
                   <textarea
                     ref={textareaRef}
@@ -449,13 +555,13 @@ export default function MessagesPage() {
                     onChange={handleTextareaChange}
                     onKeyDown={handleKeyDown}
                     placeholder={`Message ${activeContact.name}...`}
-                    disabled={!isConnected}
+                    disabled={!isConnected || activeContact.isBlocked}
                     className="flex-1 bg-transparent border-none text-[13px] font-body text-neutral-900 placeholder:text-neutral-400 resize-none py-[6px] focus:outline-none max-h-[120px] min-h-[36px] disabled:opacity-50"
                     rows={1}
                   />
                   <button
                     onClick={handleSendMessage}
-                    disabled={!inputText.trim() || !isConnected}
+                    disabled={!inputText.trim() || !isConnected || activeContact.isBlocked}
                     className="h-[36px] w-[36px] rounded-[10px] bg-gradient-to-br from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white flex items-center justify-center transition-all shadow-sm disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
                   >
                     <Send size={15} className="ml-[1px]" />

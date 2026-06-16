@@ -27,6 +27,7 @@ interface PortalData {
     extractedSkills?: string[]
     strengths?: string[]
     gaps?: string[]
+    isBlocked?: boolean
   }
   application: {
     id: string
@@ -639,18 +640,26 @@ export default function CandidateDashboard() {
                     })}
                     <div ref={messagesEndRef} />
                   </div>
-                  <form onSubmit={handleSendMessage} className="p-[16px] border-t border-neutral-100 shrink-0 bg-neutral-50/50">
+                  <form onSubmit={handleSendMessage} className="p-[16px] border-t border-neutral-100 shrink-0 bg-neutral-50/50 relative">
+                    {candidate.isBlocked && (
+                      <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] z-10 flex items-center justify-center">
+                        <p className="text-[13px] font-semibold text-neutral-600 bg-white px-[16px] py-[8px] rounded-full shadow-sm border border-neutral-200">
+                          You have been blocked from sending messages.
+                        </p>
+                      </div>
+                    )}
                     <div className="flex items-center gap-[10px]">
                       <input
                         type="text"
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
                         placeholder="Type a message..."
-                        className="flex-1 h-[42px] px-[16px] rounded-full border border-neutral-200 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 bg-white text-[14px]"
+                        disabled={candidate.isBlocked || !isConnected}
+                        className="flex-1 h-[42px] px-[16px] rounded-full border border-neutral-200 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 bg-white text-[14px] disabled:opacity-50"
                       />
                       <button
                         type="submit"
-                        disabled={!newMessage.trim() || !isConnected}
+                        disabled={!newMessage.trim() || !isConnected || candidate.isBlocked}
                         className="w-[42px] h-[42px] rounded-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center transition-colors disabled:opacity-40 shrink-0"
                       >
                         <Send size={16} className="ml-[1px]" />

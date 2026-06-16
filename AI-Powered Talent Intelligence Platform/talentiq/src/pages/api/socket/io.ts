@@ -3,6 +3,7 @@ import { NextApiRequest } from 'next';
 import { Server as ServerIO } from 'socket.io';
 import connectToDatabase from '@/core/database/mongoose';
 import { Message } from '@/core/database/models/Message';
+import { Candidate } from '@/core/database/models/Candidate';
 
 export const config = {
   api: {
@@ -38,6 +39,12 @@ export default async function SocketHandler(req: NextApiRequest, res: any) {
 
       socket.on('send_message', async (data: { candidateId: string; senderId: string; text: string; time: string }) => {
         try {
+          const candidate = await Candidate.findById(data.candidateId);
+          if (candidate && candidate.isBlocked) {
+            console.log(`Message rejected: Candidate ${data.candidateId} is blocked`);
+            return;
+          }
+
           // Save message to MongoDB
           const newMessage = await Message.create({
             candidateId: data.candidateId,

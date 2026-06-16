@@ -42,10 +42,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Candidate not found' }, { status: 404 });
     }
 
-    const offerJobId = jobId || candidate.job;
+    const offerJobId = jobId || (candidate as any).job;
 
     const newOffer = new Offer({
-      application: candidate.applicationId || candidate._id, // fallback if no explicit application
+      application: (candidate as any).applicationId || candidate._id, // fallback if no explicit application
       candidate: candidate._id,
       job: offerJobId,
       salary: typeof amount === 'string' ? parseFloat(amount.replace(/[^0-9.-]+/g,"")) : amount,

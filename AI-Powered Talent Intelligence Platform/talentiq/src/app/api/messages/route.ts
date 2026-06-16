@@ -30,3 +30,23 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
+
+export async function DELETE(req: Request) {
+  try {
+    await connectToDatabase();
+    
+    const { searchParams } = new URL(req.url);
+    const candidateId = searchParams.get('candidateId');
+
+    if (!candidateId) {
+      return NextResponse.json({ error: 'Candidate ID is required' }, { status: 400 });
+    }
+
+    await Message.deleteMany({ candidateId });
+
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    console.error('Delete messages error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
