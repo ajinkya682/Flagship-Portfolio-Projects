@@ -91,6 +91,7 @@ export function useAuth() {
     if (typeof window !== 'undefined') {
       import('@/lib/auth').then(({ clearToken }) => clearToken())
       localStorage.removeItem('talentiq-auth-token')
+      localStorage.removeItem('talentiq-auth') // The zustand store key
       sessionStorage.clear()
       window.location.href = '/login'
     }

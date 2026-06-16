@@ -2,6 +2,7 @@
 
 import { ReactNode, useEffect } from 'react'
 import { useUIStore } from '@/store/ui.store'
+import { useAuthStore } from '@/store/auth.store'
 import { useJobsStore } from '@/store/jobs.store'
 import { useCandidatesStore } from '@/store/candidates.store'
 import Sidebar from './Sidebar'
@@ -10,13 +11,19 @@ import { MobileBottomNav } from '@/components/dashboard/MobileBottomNav'
 
 export default function AppShell({ children }: { children: ReactNode }) {
   const { sidebarCollapsed } = useUIStore()
+  const { user, fetchUser } = useAuthStore()
   const { fetchJobs } = useJobsStore()
   const { fetchCandidates } = useCandidatesStore()
 
   useEffect(() => {
+    // If the middleware allowed us here but the user state is missing 
+    // (e.g. local storage cleared), hydrate the session from the database via the secure cookie
+    if (!user) {
+      fetchUser()
+    }
     fetchJobs()
     fetchCandidates()
-  }, [fetchJobs, fetchCandidates])
+  }, [fetchJobs, fetchCandidates, fetchUser, user])
 
   return (
     <div className="flex h-screen overflow-hidden bg-neutral-50 font-body">

@@ -3,19 +3,8 @@ import { NextResponse } from 'next/server';
 export async function POST() {
   const response = NextResponse.json({ success: true });
 
-  response.cookies.set({
-    name: 'accessToken',
-    value: '',
-    expires: new Date(0),
-    path: '/',
-  });
-
-  response.cookies.set({
-    name: 'refreshToken',
-    value: '',
-    expires: new Date(0),
-    path: '/',
-  });
+  response.cookies.delete('accessToken');
+  response.cookies.delete('refreshToken');
 
   return response;
 }
