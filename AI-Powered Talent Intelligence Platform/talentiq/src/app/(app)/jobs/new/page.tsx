@@ -48,29 +48,31 @@ export default function NewJobPage() {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
     
-    // Simulate slight delay
-    setTimeout(() => {
-      const newJob: Job = {
-        id: `job_${uuidv4().substring(0, 8)}`,
-        title: formData.title,
-        department: formData.department,
-        location: formData.location,
-        type: formData.type,
-        remote: formData.remote,
-        status: 'published',
-        salaryMin: parseInt(formData.salaryMin) || 0,
-        salaryMax: parseInt(formData.salaryMax) || 0,
-        description: formData.description,
-        postedAt: new Date().toISOString(),
-        applicationFormConfig: formConfig
-      }
-      addJob(newJob)
+    const newJob: Partial<Job> = {
+      title: formData.title,
+      department: formData.department,
+      location: formData.location,
+      type: formData.type,
+      remote: formData.remote,
+      status: 'published',
+      salaryMin: parseInt(formData.salaryMin) || 0,
+      salaryMax: parseInt(formData.salaryMax) || 0,
+      description: formData.description,
+      applicationFormConfig: formConfig
+    }
+    
+    try {
+      await addJob(newJob)
       router.push('/jobs')
-    }, 600)
+    } catch (err) {
+      console.error(err)
+      setError("Failed to publish job.")
+      setIsSubmitting(false)
+    }
   }
 
   const generateWithAi = async () => {

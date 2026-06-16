@@ -1,13 +1,22 @@
 'use client'
 
-import { ReactNode } from 'react'
+import { ReactNode, useEffect } from 'react'
 import { useUIStore } from '@/store/ui.store'
+import { useJobsStore } from '@/store/jobs.store'
+import { useCandidatesStore } from '@/store/candidates.store'
 import Sidebar from './Sidebar'
 import AppHeader from './AppHeader'
 import { MobileBottomNav } from '@/components/dashboard/MobileBottomNav'
 
 export default function AppShell({ children }: { children: ReactNode }) {
   const { sidebarCollapsed } = useUIStore()
+  const { fetchJobs } = useJobsStore()
+  const { fetchCandidates } = useCandidatesStore()
+
+  useEffect(() => {
+    fetchJobs()
+    fetchCandidates()
+  }, [fetchJobs, fetchCandidates])
 
   return (
     <div className="flex h-screen overflow-hidden bg-neutral-50 font-body">

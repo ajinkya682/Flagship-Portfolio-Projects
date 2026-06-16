@@ -27,7 +27,8 @@ api.interceptors.response.use(
 
       if (status === 401) {
         clearToken()
-        if (typeof window !== 'undefined') {
+        // Do not redirect if we are already on the login page or making a login request
+        if (typeof window !== 'undefined' && window.location.pathname !== '/login' && !error.config?.url?.includes('/auth/login')) {
           window.location.href = '/login'
         }
       }

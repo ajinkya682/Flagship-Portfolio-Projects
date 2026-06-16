@@ -111,7 +111,7 @@ export default function ApplicationForm({ job, companySlug }: { job?: Job, compa
         ? data.fullName 
         : `${data.firstName || ''} ${data.lastName || ''}`.trim() || 'Unknown'
 
-      addCandidate({
+      await addCandidate({
         id: `c_${Date.now()}`,
         name: candidateName,
         email: data.email,

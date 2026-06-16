@@ -1,35 +1,48 @@
 import { create } from 'zustand'
-import { persist, createJSONStorage } from 'zustand/middleware'
-import { MOCK_JOBS } from '@/mock-data/jobs'
 import type { Job } from '@/store/domain.store'
+import api from '@/lib/api'
 
 interface JobsState {
   jobs: Job[]
-  addJob: (job: Job) => void
+  isLoading: boolean
+  addJob: (job: Partial<Job>) => Promise<void>
   updateJob: (id: string, updates: Partial<Job>) => void
-  loadDemoData: () => void
+  fetchJobs: () => Promise<void>
   clearData: () => void
 }
 
-const INITIAL_JOBS: Job[] = []
-
 export const useJobsStore = create<JobsState>()(
-  persist(
-    (set) => ({
-      jobs: INITIAL_JOBS,
+  (set) => ({
+    jobs: [],
+    isLoading: false,
 
-      addJob: (job) => set((state) => ({ jobs: [job, ...state.jobs] })),
-      updateJob: (id, updates) =>
-        set((state) => ({
-          jobs: state.jobs.map((j) => (j.id === id ? { ...j, ...updates } : j)),
-        })),
-      loadDemoData: () => set({ jobs: MOCK_JOBS as Job[] }),
-      clearData: () => set({ jobs: [] }),
-    }),
-    {
-      name: 'talentiq-jobs-store',
-      storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({ jobs: state.jobs }),
-    }
-  )
+    fetchJobs: async () => {
+      set({ isLoading: true })
+      try {
+        const response = await api.get('/jobs')
+        set({ jobs: response.data })
+      } catch (error) {
+        console.error('Failed to fetch jobs:', error)
+      } finally {
+        set({ isLoading: false })
+      }
+    },
+
+    addJob: async (jobData) => {
+      try {
+        const response = await api.post('/jobs', jobData)
+        set((state) => ({ jobs: [response.data, ...state.jobs] }))
+      } catch (error) {
+        console.error('Failed to create job:', error)
+        throw error
+      }
+    },
+
+    updateJob: (id, updates) =>
+      set((state) => ({
+        jobs: state.jobs.map((j) => (j.id === id ? { ...j, ...updates } : j)),
+      })),
+      
+    clearData: () => set({ jobs: [] }),
+  })
 )

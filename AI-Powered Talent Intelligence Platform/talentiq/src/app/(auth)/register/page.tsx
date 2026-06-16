@@ -53,13 +53,21 @@ const GoogleIcon = () => (
   </svg>
 );
 
+import { useEffect } from "react";
+
 export default function RegisterPage() {
-  const { register: registerUser } = useAuth();
+  const { register: registerUser, isAuthenticated } = useAuth();
   const router = useRouter();
   const [step, setStep] = useState<1 | 2>(1);
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push('/dashboard')
+    }
+  }, [isAuthenticated, router])
 
   // Step 1 Form
   const form1 = useForm<z.infer<typeof step1Schema>>({
