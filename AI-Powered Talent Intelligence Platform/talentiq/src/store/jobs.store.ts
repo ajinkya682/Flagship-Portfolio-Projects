@@ -7,9 +7,11 @@ interface JobsState {
   jobs: Job[]
   addJob: (job: Job) => void
   updateJob: (id: string, updates: Partial<Job>) => void
+  loadDemoData: () => void
+  clearData: () => void
 }
 
-const INITIAL_JOBS: Job[] = MOCK_JOBS as Job[]
+const INITIAL_JOBS: Job[] = []
 
 export const useJobsStore = create<JobsState>()(
   persist(
@@ -21,6 +23,8 @@ export const useJobsStore = create<JobsState>()(
         set((state) => ({
           jobs: state.jobs.map((j) => (j.id === id ? { ...j, ...updates } : j)),
         })),
+      loadDemoData: () => set({ jobs: MOCK_JOBS as Job[] }),
+      clearData: () => set({ jobs: [] }),
     }),
     {
       name: 'talentiq-jobs-store',

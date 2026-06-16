@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { useAuthStore } from '@/store/auth.store'
+import { useJobsStore } from '@/store/jobs.store'
+import { useCandidatesStore } from '@/store/candidates.store'
 import type { User } from '@/types/domain.types'
 import api from '@/lib/api'
 
@@ -28,6 +30,15 @@ export function useAuth() {
       // The API returns { user, accessToken, refreshToken } and also sets HttpOnly cookies
       const appUser = buildUserFromResponse(data.user)
       setUser(appUser)
+
+      if (appUser.email === 'demo@talentiq.com') {
+        useJobsStore.getState().loadDemoData()
+        useCandidatesStore.getState().loadDemoData()
+      } else {
+        useJobsStore.getState().clearData()
+        useCandidatesStore.getState().clearData()
+      }
+
       return appUser
     } catch (error) {
       console.error('Login error:', error)
@@ -44,6 +55,15 @@ export function useAuth() {
       
       const appUser = buildUserFromResponse(responseData.user)
       setUser(appUser)
+
+      if (appUser.email === 'demo@talentiq.com') {
+        useJobsStore.getState().loadDemoData()
+        useCandidatesStore.getState().loadDemoData()
+      } else {
+        useJobsStore.getState().clearData()
+        useCandidatesStore.getState().clearData()
+      }
+
       return appUser
     } catch (error) {
       console.error('Register error:', error)

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import connectToDatabase from '@/core/database/mongoose';
 import { User } from '@/core/database/models/User';
+import { Company } from '@/core/database/models/Company';
 import { generateTokens } from '@/core/auth/jwt';
 
 export async function POST(req: Request) {
@@ -15,7 +16,29 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing credentials' }, { status: 400 });
     }
 
-    const user = await User.findOne({ email }).select('+passwordHash');
+    let user = await User.findOne({ email }).select('+passwordHash');
+    
+    // Auto-seed demo user if they try to log in but it doesn't exist yet
+    if (!user && email === 'demo@talentiq.com' && password === 'Demo@123') {
+      const company = await Company.create({
+        name: 'TalentIQ Demo',
+        industry: 'Technology',
+        size: '51-200',
+        slug: 'talentiq-demo'
+      });
+      
+      const salt = await bcrypt.genSalt(10);
+      const passwordHash = await bcrypt.hash(password, salt);
+      
+      user = await User.create({
+        name: 'Demo Admin',
+        email,
+        passwordHash,
+        role: 'admin',
+        company: company._id,
+      });
+    }
+
     if (!user || !user.passwordHash) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }

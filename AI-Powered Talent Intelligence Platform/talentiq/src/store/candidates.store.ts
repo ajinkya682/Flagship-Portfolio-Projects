@@ -9,9 +9,11 @@ interface CandidatesState {
   updateCandidate: (id: string, updates: Partial<Candidate>) => void
   moveCandidateStage: (candidateId: string, newStage: string) => void
   addCandidateNote: (candidateId: string, note: any) => void
+  loadDemoData: () => void
+  clearData: () => void
 }
 
-const INITIAL_CANDIDATES: Candidate[] = MOCK_CANDIDATES as Candidate[]
+const INITIAL_CANDIDATES: Candidate[] = []
 
 export const useCandidatesStore = create<CandidatesState>()(
   persist(
@@ -48,6 +50,8 @@ export const useCandidatesStore = create<CandidatesState>()(
             c.id === candidateId ? { ...c, notes: [...c.notes, note] } : c,
           ),
         })),
+      loadDemoData: () => set({ candidates: MOCK_CANDIDATES as Candidate[] }),
+      clearData: () => set({ candidates: [] }),
     }),
     {
       name: 'talentiq-candidates-store',
