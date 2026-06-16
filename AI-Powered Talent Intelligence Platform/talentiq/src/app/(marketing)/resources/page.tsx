@@ -1,8 +1,44 @@
+'use client'
+
+import { useState } from 'react'
 import SectionWrapper from '@/components/marketing/SectionWrapper'
 import FinalCTASection from '@/components/marketing/FinalCTASection'
-import { BookOpen, FileText, Video, ArrowRight } from 'lucide-react'
+import { BookOpen, FileText, Video, ArrowRight, Loader2, CheckCircle2 } from 'lucide-react'
 
 export default function ResourcesPage() {
+  const [email, setEmail] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [isSuccess, setIsSuccess] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email) return
+
+    setIsLoading(true)
+    setError('')
+    
+    try {
+      const res = await fetch('/api/newsletter/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      })
+      
+      const data = await res.json()
+      if (res.ok) {
+        setIsSuccess(true)
+        setEmail('')
+      } else {
+        setError(data.error || 'Failed to subscribe. Please try again.')
+      }
+    } catch (err) {
+      setError('Network error. Please try again later.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
     <div className="flex flex-col min-h-screen">
       {/* Hero Section */}
@@ -91,12 +127,39 @@ export default function ResourcesPage() {
              <div className="relative z-10 max-w-2xl">
                <h3 className="font-display text-2xl md:text-3xl font-bold text-neutral-900 mb-3">Get hiring insights delivered weekly</h3>
                <p className="text-neutral-600 mb-6 text-lg">Join 10,000+ recruiters and founders who receive our latest playbooks and research.</p>
-               <form className="flex flex-col sm:flex-row gap-3">
-                 <input type="email" placeholder="Work email address" className="flex-1 h-12 px-5 rounded-xl border border-neutral-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" />
-                 <button type="button" className="h-12 px-8 inline-flex items-center justify-center font-body text-[15px] font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-[0_4px_14px_rgba(37,99,235,0.3)] hover:shadow-[0_6px_20px_rgba(37,99,235,0.4)] transition-all shrink-0">
-                   Subscribe
-                 </button>
-               </form>
+               
+               {isSuccess ? (
+                 <div className="flex items-center gap-3 p-4 bg-emerald-50 border border-emerald-100 rounded-xl animate-in fade-in zoom-in">
+                   <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center shrink-0">
+                     <CheckCircle2 className="w-6 h-6 text-emerald-600" />
+                   </div>
+                   <div>
+                     <h4 className="font-bold text-emerald-900">You're subscribed!</h4>
+                     <p className="text-sm text-emerald-700">Keep an eye on your inbox for our next issue.</p>
+                   </div>
+                 </div>
+               ) : (
+                 <form onSubmit={handleSubscribe} className="flex flex-col gap-3">
+                   {error && <p className="text-red-500 text-sm font-medium">{error}</p>}
+                   <div className="flex flex-col sm:flex-row gap-3">
+                     <input 
+                       type="email" 
+                       value={email}
+                       onChange={(e) => setEmail(e.target.value)}
+                       required
+                       placeholder="Work email address" 
+                       className="flex-1 h-12 px-5 rounded-xl border border-neutral-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 
+                     />
+                     <button 
+                       type="submit" 
+                       disabled={isLoading}
+                       className="h-12 px-8 inline-flex items-center justify-center font-body text-[15px] font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-[0_4px_14px_rgba(37,99,235,0.3)] hover:shadow-[0_6px_20px_rgba(37,99,235,0.4)] transition-all shrink-0 disabled:opacity-70 disabled:cursor-not-allowed"
+                     >
+                       {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Subscribe'}
+                     </button>
+                   </div>
+                 </form>
+               )}
              </div>
           </div>
         </div>

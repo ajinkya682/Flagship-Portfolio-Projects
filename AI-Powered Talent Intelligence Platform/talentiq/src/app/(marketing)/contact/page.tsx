@@ -1,7 +1,45 @@
+'use client'
+
+import { useState } from 'react'
 import SectionWrapper from '@/components/marketing/SectionWrapper'
-import { MessageSquare, Mail, MapPin, Phone } from 'lucide-react'
+import { MessageSquare, Mail, MapPin, Phone, Loader2, CheckCircle2 } from 'lucide-react'
 
 export default function ContactPage() {
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    message: ''
+  })
+  const [isLoading, setIsLoading] = useState(false)
+  const [isSuccess, setIsSuccess] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+    setError('')
+    
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      })
+      
+      const data = await res.json()
+      if (res.ok) {
+        setIsSuccess(true)
+      } else {
+        setError(data.error || 'Something went wrong. Please try again.')
+      }
+    } catch (err) {
+      setError('Network error. Please try again later.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-neutral-50">
       <section className="bg-white pt-32 pb-20 relative overflow-hidden border-b border-neutral-100">
@@ -50,30 +88,95 @@ export default function ContactPage() {
             </div>
             
             <div className="lg:col-span-3">
-              <div className="bg-white p-8 rounded-2xl shadow-xl border border-neutral-100">
-                <form className="space-y-6">
-                  <div className="grid sm:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label htmlFor="firstName" className="text-sm font-medium text-neutral-900">First Name</label>
-                      <input type="text" id="firstName" className="w-full h-11 px-4 rounded-xl border border-neutral-200 bg-neutral-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" placeholder="Jane" />
+              <div className="bg-white p-8 rounded-2xl shadow-xl border border-neutral-100 min-h-[480px] flex flex-col justify-center">
+                {isSuccess ? (
+                  <div className="text-center flex flex-col items-center justify-center animate-in fade-in zoom-in duration-500">
+                    <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-6">
+                      <CheckCircle2 className="w-8 h-8" />
+                    </div>
+                    <h3 className="font-display text-2xl font-bold text-neutral-900 mb-2">Message Sent!</h3>
+                    <p className="text-neutral-600 mb-8 max-w-[300px]">
+                      Thanks for reaching out, {formData.firstName}. Our team will get back to you shortly!
+                    </p>
+                    <button 
+                      onClick={() => { setIsSuccess(false); setFormData({ firstName: '', lastName: '', email: '', message: '' }) }}
+                      className="text-blue-600 font-semibold hover:text-blue-700 transition-colors"
+                    >
+                      Send another message
+                    </button>
+                  </div>
+                ) : (
+                  <form onSubmit={handleSubmit} className="space-y-6">
+                    {error && (
+                      <div className="p-4 bg-red-50 text-red-600 text-sm font-medium rounded-xl border border-red-100">
+                        {error}
+                      </div>
+                    )}
+                    <div className="grid sm:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <label htmlFor="firstName" className="text-sm font-medium text-neutral-900">First Name</label>
+                        <input 
+                          type="text" 
+                          id="firstName" 
+                          required
+                          value={formData.firstName}
+                          onChange={(e) => setFormData({...formData, firstName: e.target.value})}
+                          className="w-full h-11 px-4 rounded-xl border border-neutral-200 bg-neutral-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 
+                          placeholder="Jane" 
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label htmlFor="lastName" className="text-sm font-medium text-neutral-900">Last Name</label>
+                        <input 
+                          type="text" 
+                          id="lastName" 
+                          required
+                          value={formData.lastName}
+                          onChange={(e) => setFormData({...formData, lastName: e.target.value})}
+                          className="w-full h-11 px-4 rounded-xl border border-neutral-200 bg-neutral-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 
+                          placeholder="Doe" 
+                        />
+                      </div>
                     </div>
                     <div className="space-y-2">
-                      <label htmlFor="lastName" className="text-sm font-medium text-neutral-900">Last Name</label>
-                      <input type="text" id="lastName" className="w-full h-11 px-4 rounded-xl border border-neutral-200 bg-neutral-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" placeholder="Doe" />
+                      <label htmlFor="email" className="text-sm font-medium text-neutral-900">Work Email</label>
+                      <input 
+                        type="email" 
+                        id="email" 
+                        required
+                        value={formData.email}
+                        onChange={(e) => setFormData({...formData, email: e.target.value})}
+                        className="w-full h-11 px-4 rounded-xl border border-neutral-200 bg-neutral-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 
+                        placeholder="jane@company.com" 
+                      />
                     </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label htmlFor="email" className="text-sm font-medium text-neutral-900">Work Email</label>
-                    <input type="email" id="email" className="w-full h-11 px-4 rounded-xl border border-neutral-200 bg-neutral-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" placeholder="jane@company.com" />
-                  </div>
-                  <div className="space-y-2">
-                    <label htmlFor="message" className="text-sm font-medium text-neutral-900">How can we help?</label>
-                    <textarea id="message" rows={4} className="w-full p-4 rounded-xl border border-neutral-200 bg-neutral-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-none" placeholder="Tell us about your hiring needs..."></textarea>
-                  </div>
-                  <button type="button" className="w-full h-12 inline-flex items-center justify-center font-body text-[15px] font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-[0_4px_14px_rgba(37,99,235,0.3)] hover:shadow-[0_6px_20px_rgba(37,99,235,0.4)] transition-all">
-                    Send message
-                  </button>
-                </form>
+                    <div className="space-y-2">
+                      <label htmlFor="message" className="text-sm font-medium text-neutral-900">How can we help?</label>
+                      <textarea 
+                        id="message" 
+                        required
+                        rows={4} 
+                        value={formData.message}
+                        onChange={(e) => setFormData({...formData, message: e.target.value})}
+                        className="w-full p-4 rounded-xl border border-neutral-200 bg-neutral-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-none" 
+                        placeholder="Tell us about your hiring needs..."
+                      ></textarea>
+                    </div>
+                    <button 
+                      type="submit" 
+                      disabled={isLoading}
+                      className="w-full h-12 inline-flex items-center justify-center font-body text-[15px] font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-[0_4px_14px_rgba(37,99,235,0.3)] hover:shadow-[0_6px_20px_rgba(37,99,235,0.4)] transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+                    >
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="w-5 h-5 animate-spin mr-2" /> Sending...
+                        </>
+                      ) : (
+                        'Send message'
+                      )}
+                    </button>
+                  </form>
+                )}
               </div>
             </div>
           </div>
