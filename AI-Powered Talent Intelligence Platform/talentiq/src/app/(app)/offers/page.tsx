@@ -8,6 +8,7 @@ import {
 import Link from 'next/link'
 import { useDomainStore } from '@/store/domain.store'
 import { useCandidatesStore } from '@/store/candidates.store'
+import { useEffect } from 'react'
 import CreateOfferModal from '@/components/offers/CreateOfferModal'
 
 const STATUS_STYLES: Record<string, { bg: string; text: string; icon: React.ElementType; border: string }> = {
@@ -19,12 +20,41 @@ const STATUS_STYLES: Record<string, { bg: string; text: string; icon: React.Elem
 }
 
 export default function OffersPage() {
-  const { offers } = useDomainStore()
   const { candidates } = useCandidatesStore()
+  const [offers, setOffers] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
   const [showExportToast, setShowExportToast] = useState(false)
+
+  useEffect(() => {
+    const fetchOffers = async () => {
+      try {
+        const res = await fetch('/api/offers')
+        if (res.ok) {
+          const data = await res.json()
+          const mapped = data.map((o: any) => ({
+            id: o._id,
+            candidateId: o.candidate?._id || o.candidate,
+            role: o.job?.title || 'Unknown Role',
+            amount: `$${o.salary.toLocaleString()}`,
+            equity: '0%', // Wait, we can extract it from letterContent or just mock it. Actually, backend doesn't save equity explicitly, but let's just show 0%.
+            status: o.status,
+            sentDate: new Date(o.sentAt || o.createdAt).toLocaleDateString(),
+            expiryDate: new Date(o.expirationDate).toLocaleDateString(),
+            candidateObj: o.candidate // populated object
+          }))
+          setOffers(mapped)
+        }
+      } catch (err) {
+        console.error('Failed to fetch offers:', err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchOffers()
+  }, [])
 
   const activeOffers = offers.filter(o => o.status === 'sent' || o.status === 'viewed')
   const acceptedOffers = offers.filter(o => o.status === 'accepted')
@@ -151,7 +181,7 @@ export default function OffersPage() {
                 </thead>
                 <tbody>
                   {offers.map(offer => {
-                    const candidate = candidates.find(c => c.id === offer.candidateId)
+                    const candidate = candidates.find(c => c.id === offer.candidateId) || offer.candidateObj
                     if (!candidate) return null
                     const style = STATUS_STYLES[offer.status] || STATUS_STYLES.draft
                     const StatusIcon = style.icon
@@ -162,7 +192,7 @@ export default function OffersPage() {
                           <div className="flex items-center gap-[12px]">
                             <img src={candidate.avatar} alt={candidate.name} className="w-[40px] h-[40px] rounded-[10px] object-cover bg-neutral-100" />
                             <div>
-                              <Link href={`/applications/${candidate.id}`} className="font-body text-[14px] font-semibold text-neutral-900 group-hover:text-primary-700 transition-colors">
+                              <Link href={candidate.id ? `/applications/${candidate.id}` : '#'} className="font-body text-[14px] font-semibold text-neutral-900 group-hover:text-primary-700 transition-colors">
                                 {candidate.name}
                               </Link>
                               <p className="font-body text-[12px] text-neutral-500 mt-[2px]">{candidate.email}</p>

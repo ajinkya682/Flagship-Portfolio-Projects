@@ -11,6 +11,8 @@ import JobStatusBadge from '@/components/jobs/JobStatusBadge'
 import { useDomainStore } from '@/store/domain.store'
 import { useJobsStore } from '@/store/jobs.store'
 import { useCandidatesStore } from '@/store/candidates.store'
+import * as Dialog from '@radix-ui/react-dialog'
+import { AlertCircle } from 'lucide-react'
 
 const TABS = [
   { id: 'overview', label: 'Overview', icon: Briefcase },
@@ -42,6 +44,8 @@ export default function JobDetailPage() {
   const jobCandidates = candidates.filter(c => c.jobId === jobId)
 
   const [editedStatus, setEditedStatus] = useState(job?.status || 'published')
+  const [statusToConfirm, setStatusToConfirm] = useState<string | null>(null)
+  const [isUpdating, setIsUpdating] = useState(false)
 
   if (!job) {
     return (
@@ -86,11 +90,34 @@ export default function JobDetailPage() {
   ]
 
   const handleSaveSettings = () => {
-    updateJob(job.id, { status: editedStatus as any })
-    // Optional: show a toast here
+    if (editedStatus === 'closed' || editedStatus === 'draft' || editedStatus === 'paused') {
+      setStatusToConfirm(editedStatus)
+    } else {
+      executeStatusUpdate(editedStatus)
+    }
+  }
+
+  const executeStatusUpdate = async (status: string) => {
+    setIsUpdating(true)
+    try {
+      const res = await fetch(`/api/jobs/${job.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+      })
+      if (res.ok) {
+        updateJob(job.id, { status: status as any })
+      }
+    } catch (e) {
+      console.error('Failed to update job status', e)
+    } finally {
+      setIsUpdating(false)
+      setStatusToConfirm(null)
+    }
   }
 
   return (
+    <>
     <div className="flex flex-col max-w-[1280px] mx-auto w-full gap-[20px]">
       {/* Back */}
       <Link href="/jobs" className="flex items-center gap-[6px] text-[13px] font-medium text-neutral-500 hover:text-neutral-900 transition-colors w-fit group">
@@ -382,13 +409,56 @@ export default function JobDetailPage() {
               </select>
             </div>
             <div className="flex items-center justify-between pt-[20px] border-t border-neutral-100">
-              <button onClick={handleSaveSettings} className="h-[40px] px-[20px] bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-body text-[13px] font-semibold rounded-[10px] shadow-sm">
-                Save Changes
+              <button onClick={handleSaveSettings} disabled={isUpdating} className="h-[40px] px-[20px] bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-body text-[13px] font-semibold rounded-[10px] shadow-sm disabled:opacity-50">
+                {isUpdating ? 'Saving...' : 'Save Changes'}
               </button>
             </div>
           </div>
         </div>
       )}
     </div>
+
+      {/* Confirmation Modal */}
+      <Dialog.Root open={!!statusToConfirm} onOpenChange={(open) => !open && setStatusToConfirm(null)}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 bg-neutral-900/40 backdrop-blur-sm z-50 animate-in fade-in" />
+          <Dialog.Content className="fixed top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] bg-white rounded-xl shadow-xl w-[90vw] max-w-[400px] flex flex-col z-50 overflow-hidden p-[24px]">
+            <div className="flex items-start gap-[16px] mb-[20px]">
+              <div className="w-[40px] h-[40px] rounded-full bg-amber-100 flex items-center justify-center shrink-0">
+                <AlertCircle size={20} className="text-amber-600" />
+              </div>
+              <div>
+                <Dialog.Title className="font-display text-[18px] font-bold text-neutral-900 mb-[4px]">
+                  Confirm Status Change
+                </Dialog.Title>
+                <Dialog.Description className="font-body text-[14px] text-neutral-600">
+                  {statusToConfirm === 'closed' && "Are you sure you want to close this job? The public listing will show as closed and no new applications will be accepted."}
+                  {(statusToConfirm === 'draft' || statusToConfirm === 'paused') && "Are you sure you want to pause this job? The public listing will show as temporarily stopped."}
+                </Dialog.Description>
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-end gap-[12px] pt-[16px] border-t border-neutral-100">
+              <Dialog.Close asChild>
+                <button 
+                  className="px-[16px] py-[8px] text-[14px] font-medium text-neutral-600 hover:bg-neutral-50 rounded-md transition-colors disabled:opacity-50"
+                  disabled={isUpdating}
+                >
+                  Cancel
+                </button>
+              </Dialog.Close>
+              <button 
+                onClick={() => executeStatusUpdate(statusToConfirm as string)}
+                disabled={isUpdating}
+                className="px-[16px] py-[8px] text-[14px] font-medium text-white bg-amber-600 hover:bg-amber-700 rounded-md transition-colors shadow-sm disabled:opacity-70 flex items-center justify-center min-w-[100px]"
+              >
+                {isUpdating ? 'Updating...' : 'Confirm'}
+              </button>
+            </div>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
+
+    </>
   )
 }

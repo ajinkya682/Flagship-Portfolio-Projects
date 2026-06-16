@@ -21,7 +21,7 @@ export default async function PublicJobPage({
   const job = await Job.findOne({
     company: company._id,
     $or: [{ slug: params.jobSlug }, { _id: params.jobSlug.length === 24 ? params.jobSlug : null }],
-    status: "published",
+    status: { $in: ["published", "closed", "draft", "paused"] },
   });
 
   if (!job) {
@@ -109,13 +109,37 @@ export default async function PublicJobPage({
           </ul>
         </div>
 
-        {/* Application Form Component */}
-        <div id="apply">
-          <h3 className="font-display text-[24px] font-bold text-neutral-900 mb-[16px]">
-            Apply for this job
-          </h3>
-          <ApplicationForm job={jobObj} companySlug={params.companySlug} companyName={company.name} />
-        </div>
+        {/* Application Form Component or Fallback Messages */}
+        {jobObj.status === "published" && (
+          <div id="apply">
+            <h3 className="font-display text-[24px] font-bold text-neutral-900 mb-[16px]">
+              Apply for this job
+            </h3>
+            <ApplicationForm job={jobObj} companySlug={params.companySlug} companyName={company.name} />
+          </div>
+        )}
+
+        {jobObj.status === "closed" && (
+          <div className="bg-neutral-100 border border-neutral-200 rounded-[16px] p-[32px] text-center max-w-[500px] mx-auto">
+            <h3 className="font-display text-[20px] font-bold text-neutral-900 mb-[8px]">
+              This job is closed
+            </h3>
+            <p className="text-[14px] text-neutral-600">
+              We are no longer accepting applications for this role.
+            </p>
+          </div>
+        )}
+
+        {(jobObj.status === "draft" || jobObj.status === "paused") && (
+          <div className="bg-amber-50 border border-amber-200 rounded-[16px] p-[32px] text-center max-w-[500px] mx-auto">
+            <h3 className="font-display text-[20px] font-bold text-amber-900 mb-[8px]">
+              Temporarily stopped
+            </h3>
+            <p className="text-[14px] text-amber-700">
+              We are temporarily pausing new applications for this role. Please check back later.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

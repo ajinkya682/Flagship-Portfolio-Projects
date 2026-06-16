@@ -5,6 +5,8 @@ import { MapPin, Users, Calendar, Sparkles, MoreHorizontal, ArrowRight, Trending
 import JobStatusBadge from './JobStatusBadge'
 import { useState } from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
+import * as Dialog from '@radix-ui/react-dialog'
+import { AlertCircle } from 'lucide-react'
 import ShareJobModal from './ShareJobModal'
 import { useDomainStore } from '@/store/domain.store'
 import { useJobsStore } from '@/store/jobs.store'
@@ -40,6 +42,9 @@ export default function JobCard({ job }: JobCardProps) {
   const { updateJob } = useJobsStore()
   const [copied, setCopied] = useState(false)
   const [isShareModalOpen, setIsShareModalOpen] = useState(false)
+  const [statusToConfirm, setStatusToConfirm] = useState<string | null>(null)
+  const [isUpdating, setIsUpdating] = useState(false)
+
   const jobCandidates = candidates.filter(c => c.jobId === job.id)
   
   const actualCompanySlug = user?.company?.slug || settings.companySlug
@@ -48,6 +53,33 @@ export default function JobCard({ job }: JobCardProps) {
     e.preventDefault()
     e.stopPropagation()
     setIsShareModalOpen(true)
+  }
+
+  const handleStatusChange = (status: string) => {
+    if (status === 'closed' || status === 'draft' || status === 'paused') {
+      setStatusToConfirm(status)
+    } else {
+      executeStatusUpdate(status)
+    }
+  }
+
+  const executeStatusUpdate = async (status: string) => {
+    setIsUpdating(true)
+    try {
+      const res = await fetch(`/api/jobs/${job.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+      })
+      if (res.ok) {
+        updateJob(job.id, { status: status as any })
+      }
+    } catch (e) {
+      console.error('Failed to update job status', e)
+    } finally {
+      setIsUpdating(false)
+      setStatusToConfirm(null)
+    }
   }
   
   const daysOpen = Math.floor((new Date().getTime() - new Date(job.publishedAt || new Date()).getTime()) / (1000 * 3600 * 24))
@@ -107,7 +139,7 @@ export default function JobCard({ job }: JobCardProps) {
                   {job.status !== 'published' && (
                     <DropdownMenu.Item 
                       className="flex items-center gap-2 px-3 py-2 text-[13px] font-medium text-emerald-600 rounded-md hover:bg-emerald-50 cursor-pointer focus:bg-emerald-50 focus:outline-none"
-                      onClick={() => updateJob(job.id, { status: 'published' })}
+                      onClick={() => handleStatusChange('published')}
                     >
                       <Play size={14} /> Publish Job
                     </DropdownMenu.Item>
@@ -115,7 +147,7 @@ export default function JobCard({ job }: JobCardProps) {
                   {job.status === 'published' && (
                     <DropdownMenu.Item 
                       className="flex items-center gap-2 px-3 py-2 text-[13px] font-medium text-amber-600 rounded-md hover:bg-amber-50 cursor-pointer focus:bg-amber-50 focus:outline-none"
-                      onClick={() => updateJob(job.id, { status: 'closed' })}
+                      onClick={() => handleStatusChange('closed')}
                     >
                       <StopCircle size={14} /> Close Job
                     </DropdownMenu.Item>
@@ -123,7 +155,7 @@ export default function JobCard({ job }: JobCardProps) {
                   {job.status !== 'draft' && (
                     <DropdownMenu.Item 
                       className="flex items-center gap-2 px-3 py-2 text-[13px] font-medium text-neutral-600 rounded-md hover:bg-neutral-50 hover:text-neutral-900 cursor-pointer focus:bg-neutral-50 focus:outline-none"
-                      onClick={() => updateJob(job.id, { status: 'draft' })}
+                      onClick={() => handleStatusChange('draft')}
                     >
                       <Sparkles size={14} className="text-neutral-400" /> Move to Draft
                     </DropdownMenu.Item>
@@ -210,6 +242,48 @@ export default function JobCard({ job }: JobCardProps) {
           onClose={() => setIsShareModalOpen(false)}
         />
       )}
+
+      {/* Confirmation Modal */}
+      <Dialog.Root open={!!statusToConfirm} onOpenChange={(open) => !open && setStatusToConfirm(null)}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 bg-neutral-900/40 backdrop-blur-sm z-50 animate-in fade-in" />
+          <Dialog.Content className="fixed top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] bg-white rounded-xl shadow-xl w-[90vw] max-w-[400px] flex flex-col z-50 overflow-hidden p-[24px]">
+            <div className="flex items-start gap-[16px] mb-[20px]">
+              <div className="w-[40px] h-[40px] rounded-full bg-amber-100 flex items-center justify-center shrink-0">
+                <AlertCircle size={20} className="text-amber-600" />
+              </div>
+              <div>
+                <Dialog.Title className="font-display text-[18px] font-bold text-neutral-900 mb-[4px]">
+                  Confirm Status Change
+                </Dialog.Title>
+                <Dialog.Description className="font-body text-[14px] text-neutral-600">
+                  {statusToConfirm === 'closed' && "Are you sure you want to close this job? The public listing will show as closed and no new applications will be accepted."}
+                  {(statusToConfirm === 'draft' || statusToConfirm === 'paused') && "Are you sure you want to pause this job? The public listing will show as temporarily stopped."}
+                </Dialog.Description>
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-end gap-[12px] pt-[16px] border-t border-neutral-100">
+              <Dialog.Close asChild>
+                <button 
+                  className="px-[16px] py-[8px] text-[14px] font-medium text-neutral-600 hover:bg-neutral-50 rounded-md transition-colors disabled:opacity-50"
+                  disabled={isUpdating}
+                >
+                  Cancel
+                </button>
+              </Dialog.Close>
+              <button 
+                onClick={() => executeStatusUpdate(statusToConfirm as string)}
+                disabled={isUpdating}
+                className="px-[16px] py-[8px] text-[14px] font-medium text-white bg-amber-600 hover:bg-amber-700 rounded-md transition-colors shadow-sm disabled:opacity-70 flex items-center justify-center min-w-[100px]"
+              >
+                {isUpdating ? 'Updating...' : 'Confirm'}
+              </button>
+            </div>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
+
     </div>
   )
 }

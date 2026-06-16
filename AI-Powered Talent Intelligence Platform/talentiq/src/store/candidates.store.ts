@@ -85,12 +85,23 @@ export const useCandidatesStore = create<CandidatesState>()(
       }
     },
       
-    addCandidateNote: (candidateId, note) =>
+    addCandidateNote: async (candidateId, note) => {
       set((state) => ({
         candidates: state.candidates.map((c) =>
           c.id === candidateId ? { ...c, notes: [...c.notes, note] } : c,
         ),
-      })),
+      }))
+
+      try {
+        const state = useCandidatesStore.getState();
+        const candidate = state.candidates.find(c => c.id === candidateId);
+        if (candidate && candidate.applicationId) {
+          await api.post(`/applications/${candidate.applicationId}/notes`, note);
+        }
+      } catch (error) {
+        console.error('Failed to save note to MongoDB:', error);
+      }
+    },
       
     clearData: () => set({ candidates: [] }),
   })

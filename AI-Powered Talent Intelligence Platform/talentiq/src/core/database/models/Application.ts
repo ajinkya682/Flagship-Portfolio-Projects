@@ -19,7 +19,13 @@ export interface IApplication extends Document {
   aiScore?: IAIScore;
   appliedAt: Date;
   source: string;
-  recruiterNotes: string[];
+  recruiterNotes: Array<{
+    id: string;
+    author: string;
+    avatar: string;
+    text: string;
+    createdAt: string;
+  }>;
   tags: string[];
   assignedTo?: mongoose.Types.ObjectId;
   daysInStage: number;
@@ -37,6 +43,14 @@ const AIScoreSchema = new Schema({
   scoredAt: { type: Date, default: Date.now }
 }, { _id: false });
 
+const NoteSchema = new Schema({
+  id: String,
+  author: String,
+  avatar: String,
+  text: String,
+  createdAt: String
+}, { _id: false });
+
 const ApplicationSchema: Schema = new Schema({
   job: { type: Schema.Types.ObjectId, ref: 'Job', required: true },
   candidate: { type: Schema.Types.ObjectId, ref: 'Candidate', required: true },
@@ -44,7 +58,7 @@ const ApplicationSchema: Schema = new Schema({
   aiScore: { type: AIScoreSchema },
   appliedAt: { type: Date, default: Date.now },
   source: { type: String, default: 'career_page' },
-  recruiterNotes: { type: [String], default: [] },
+  recruiterNotes: { type: [NoteSchema], default: [] },
   tags: { type: [String], default: [] },
   assignedTo: { type: Schema.Types.ObjectId, ref: 'User' },
   daysInStage: { type: Number, default: 0 }

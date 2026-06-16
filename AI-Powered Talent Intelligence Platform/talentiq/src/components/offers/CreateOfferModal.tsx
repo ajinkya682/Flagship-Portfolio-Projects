@@ -13,7 +13,6 @@ interface CreateOfferModalProps {
 }
 
 export default function CreateOfferModal({ isOpen, onClose }: CreateOfferModalProps) {
-  const { addOffer } = useDomainStore()
   const { jobs } = useJobsStore()
   const { candidates } = useCandidatesStore()
   
@@ -30,27 +29,40 @@ export default function CreateOfferModal({ isOpen, onClose }: CreateOfferModalPr
     if (!candidateId || !amount) return
     setIsSubmitting(true)
     
-    setTimeout(() => {
+    setTimeout(async () => {
       const candidate = candidates.find(c => c.id === candidateId)
       
-      addOffer({
-        id: `offer_${Math.random().toString(36).substring(2, 10)}`,
-        candidateId,
-        jobId: candidate?.jobId || jobs[0]?.id || '',
-        role: candidate?.role || 'Unknown Role',
-        amount: `$${parseInt(amount).toLocaleString()}`,
-        equity: equity ? `${equity}%` : '0%',
-        status: 'draft',
-        sentDate: new Date().toISOString(),
-        expiryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
-      })
-      
-      setIsSubmitting(false)
-      setIsSuccess(true)
-      
-      setTimeout(() => {
-        handleClose()
-      }, 1500)
+      try {
+        const res = await fetch('/api/offers', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            candidateId,
+            jobId: candidate?.jobId || jobs[0]?.id || '',
+            amount,
+            equity
+          }),
+        });
+
+        if (res.ok) {
+          setIsSubmitting(false)
+          setIsSuccess(true)
+          
+          setTimeout(() => {
+            handleClose()
+            // Optionally reload page to show new offer, or handle state
+            window.location.reload()
+          }, 1500)
+        } else {
+          console.error("Failed to create offer");
+          setIsSubmitting(false);
+        }
+      } catch (err) {
+        console.error(err);
+        setIsSubmitting(false);
+      }
     }, 800)
   }
 
