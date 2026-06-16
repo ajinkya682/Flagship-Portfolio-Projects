@@ -7,6 +7,7 @@ import { ArrowLeft, Sparkles, Briefcase, MapPin, Building2, AlignLeft, DollarSig
 import { useDomainStore, type Job } from '@/store/domain.store'
 import { useJobsStore } from '@/store/jobs.store'
 import { v4 as uuidv4 } from 'uuid'
+import api from '@/lib/api'
 
 export default function NewJobPage() {
   const router = useRouter()
@@ -24,6 +25,7 @@ export default function NewJobPage() {
   })
 
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isGenerating, setIsGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const [formConfig, setFormConfig] = useState({
@@ -71,17 +73,32 @@ export default function NewJobPage() {
     }, 600)
   }
 
-  const generateWithAi = () => {
+  const generateWithAi = async () => {
     if (!formData.title) {
       setError("Please enter a job title first so AI knows what to generate.")
       setTimeout(() => setError(null), 4000)
       return
     }
     setError(null)
-    setFormData(prev => ({
-      ...prev,
-      description: `We are looking for a ${prev.title} to join our growing team. You will be responsible for taking ownership of key projects and collaborating with cross-functional teams to deliver high-quality results.\n\nRequirements:\n- 3+ years of relevant experience\n- Strong problem-solving skills\n- Excellent communication and teamwork abilities\n\nWhat We Offer:\n- Competitive salary\n- Remote flexibility\n- Health, dental, and vision insurance`
-    }))
+    setIsGenerating(true)
+    
+    try {
+      const response = await api.post('/jobs/generate-description', {
+        title: formData.title,
+        department: formData.department,
+        type: formData.type
+      })
+      
+      setFormData(prev => ({
+        ...prev,
+        description: response.data.description
+      }))
+    } catch (err) {
+      console.error('Failed to generate description', err)
+      setError('Failed to generate description. Please try again.')
+    } finally {
+      setIsGenerating(false)
+    }
   }
 
   return (
@@ -211,9 +228,10 @@ export default function NewJobPage() {
             <button
               type="button"
               onClick={generateWithAi}
-              className="flex items-center gap-[6px] text-[12px] font-semibold text-purple-600 bg-purple-50 hover:bg-purple-100 px-[10px] py-[4px] rounded-[6px] transition-colors"
+              disabled={isGenerating}
+              className="flex items-center gap-[6px] text-[12px] font-semibold text-purple-600 bg-purple-50 hover:bg-purple-100 px-[10px] py-[4px] rounded-[6px] transition-colors disabled:opacity-60"
             >
-              <Sparkles size={12} /> Auto-generate with AI
+              <Sparkles size={12} /> {isGenerating ? 'Generating...' : 'Auto-generate with AI'}
             </button>
           </div>
             <textarea

@@ -3,17 +3,40 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Sparkles } from 'lucide-react'
+import api from '@/lib/api'
 
 export default function Step3CreateJob({ onNext, onBack }: { onNext: () => void, onBack: () => void }) {
-  const { register, handleSubmit, setValue } = useForm()
+  const { register, handleSubmit, setValue, watch } = useForm()
   const [isGenerating, setIsGenerating] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const handleGenerateAI = () => {
+  const handleGenerateAI = async () => {
+    const title = watch('title')
+    const department = watch('department')
+    const type = watch('type')
+
+    if (!title || !department || !type) {
+      setError('Please fill in the Job Title, Department, and Employment Type first.')
+      return
+    }
+
+    setError(null)
     setIsGenerating(true)
-    setTimeout(() => {
-      setValue('description', 'We are looking for an experienced Senior Frontend Engineer to join our core product team. You will be responsible for architecting scalable UI components, optimizing performance, and mentoring junior developers. Proficiency in React, TypeScript, and modern state management is required.')
+    
+    try {
+      const response = await api.post('/jobs/generate-description', {
+        title,
+        department,
+        type
+      })
+      
+      setValue('description', response.data.description)
+    } catch (err) {
+      console.error('Failed to generate description', err)
+      setError('Failed to generate description. Please try again.')
+    } finally {
       setIsGenerating(false)
-    }, 2000)
+    }
   }
 
   return (
@@ -74,6 +97,7 @@ export default function Step3CreateJob({ onNext, onBack }: { onNext: () => void,
             className="p-[12px] border border-neutral-200 rounded-lg text-[15px] resize-none"
             placeholder="Describe the role..."
           />
+          {error && <p className="text-[12px] text-red-500 mt-1">{error}</p>}
         </div>
 
         <div className="flex items-center gap-[16px] mt-[8px]">
