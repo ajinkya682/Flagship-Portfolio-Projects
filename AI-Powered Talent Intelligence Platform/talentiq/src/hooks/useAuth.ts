@@ -1,10 +1,7 @@
-// ─── useAuth — Demo Mode ───────────────────────────────────────────
-// All API calls are replaced with mock implementations.
-// No network requests are made. Login immediately succeeds.
-
+import { useState } from 'react'
 import { useAuthStore } from '@/store/auth.store'
 import type { User } from '@/types/domain.types'
-import { findDemoUser, DEFAULT_USER, DEMO_USERS, type DemoUser } from '@/mock-data/users'
+import api from '@/lib/api'
 
 interface LoginCredentials {
   email: string
@@ -19,42 +16,48 @@ interface RegisterData {
 }
 
 export function useAuth() {
-  const { user, isLoading, setUser, clearUser, updatePlan, switchRole } = useAuthStore()
+  const { user, setUser, clearUser, updatePlan } = useAuthStore()
+  const [isLoading, setIsLoading] = useState(false)
   const isAuthenticated = user !== null
 
-  /**
-   * Demo Login: Matches email to a demo user account.
-   * Falls back to default demo user if no match found.
-   * No real network request is made.
-   */
-  const login = async (_credentials: LoginCredentials): Promise<User> => {
-    // Simulate a brief loading delay for realism
-    await new Promise(r => setTimeout(r, 600))
-    
-    // Try to find matching demo user by email, default to Sarah Mitchell (admin)
-    const demoUser = findDemoUser(_credentials.email) || DEFAULT_USER
-    const appUser = buildUserFromDemo(demoUser)
-    setUser(appUser)
-    return appUser
+  const login = async (credentials: LoginCredentials): Promise<User> => {
+    try {
+      setIsLoading(true)
+      const { data } = await api.post('/auth/login', credentials)
+      
+      // The API returns { user, accessToken, refreshToken } and also sets HttpOnly cookies
+      const appUser = buildUserFromResponse(data.user)
+      setUser(appUser)
+      return appUser
+    } catch (error) {
+      console.error('Login error:', error)
+      throw error
+    } finally {
+      setIsLoading(false)
+    }
   }
 
-  /**
-   * Demo Register: Instantly creates a demo user account.
-   * No real network request is made.
-   */
   const register = async (data: RegisterData): Promise<User> => {
-    await new Promise(r => setTimeout(r, 800))
-    const appUser = buildUserFromDemo({ ...DEFAULT_USER, name: data.name || DEFAULT_USER.name, email: data.email })
-    setUser(appUser)
-    return appUser
+    try {
+      setIsLoading(true)
+      const { data: responseData } = await api.post('/auth/register', data)
+      
+      const appUser = buildUserFromResponse(responseData.user)
+      setUser(appUser)
+      return appUser
+    } catch (error) {
+      console.error('Register error:', error)
+      throw error
+    } finally {
+      setIsLoading(false)
+    }
   }
 
-  /**
-   * Logout: Clears the store and redirects to login.
-   */
-  const logout = () => {
+  const logout = async () => {
     clearUser()
-    // Clear session storage to reset demo data
+    // If you have a backend logout route to clear cookies, call it here.
+    // await api.post('/auth/logout')
+    
     if (typeof window !== 'undefined') {
       sessionStorage.clear()
       window.location.href = '/login'
@@ -70,32 +73,31 @@ export function useAuth() {
     logout,
     setUser,
     updatePlan,
-    switchRole,
-    demoUsers: DEMO_USERS,
   }
 }
 
-function buildUserFromDemo(demoUser: Partial<DemoUser> & { email: string; name: string }): User {
+// Map the backend user object to the frontend domain user
+function buildUserFromResponse(apiUser: any): User {
   return {
-    id: (demoUser as DemoUser).id || 'user_demo',
-    name: demoUser.name,
-    email: demoUser.email,
-    avatar: (demoUser as DemoUser).avatar || 'https://randomuser.me/api/portraits/women/44.jpg',
-    role: ((demoUser as DemoUser).role as User['role']) || 'admin',
+    id: apiUser.id || apiUser._id,
+    name: apiUser.name,
+    email: apiUser.email,
+    avatar: apiUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(apiUser.name)}&background=random`,
+    role: apiUser.role,
     company: {
-      id: 'co_25',
-      name: (demoUser as DemoUser).companyName || 'Acme Corp',
+      id: apiUser.companyId,
+      name: apiUser.companyName || 'My Company',
       logo: undefined,
-      industry: 'SaaS',
-      size: '201-500',
-      timezone: 'America/Los_Angeles',
+      industry: 'Software',
+      size: '1-10',
+      timezone: 'UTC',
       currency: 'USD',
-      careerPageUrl: 'https://acmecorp.com/careers',
-      subdomain: 'acme',
-      slug: 'acme',
+      careerPageUrl: '',
+      subdomain: '',
+      slug: '',
     },
-    plan: ((demoUser as DemoUser).plan as User['plan']) || 'growth',
-    createdAt: '2023-01-15T08:00:00Z',
+    plan: 'growth',
+    createdAt: apiUser.createdAt || new Date().toISOString(),
     lastActiveAt: new Date().toISOString(),
   }
 }

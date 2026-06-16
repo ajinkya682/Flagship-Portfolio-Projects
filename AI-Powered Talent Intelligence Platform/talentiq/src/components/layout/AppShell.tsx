@@ -5,7 +5,6 @@ import { useUIStore } from '@/store/ui.store'
 import Sidebar from './Sidebar'
 import AppHeader from './AppHeader'
 import { MobileBottomNav } from '@/components/dashboard/MobileBottomNav'
-import DemoRoleSwitcher from '@/components/shared/DemoRoleSwitcher'
 
 export default function AppShell({ children }: { children: ReactNode }) {
   const { sidebarCollapsed } = useUIStore()
@@ -25,7 +24,6 @@ export default function AppShell({ children }: { children: ReactNode }) {
         </main>
       </div>
       <MobileBottomNav />
-      <DemoRoleSwitcher />
     </div>
   )
 }

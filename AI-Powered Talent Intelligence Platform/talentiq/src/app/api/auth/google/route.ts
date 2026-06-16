@@ -1,28 +1,58 @@
 import { NextResponse } from 'next/server';
-import bcrypt from 'bcryptjs';
+import { OAuth2Client } from 'google-auth-library';
 import connectToDatabase from '@/core/database/mongoose';
 import { User } from '@/core/database/models/User';
+import { Company } from '@/core/database/models/Company';
 import { generateTokens } from '@/core/auth/jwt';
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 export async function POST(req: Request) {
   try {
     await connectToDatabase();
     
     const body = await req.json();
-    const { email, password } = body;
+    const { idToken } = body;
 
-    if (!email || !password) {
-      return NextResponse.json({ error: 'Missing credentials' }, { status: 400 });
+    if (!idToken) {
+      return NextResponse.json({ error: 'Google ID token required' }, { status: 400 });
     }
 
-    const user = await User.findOne({ email }).select('+passwordHash');
-    if (!user || !user.passwordHash) {
-      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+    const ticket = await client.verifyIdToken({
+      idToken,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    
+    const payload = ticket.getPayload();
+    if (!payload || !payload.email) {
+      return NextResponse.json({ error: 'Invalid Google token payload' }, { status: 400 });
     }
 
-    const isMatch = await bcrypt.compare(password, user.passwordHash);
-    if (!isMatch) {
-      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+    const { email, name, sub: googleId, picture: avatar } = payload;
+
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      // Create a default company for the new Google user
+      const slug = `company-${Date.now()}`;
+      const company = await Company.create({
+        name: `${name}'s Company`,
+        slug,
+      });
+
+      user = await User.create({
+        name: name || 'Google User',
+        email,
+        googleId,
+        avatar,
+        company: company._id,
+        role: 'admin'
+      });
+    } else if (!user.googleId) {
+      // Link Google account to existing user
+      user.googleId = googleId;
+      user.avatar = user.avatar || avatar;
+      await user.save();
     }
 
     // Generate tokens
@@ -32,7 +62,6 @@ export async function POST(req: Request) {
       role: user.role
     });
 
-    // Save refresh token
     user.refreshTokens.push(refreshToken);
     user.lastActiveAt = new Date();
     await user.save();
@@ -42,6 +71,7 @@ export async function POST(req: Request) {
         id: user._id,
         name: user.name,
         email: user.email,
+        avatar: user.avatar,
         role: user.role,
         companyId: user.company
       },
@@ -70,7 +100,7 @@ export async function POST(req: Request) {
     return response;
 
   } catch (error: any) {
-    console.error('Login error:', error);
+    console.error('Google Auth error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
