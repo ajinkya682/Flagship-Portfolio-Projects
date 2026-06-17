@@ -18,6 +18,7 @@ import KanbanColumn from './KanbanColumn'
 import KanbanDragOverlay from './KanbanDragOverlay'
 import ApplicationSidePanel from './ApplicationSidePanel'
 import CreateOfferModal from '@/components/offers/CreateOfferModal'
+import AssignmentModal from '@/components/pipeline/AssignmentModal'
 
 interface KanbanBoardProps {
   applications: Application[]
@@ -40,6 +41,7 @@ export default function KanbanBoard({ applications: initialApplications, jobId }
   const [activeColumn, setActiveColumn] = useState<string | null>(null)
   const [announcement, setAnnouncement] = useState<string>('')
   const [offerApplication, setOfferApplication] = useState<Application | null>(null)
+  const [assignmentApplication, setAssignmentApplication] = useState<Application | null>(null)
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -92,6 +94,11 @@ export default function KanbanBoard({ applications: initialApplications, jobId }
 
     if (destinationStageName === 'Offer') {
       setOfferApplication(activeApp)
+      return
+    }
+
+    if (destinationStageName === 'Assessment') {
+      setAssignmentApplication(activeApp)
       return
     }
 

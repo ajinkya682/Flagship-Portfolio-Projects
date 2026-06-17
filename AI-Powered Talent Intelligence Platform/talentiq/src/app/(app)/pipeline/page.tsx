@@ -32,6 +32,7 @@ import { useCandidatesStore } from '@/store/candidates.store'
 import AddCandidateModal from '@/components/pipeline/AddCandidateModal'
 import InterviewBookingModal from '@/components/pipeline/InterviewBookingModal'
 import CreateOfferModal from '@/components/offers/CreateOfferModal'
+import AssignmentModal from '@/components/pipeline/AssignmentModal'
 
 const STAGE_CONFIG = [
   { id: 'Applied', name: 'Applied', color: '#94A3B8' },
@@ -198,6 +199,7 @@ export default function PipelinePage() {
   const [activeCandidate, setActiveCandidate] = useState<any>(null)
   const [bookingCandidate, setBookingCandidate] = useState<any>(null)
   const [offerCandidate, setOfferCandidate] = useState<any>(null)
+  const [assignmentCandidate, setAssignmentCandidate] = useState<any>(null)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   
   const JOBS = ['All Jobs', ...Array.from(new Set(jobs.map(j => j.title)))]
@@ -220,6 +222,8 @@ export default function PipelinePage() {
       setBookingCandidate(candidate)
     } else if (newStage === 'Offer') {
       setOfferCandidate(candidate)
+    } else if (newStage === 'Assessment') {
+      setAssignmentCandidate(candidate)
     } else {
       moveCandidateStage(candidate.id, newStage)
     }
@@ -376,6 +380,17 @@ export default function PipelinePage() {
         onSuccess={(candidateId) => {
           moveCandidateStage(candidateId, 'Offer')
           setOfferCandidate(null)
+        }}
+      />
+
+      <AssignmentModal
+        isOpen={!!assignmentCandidate}
+        onClose={() => setAssignmentCandidate(null)}
+        initialCandidateId={assignmentCandidate?.id}
+        candidateName={assignmentCandidate?.name}
+        onSuccess={(candidateId) => {
+          moveCandidateStage(candidateId, 'Assessment')
+          setAssignmentCandidate(null)
         }}
       />
     </div>

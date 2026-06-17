@@ -1,0 +1,88 @@
+import { NextRequest, NextResponse } from 'next/server';
+import connectToDatabase from '@/core/database/mongoose';
+import { Assignment } from '@/core/database/models/Assignment';
+import { Application } from '@/core/database/models/Application';
+import { Candidate } from '@/core/database/models/Candidate';
+
+export async function GET(req: NextRequest) {
+  try {
+    await connectToDatabase();
+    const { searchParams } = new URL(req.url);
+    const candidateId = searchParams.get('candidateId');
+    const applicationId = searchParams.get('applicationId');
+
+    const query: any = {};
+    if (candidateId) query.candidateId = candidateId;
+    if (applicationId) query.applicationId = applicationId;
+
+    const assignments = await Assignment.find(query)
+      .populate('candidateId', 'name email avatar')
+      .sort({ createdAt: -1 });
+
+    return NextResponse.json(assignments);
+  } catch (error) {
+    console.error('Error fetching assignments:', error);
+    return NextResponse.json({ error: 'Failed to fetch assignments' }, { status: 500 });
+  }
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    await connectToDatabase();
+    const body = await req.json();
+    const { candidateId, jobId, applicationId, title, description, deadline, referenceLink } = body;
+
+    if (!candidateId || !title || !description || !deadline) {
+      return NextResponse.json(
+        { error: 'candidateId, title, description, and deadline are required' },
+        { status: 400 }
+      );
+    }
+
+    // Find the application to get proper IDs
+    const application = await Application.findOne(
+      applicationId
+        ? { _id: applicationId }
+        : { candidate: candidateId }
+    ).sort({ createdAt: -1 });
+
+    if (!application) {
+      return NextResponse.json({ error: 'Application not found' }, { status: 404 });
+    }
+
+    const candidate = await Candidate.findById(candidateId);
+    if (!candidate) {
+      return NextResponse.json({ error: 'Candidate not found' }, { status: 404 });
+    }
+
+    const assignment = new Assignment({
+      applicationId: application._id,
+      candidateId: candidate._id,
+      jobId: jobId || application.job,
+      title,
+      description,
+      deadline: new Date(deadline),
+      referenceLink,
+      status: 'pending',
+    });
+
+    await assignment.save();
+
+    // Update Application: store assignmentId + append timeline event
+    await Application.findByIdAndUpdate(application._id, {
+      assignmentId: assignment._id,
+      $push: {
+        timeline: {
+          event: `Assignment sent: "${title}" — Due ${new Date(deadline).toLocaleDateString()}`,
+          date: new Date(),
+          type: 'assignment',
+        },
+      },
+    });
+
+    return NextResponse.json(assignment, { status: 201 });
+  } catch (error) {
+    console.error('Error creating assignment:', error);
+    return NextResponse.json({ error: 'Failed to create assignment' }, { status: 500 });
+  }
+}
