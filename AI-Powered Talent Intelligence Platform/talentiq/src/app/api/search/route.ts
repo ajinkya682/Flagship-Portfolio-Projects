@@ -75,14 +75,14 @@ export async function GET(req: NextRequest) {
         email: c.email,
         avatar: c.avatar,
         skills: (c.extractedSkills || []).slice(0, 3),
-        href: `/applications`,
+        href: `/applications/${c._id.toString()}`,
       })),
       applications: applications.map((a: any) => ({
         id: a._id.toString(),
         candidateName: a.candidate?.name || 'Unknown',
         jobTitle: a.job?.title || 'Unknown',
         stage: a.stage,
-        href: `/pipeline`,
+        href: `/applications/${a.candidate?._id?.toString() || ''}`,
       })),
     });
   } catch (error) {

@@ -263,14 +263,6 @@ export default function PipelinePage() {
             </div>
             <p className="font-body text-[13px] text-neutral-500">Visual overview of candidates across all stages.</p>
           </div>
-          <div className="flex items-center gap-[12px]">
-            <button 
-              onClick={() => setIsAddModalOpen(true)}
-              className="h-[38px] px-[14px] bg-white border border-neutral-200 text-neutral-700 font-body text-[13px] font-semibold rounded-[8px] hover:bg-neutral-50 transition-colors shadow-sm flex items-center gap-[6px]"
-            >
-              <Plus size={14} /> Add Candidate
-            </button>
-          </div>
         </div>
 
         {/* Filter Strip */}
@@ -318,14 +310,8 @@ export default function PipelinePage() {
               </div>
               <h3 className="font-display text-[16px] font-bold text-neutral-900 mb-[8px]">Your pipeline is empty</h3>
               <p className="font-body text-[13px] text-neutral-500 mb-[20px]">
-                You don't have any candidates yet. Add your first candidate to start tracking them through your hiring stages.
+                You don't have any candidates yet. Once candidates apply to your roles, they will appear here.
               </p>
-              <button 
-                onClick={() => setIsAddModalOpen(true)}
-                className="flex items-center gap-[6px] bg-primary-500 hover:bg-primary-600 text-white font-body text-[13px] font-medium px-[16px] py-[8px] rounded-md transition-colors shadow-sm"
-              >
-                <Plus size={16} /> Add Candidate
-              </button>
             </div>
           </div>
         ) : (
