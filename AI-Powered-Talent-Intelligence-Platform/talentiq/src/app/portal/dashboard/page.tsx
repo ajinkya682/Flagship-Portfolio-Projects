@@ -127,6 +127,7 @@ export default function CandidateDashboard() {
       })
       .catch(console.error)
 
+    /*
     fetch('/api/socket/init').finally(() => {
       const socket = io({ path: '/api/socket/io' })
       socketRef.current = socket
@@ -148,6 +149,7 @@ export default function CandidateDashboard() {
     return () => {
       if (socketRef.current) socketRef.current.disconnect()
     }
+    */
   }, [portalData?.candidate?.id])
 
   useEffect(() => {
@@ -194,9 +196,9 @@ export default function CandidateDashboard() {
     return badges
   }
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!newMessage.trim() || !socketRef.current || !portalData) return
+    if (!newMessage.trim() || !portalData) return
 
     const messageData = {
       candidateId: portalData.candidate.id,
@@ -205,8 +207,18 @@ export default function CandidateDashboard() {
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     }
 
-    socketRef.current.emit('send_message', messageData)
+    setRealtimeMessages(prev => [...prev, { ...messageData, id: Date.now().toString() }])
     setNewMessage('')
+
+    try {
+      await fetch('/api/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(messageData),
+      })
+    } catch (err) {
+      console.error('Failed to send message:', err)
+    }
   }
 
   const handleUpdateOfferStatus = async (status: 'accepted' | 'declined') => {

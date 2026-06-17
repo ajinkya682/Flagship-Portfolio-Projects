@@ -41,6 +41,7 @@ export default function MessagesTab({ application }: MessagesTabProps) {
     }
     fetchMessages()
 
+    /*
     // 2. Initialize socket connection
     fetch('/api/socket/init').finally(() => {
       const socket = io({
@@ -69,6 +70,7 @@ export default function MessagesTab({ application }: MessagesTabProps) {
         socketRef.current.disconnect()
       }
     }
+    */
   }, [candidateId])
 
   // Scroll to bottom when messages change
@@ -76,9 +78,9 @@ export default function MessagesTab({ application }: MessagesTabProps) {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!newMessage.trim() || !socketRef.current) return
+    if (!newMessage.trim()) return
 
     const messageData = {
       candidateId: candidateId,
@@ -87,9 +89,20 @@ export default function MessagesTab({ application }: MessagesTabProps) {
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     }
 
-    // Emit message to server (server will save it and broadcast back to the room)
-    socketRef.current.emit('send_message', messageData)
+    // Optimistically update UI
+    setMessages((prev) => [...prev, { ...messageData, id: Date.now().toString() }])
     setNewMessage('')
+
+    // Emit message to server via fetch
+    try {
+      await fetch('/api/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(messageData),
+      })
+    } catch (err) {
+      console.error('Failed to send message:', err)
+    }
   }
 
   return (

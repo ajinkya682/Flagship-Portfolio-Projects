@@ -83,6 +83,7 @@ export default function AppHeader() {
     // Poll every 30 seconds as fallback
     pollRef.current = setInterval(fetchNotifications, 30000)
 
+    /*
     let socket: Socket | null = null;
     fetch('/api/socket/init').finally(() => {
       socket = io({ path: '/api/socket/io' });
@@ -90,10 +91,11 @@ export default function AppHeader() {
         setNotifications(prev => [notif, ...prev.filter(n => n._id !== notif._id)]);
       });
     });
+    */
 
     return () => { 
       if (pollRef.current) clearInterval(pollRef.current)
-      if (socket) socket.disconnect();
+      // if (socket) socket.disconnect();
     }
   }, [])
 
