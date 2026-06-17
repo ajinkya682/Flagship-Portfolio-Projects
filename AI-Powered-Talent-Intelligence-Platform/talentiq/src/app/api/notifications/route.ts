@@ -1,19 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectToDatabase from '@/core/database/mongoose';
 import { Notification } from '@/core/database/models/Notification';
-
+import { verifyAccessToken } from '@/core/auth/jwt';
 
 export async function GET(req: NextRequest) {
   try {
     await connectToDatabase();
 
-    // Try to get user from session, fallback to company-wide notifications
+    let token = req.headers.get('authorization')?.split(' ')[1];
+    if (!token) {
+      token = req.cookies.get('accessToken')?.value || 
+              req.headers.get('cookie')?.split(';').find(c => c.trim().startsWith('accessToken='))?.split('=')[1];
+    }
+
+    if (!token) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    let decoded;
+    try {
+      decoded = verifyAccessToken(token);
+    } catch (e) {
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(req.url);
     const limit = parseInt(searchParams.get('limit') || '30');
 
-    // Fetch the 30 most recent notifications (sorted newest first)
-    // In a real app, filter by recipientUserId from session
-    const notifications = await Notification.find({})
+    // Fetch the most recent notifications for this specific user (or global 'all')
+    const notifications = await Notification.find({
+      recipientUserId: { $in: [decoded.userId, 'all'] }
+    })
       .sort({ createdAt: -1 })
       .limit(limit)
       .lean();
