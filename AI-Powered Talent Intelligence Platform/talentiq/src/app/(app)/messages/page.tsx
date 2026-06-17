@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import {
   MessageSquare, Search, Send, MoreVertical,
   CheckCheck, Phone, Video, User, ArrowLeft,
-  Trash, ShieldAlert, ShieldCheck, Eraser
+  Trash, ShieldAlert, ShieldCheck, Eraser, Loader2
 } from 'lucide-react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { io, Socket } from 'socket.io-client'
@@ -34,7 +34,9 @@ interface Message {
   createdAt?: string
 }
 
-export default function MessagesPage() {
+import { Suspense } from 'react';
+
+function MessagesContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const candidateIdParam = searchParams?.get('candidateId') ?? null
@@ -587,5 +589,13 @@ export default function MessagesPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function MessagesPage() {
+  return (
+    <Suspense fallback={<div className="flex h-screen items-center justify-center bg-neutral-50"><Loader2 className="w-6 h-6 animate-spin text-blue-500" /></div>}>
+      <MessagesContent />
+    </Suspense>
   )
 }

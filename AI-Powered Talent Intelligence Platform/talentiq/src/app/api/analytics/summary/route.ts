@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from "next/server";
 import connectToDatabase from "@/core/database/mongoose";
 import { AISummary } from "@/core/database/models/AISummary";
