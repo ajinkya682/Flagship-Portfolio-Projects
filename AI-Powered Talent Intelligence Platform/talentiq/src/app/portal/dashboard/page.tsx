@@ -59,9 +59,30 @@ interface PortalData {
     letterContent: string
     status: 'draft' | 'sent' | 'accepted' | 'declined' | 'expired'
   } | null
+  hireLetter?: {
+    id: string
+    role: string
+    companyName: string
+    salary: number
+    startDate: string
+    letterContent: string
+    status: 'draft' | 'sent' | 'signed' | 'rejected'
+    sentAt?: string
+    signedAt?: string
+  } | null
+  assignment?: {
+    id: string
+    title: string
+    description: string
+    deadline: string
+    referenceLink?: string
+    status: 'pending' | 'submitted' | 'reviewed'
+    submittedAt?: string
+    submissionLink?: string
+  } | null
 }
 
-type TabType = 'overview' | 'resume' | 'messages' | 'profile' | 'offer'
+type TabType = 'overview' | 'resume' | 'messages' | 'profile' | 'offer' | 'hireLetter' | 'assignment'
 
 export default function CandidateDashboard() {
   const router = useRouter()
@@ -70,6 +91,14 @@ export default function CandidateDashboard() {
   const [newMessage, setNewMessage] = useState('')
   const [activeTab, setActiveTab] = useState<TabType>('overview')
   const [resumeFullscreen, setResumeFullscreen] = useState(false)
+  const [tabBadges, setTabBadges] = useState<Record<string, number>>({})
+  const [hireSignature, setHireSignature] = useState('')
+  const [hireSubmitting, setHireSubmitting] = useState(false)
+  const [hireSuccess, setHireSuccess] = useState<'signed' | 'rejected' | null>(null)
+  const [assignmentLink, setAssignmentLink] = useState('')
+  const [assignmentText, setAssignmentText] = useState('')
+  const [assignmentSubmitting, setAssignmentSubmitting] = useState(false)
+  const [assignmentSubmitted, setAssignmentSubmitted] = useState(false)
 
   const [realtimeMessages, setRealtimeMessages] = useState<any[]>([])
   const [isConnected, setIsConnected] = useState(false)
@@ -132,6 +161,39 @@ export default function CandidateDashboard() {
     router.push('/portal/login')
   }
 
+  // Compute notification badges based on unread/unvisited data
+  const computeBadges = (data: PortalData) => {
+    const badges: Record<string, number> = {}
+    const lastReadOffer = localStorage.getItem('portal_last_read_offer')
+    const lastReadHire = localStorage.getItem('portal_last_read_hire')
+    const lastReadAssignment = localStorage.getItem('portal_last_read_assignment')
+    const lastReadMessages = localStorage.getItem('portal_last_read_messages')
+
+    // Offer badge: has a sent offer that hasn't been read
+    if (data.offer?.status === 'sent') {
+      const offerSentAt = data.offer ? new Date(data.offer.startDate).getTime() : 0
+      if (!lastReadOffer || new Date(lastReadOffer).getTime() < offerSentAt) {
+        badges['offer'] = 1
+      }
+    }
+
+    // Hire letter badge
+    if (data.hireLetter?.status === 'sent') {
+      if (!lastReadHire) {
+        badges['hireLetter'] = 1
+      }
+    }
+
+    // Assignment badge
+    if (data.assignment?.status === 'pending') {
+      if (!lastReadAssignment) {
+        badges['assignment'] = 1
+      }
+    }
+
+    return badges
+  }
+
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault()
     if (!newMessage.trim() || !socketRef.current || !portalData) return
@@ -157,14 +219,58 @@ export default function CandidateDashboard() {
         body: JSON.stringify({ status })
       })
       if (res.ok) {
-        // Refresh portal data
         const freshData = await fetch('/api/portal/me').then(r => r.json())
         setPortalData(freshData)
+        setTabBadges(computeBadges(freshData))
       }
     } catch (error) {
       console.error('Failed to update offer status', error)
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleHireLetterAction = async (action: 'sign' | 'reject') => {
+    if (!portalData?.hireLetter) return
+    if (action === 'sign' && !hireSignature.trim()) return
+    setHireSubmitting(true)
+    try {
+      const res = await fetch(`/api/portal/hire-letters/${portalData.hireLetter.id}/sign`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, signature: hireSignature })
+      })
+      if (res.ok) {
+        setHireSuccess(action === 'sign' ? 'signed' : 'rejected')
+        const freshData = await fetch('/api/portal/me').then(r => r.json())
+        setPortalData(freshData)
+      }
+    } catch (error) {
+      console.error('Failed to process hire letter', error)
+    } finally {
+      setHireSubmitting(false)
+    }
+  }
+
+  const handleSubmitAssignment = async () => {
+    if (!portalData?.assignment) return
+    if (!assignmentLink.trim() && !assignmentText.trim()) return
+    setAssignmentSubmitting(true)
+    try {
+      const res = await fetch(`/api/portal/assignments/${portalData.assignment.id}/submit`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ submissionLink: assignmentLink, submissionText: assignmentText })
+      })
+      if (res.ok) {
+        setAssignmentSubmitted(true)
+        const freshData = await fetch('/api/portal/me').then(r => r.json())
+        setPortalData(freshData)
+      }
+    } catch (err) {
+      console.error('Failed to submit assignment', err)
+    } finally {
+      setAssignmentSubmitting(false)
     }
   }
 
@@ -183,13 +289,23 @@ export default function CandidateDashboard() {
 
   const { candidate, application, job, company, timeline, interviews, messages } = portalData
 
-  const STAGES = ['Applied', 'Screening', 'Interview', 'Offer', 'Hired']
+  const STAGES = ['Applied', 'Screening', 'Interview', 'Assessment', 'Offer', 'Hired']
   const currentStageIndex = Math.max(0, STAGES.indexOf(application.stage))
   const upcomingInterview = interviews.find((i: any) => i.status === 'scheduled')
 
+  const handleTabClick = (tabId: TabType) => {
+    setActiveTab(tabId)
+    // Clear badge and store read time in localStorage
+    setTabBadges(prev => ({ ...prev, [tabId]: 0 }))
+    const key = `portal_last_read_${tabId}`
+    localStorage.setItem(key, new Date().toISOString())
+  }
+
   const tabs: { id: TabType; label: string; icon: React.ReactNode }[] = [
     { id: 'overview', label: 'Overview', icon: <Sparkles size={15} /> },
+    ...(portalData.hireLetter ? [{ id: 'hireLetter' as TabType, label: 'Hire Letter', icon: <FileText size={15} /> }] : []),
     ...(portalData.offer ? [{ id: 'offer' as TabType, label: 'Offer', icon: <FileText size={15} /> }] : []),
+    ...(portalData.assignment ? [{ id: 'assignment' as TabType, label: 'Assignment', icon: <FileText size={15} /> }] : []),
     { id: 'profile', label: 'My Profile', icon: <User size={15} /> },
     ...(candidate.resumeUrl ? [{ id: 'resume' as TabType, label: 'Resume', icon: <FileText size={15} /> }] : []),
     { id: 'messages', label: 'Messages', icon: <MessageSquare size={15} /> },
@@ -336,19 +452,27 @@ export default function CandidateDashboard() {
             {/* Tabs */}
             <div className="bg-white rounded-[18px] border border-neutral-100 shadow-sm overflow-hidden">
               <div className="flex border-b border-neutral-100">
-                {tabs.map(tab => (
+              {tabs.map(tab => {
+                  const badge = tabBadges[tab.id] || 0
+                  return (
                   <button
                     key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`flex-1 h-[52px] flex items-center justify-center gap-[7px] font-semibold text-[13px] transition-all ${
+                    onClick={() => handleTabClick(tab.id)}
+                    className={`flex-1 h-[52px] flex items-center justify-center gap-[7px] font-semibold text-[13px] transition-all relative ${
                       activeTab === tab.id
                         ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/40'
                         : 'text-neutral-500 hover:text-neutral-800 hover:bg-neutral-50'
                     }`}
                   >
                     {tab.icon} {tab.label}
+                    {badge > 0 && (
+                      <span className="absolute top-[10px] right-[8px] w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-sm animate-pulse">
+                        {badge}
+                      </span>
+                    )}
                   </button>
-                ))}
+                  )
+                })}
               </div>
 
               {/* OVERVIEW TAB */}
@@ -716,8 +840,197 @@ export default function CandidateDashboard() {
                 </div>
               )}
 
+              {/* HIRE LETTER TAB */}
+              {activeTab === 'hireLetter' && portalData.hireLetter && (
+                <div className="p-[28px] flex flex-col gap-[24px]">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="font-display text-[20px] font-bold text-neutral-900">Official Hire Letter</h2>
+                      <p className="text-[14px] text-neutral-500">Review, sign, and join the team!</p>
+                    </div>
+                    <div>
+                      {portalData.hireLetter.status === 'sent' && (
+                        <span className="px-[12px] py-[6px] bg-indigo-100 text-indigo-800 rounded-full text-[12px] font-bold tracking-wide uppercase">Awaiting Signature</span>
+                      )}
+                      {portalData.hireLetter.status === 'signed' && (
+                        <span className="px-[12px] py-[6px] bg-emerald-100 text-emerald-800 rounded-full text-[12px] font-bold tracking-wide uppercase flex items-center gap-[6px]">
+                          <CheckCircle2 size={14} /> Signed & Joined!
+                        </span>
+                      )}
+                      {portalData.hireLetter.status === 'rejected' && (
+                        <span className="px-[12px] py-[6px] bg-red-100 text-red-800 rounded-full text-[12px] font-bold tracking-wide uppercase">Declined</span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-[14px]">
+                    <div className="p-[18px] bg-indigo-50 rounded-[14px] border border-indigo-100">
+                      <p className="text-[11px] text-indigo-600 font-bold uppercase tracking-wider mb-[4px]">Position</p>
+                      <p className="text-[16px] font-display font-bold text-neutral-900">{portalData.hireLetter.role}</p>
+                    </div>
+                    <div className="p-[18px] bg-neutral-50 rounded-[14px] border border-neutral-200">
+                      <p className="text-[11px] text-neutral-500 font-bold uppercase tracking-wider mb-[4px]">Salary</p>
+                      <p className="text-[16px] font-display font-bold text-neutral-900">${portalData.hireLetter.salary?.toLocaleString()}/yr</p>
+                    </div>
+                    <div className="p-[18px] bg-neutral-50 rounded-[14px] border border-neutral-200">
+                      <p className="text-[11px] text-neutral-500 font-bold uppercase tracking-wider mb-[4px]">Start Date</p>
+                      <p className="text-[15px] font-display font-bold text-neutral-900">
+                        {new Date(portalData.hireLetter.startDate).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-[14px] font-bold text-neutral-900 mb-[12px]">Hire Letter</h3>
+                    <div className="p-[28px] bg-white border border-neutral-200 rounded-[16px] shadow-sm whitespace-pre-wrap font-serif leading-relaxed text-neutral-800 text-[14px]">
+                      {portalData.hireLetter.letterContent}
+                    </div>
+                  </div>
+
+                  {portalData.hireLetter.status === 'sent' && (
+                    <div className="mt-[8px] pt-[24px] border-t border-neutral-100 flex flex-col gap-[16px]">
+                      {hireSuccess === 'signed' ? (
+                        <div className="p-[20px] bg-emerald-50 border border-emerald-200 rounded-[16px] text-center">
+                          <CheckCircle2 size={32} className="text-emerald-500 mx-auto mb-[8px]" />
+                          <h4 className="text-[16px] font-bold text-emerald-900">Welcome to the team!</h4>
+                          <p className="text-[13px] text-emerald-700 mt-[4px]">You have officially accepted and signed the hire letter.</p>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="flex flex-col gap-[8px]">
+                            <label className="text-[14px] font-semibold text-neutral-800">
+                              Digital Signature <span className="text-red-500">*</span>
+                            </label>
+                            <p className="text-[12px] text-neutral-500">Type your full legal name to digitally sign this hire letter.</p>
+                            <input
+                              type="text"
+                              value={hireSignature}
+                              onChange={e => setHireSignature(e.target.value)}
+                              placeholder={candidate.name}
+                              className="h-[52px] px-[18px] rounded-[12px] border-2 border-neutral-200 focus:border-indigo-400 focus:outline-none text-[20px] font-serif italic text-neutral-800 transition-colors"
+                            />
+                          </div>
+                          <div className="flex items-center gap-[12px] justify-end">
+                            <button
+                              onClick={() => handleHireLetterAction('reject')}
+                              disabled={hireSubmitting}
+                              className="px-[20px] py-[10px] text-neutral-600 font-semibold text-[14px] hover:bg-neutral-100 rounded-[12px] transition-colors disabled:opacity-50"
+                            >
+                              Decline
+                            </button>
+                            <button
+                              onClick={() => handleHireLetterAction('sign')}
+                              disabled={hireSubmitting || !hireSignature.trim()}
+                              className="px-[28px] py-[10px] bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold text-[14px] rounded-[12px] shadow-lg transition-all flex items-center gap-[8px] disabled:opacity-60"
+                            >
+                              {hireSubmitting ? (
+                                <div className="w-[18px] h-[18px] border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                              ) : (
+                                <><CheckCircle2 size={16} /> Accept & Sign</>
+                              )}
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  )}
+                  {portalData.hireLetter.status === 'signed' && (
+                    <div className="p-[16px] bg-emerald-50 border border-emerald-100 rounded-[16px] text-center">
+                      <h4 className="text-[15px] font-bold text-emerald-900 mb-[4px]">You&apos;re officially on the team! 🎉</h4>
+                      <p className="text-[13px] text-emerald-700">Signed on {portalData.hireLetter.signedAt ? new Date(portalData.hireLetter.signedAt).toLocaleDateString() : 'recently'}. Welcome aboard!</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ASSIGNMENT TAB */}
+              {activeTab === 'assignment' && portalData.assignment && (
+                <div className="p-[28px] flex flex-col gap-[24px]">
+                  <div className="flex items-center justify-between flex-wrap gap-[12px]">
+                    <div>
+                      <h2 className="font-display text-[20px] font-bold text-neutral-900">{portalData.assignment.title}</h2>
+                      <p className="text-[13px] text-neutral-500 mt-[2px]">Complete and submit before the deadline.</p>
+                    </div>
+                    <div className="flex items-center gap-[8px]">
+                      {portalData.assignment.status === 'submitted' ? (
+                        <span className="px-[12px] py-[6px] bg-emerald-100 text-emerald-800 rounded-full text-[12px] font-bold tracking-wide uppercase flex items-center gap-[6px]">
+                          <CheckCircle2 size={14} /> Submitted
+                        </span>
+                      ) : (
+                        <span className="px-[12px] py-[6px] bg-amber-100 text-amber-800 rounded-full text-[12px] font-bold tracking-wide uppercase">Pending</span>
+                      )}
+                      <span className="px-[12px] py-[6px] bg-red-50 text-red-700 rounded-full text-[12px] font-semibold">
+                        Due: {new Date(portalData.assignment.deadline).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="p-[20px] bg-neutral-50 rounded-[16px] border border-neutral-200 text-[14px] text-neutral-800 leading-relaxed whitespace-pre-wrap">
+                    {portalData.assignment.description}
+                  </div>
+
+                  {portalData.assignment.referenceLink && (
+                    <a
+                      href={portalData.assignment.referenceLink}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-[8px] text-blue-600 text-[13px] font-semibold hover:underline"
+                    >
+                      <ExternalLink size={14} /> Reference Material
+                    </a>
+                  )}
+
+                  {portalData.assignment.status === 'pending' && !assignmentSubmitted && (
+                    <div className="flex flex-col gap-[14px] pt-[8px] border-t border-neutral-100">
+                      <h3 className="text-[15px] font-bold text-neutral-900">Submit Your Work</h3>
+                      <div className="flex flex-col gap-[8px]">
+                        <label className="text-[13px] font-semibold text-neutral-700">Submission Link</label>
+                        <input
+                          type="url"
+                          value={assignmentLink}
+                          onChange={e => setAssignmentLink(e.target.value)}
+                          placeholder="https://github.com/you/project or any link"
+                          className="h-[42px] px-[14px] rounded-[10px] border border-neutral-200 focus:border-amber-400 focus:outline-none text-[14px] transition-colors"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-[8px]">
+                        <label className="text-[13px] font-semibold text-neutral-700">Additional Notes <span className="text-neutral-400 font-normal">(optional)</span></label>
+                        <textarea
+                          value={assignmentText}
+                          onChange={e => setAssignmentText(e.target.value)}
+                          placeholder="Any notes about your submission..."
+                          rows={4}
+                          className="px-[14px] py-[10px] rounded-[10px] border border-neutral-200 focus:border-amber-400 focus:outline-none text-[14px] resize-none transition-colors"
+                        />
+                      </div>
+                      <div className="flex justify-end">
+                        <button
+                          onClick={handleSubmitAssignment}
+                          disabled={assignmentSubmitting || (!assignmentLink.trim() && !assignmentText.trim())}
+                          className="px-[24px] py-[10px] bg-amber-500 hover:bg-amber-600 text-white font-bold text-[14px] rounded-[12px] transition-all flex items-center gap-[8px] disabled:opacity-60"
+                        >
+                          {assignmentSubmitting ? (
+                            <div className="w-[18px] h-[18px] border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          ) : (
+                            <><Send size={16} /> Submit Assignment</>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  {(portalData.assignment.status === 'submitted' || assignmentSubmitted) && (
+                    <div className="p-[16px] bg-emerald-50 border border-emerald-100 rounded-[16px] text-center">
+                      <CheckCircle2 size={28} className="text-emerald-500 mx-auto mb-[8px]" />
+                      <h4 className="text-[15px] font-bold text-emerald-900 mb-[4px]">Assignment Submitted!</h4>
+                      <p className="text-[13px] text-emerald-700">Your recruiter will review your submission. We&apos;ll be in touch soon.</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* MESSAGES TAB */}
               {activeTab === 'messages' && (
+
                 <div className="flex flex-col h-[500px] relative">
                   {!isConnected && (
                     <div className="absolute top-2 left-1/2 -translate-x-1/2 z-10 bg-neutral-800 text-white text-[11px] px-3 py-1 rounded-full opacity-70">

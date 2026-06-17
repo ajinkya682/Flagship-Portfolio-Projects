@@ -33,6 +33,7 @@ import AddCandidateModal from '@/components/pipeline/AddCandidateModal'
 import InterviewBookingModal from '@/components/pipeline/InterviewBookingModal'
 import CreateOfferModal from '@/components/offers/CreateOfferModal'
 import AssignmentModal from '@/components/pipeline/AssignmentModal'
+import HireLetterModal from '@/components/pipeline/HireLetterModal'
 
 const STAGE_CONFIG = [
   { id: 'Applied', name: 'Applied', color: '#94A3B8' },
@@ -200,6 +201,7 @@ export default function PipelinePage() {
   const [bookingCandidate, setBookingCandidate] = useState<any>(null)
   const [offerCandidate, setOfferCandidate] = useState<any>(null)
   const [assignmentCandidate, setAssignmentCandidate] = useState<any>(null)
+  const [hireCandidate, setHireCandidate] = useState<any>(null)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   
   const JOBS = ['All Jobs', ...Array.from(new Set(jobs.map(j => j.title)))]
@@ -224,6 +226,8 @@ export default function PipelinePage() {
       setOfferCandidate(candidate)
     } else if (newStage === 'Assessment') {
       setAssignmentCandidate(candidate)
+    } else if (newStage === 'Hired') {
+      setHireCandidate(candidate)
     } else {
       moveCandidateStage(candidate.id, newStage)
     }
@@ -391,6 +395,18 @@ export default function PipelinePage() {
         onSuccess={(candidateId) => {
           moveCandidateStage(candidateId, 'Assessment')
           setAssignmentCandidate(null)
+        }}
+      />
+
+      <HireLetterModal
+        isOpen={!!hireCandidate}
+        onClose={() => setHireCandidate(null)}
+        initialCandidateId={hireCandidate?.id}
+        candidateName={hireCandidate?.name}
+        roleName={hireCandidate?.currentJobTitle}
+        onSuccess={(candidateId) => {
+          moveCandidateStage(candidateId, 'Hired')
+          setHireCandidate(null)
         }}
       />
     </div>
