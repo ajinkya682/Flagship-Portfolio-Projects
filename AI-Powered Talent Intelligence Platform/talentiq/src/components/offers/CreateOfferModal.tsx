@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { X, CheckCircle2 } from 'lucide-react'
 import { useDomainStore } from '@/store/domain.store'
@@ -10,17 +10,26 @@ import { useCandidatesStore } from '@/store/candidates.store'
 interface CreateOfferModalProps {
   isOpen: boolean
   onClose: () => void
+  initialCandidateId?: string
+  onSuccess?: (candidateId: string) => void
 }
 
-export default function CreateOfferModal({ isOpen, onClose }: CreateOfferModalProps) {
+export default function CreateOfferModal({ isOpen, onClose, initialCandidateId, onSuccess }: CreateOfferModalProps) {
   const { jobs } = useJobsStore()
   const { candidates } = useCandidatesStore()
   
-  const [candidateId, setCandidateId] = useState('')
+  const [candidateId, setCandidateId] = useState(initialCandidateId || '')
   const [amount, setAmount] = useState('')
   const [equity, setEquity] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
+
+  // Sync initial candidate ID when modal opens
+  useEffect(() => {
+    if (isOpen && initialCandidateId) {
+      setCandidateId(initialCandidateId)
+    }
+  }, [isOpen, initialCandidateId])
 
   // Filter candidates that are in Offer or near Offer stage
   const eligibleCandidates = candidates.filter(c => ['Interview', 'Assessment', 'Offer'].includes(c.stage))
@@ -50,10 +59,16 @@ export default function CreateOfferModal({ isOpen, onClose }: CreateOfferModalPr
           setIsSubmitting(false)
           setIsSuccess(true)
           
+          if (onSuccess) {
+            onSuccess(candidateId);
+          }
+
           setTimeout(() => {
             handleClose()
             // Optionally reload page to show new offer, or handle state
-            window.location.reload()
+            if (!onSuccess) {
+              window.location.reload()
+            }
           }, 1500)
         } else {
           console.error("Failed to create offer");
@@ -69,7 +84,7 @@ export default function CreateOfferModal({ isOpen, onClose }: CreateOfferModalPr
   const handleClose = () => {
     onClose()
     setTimeout(() => {
-      setCandidateId('')
+      setCandidateId(initialCandidateId || '')
       setAmount('')
       setEquity('')
       setIsSuccess(false)
@@ -100,7 +115,7 @@ export default function CreateOfferModal({ isOpen, onClose }: CreateOfferModalPr
                 <CheckCircle2 size={48} className="text-emerald-500 mb-[12px] animate-bounce" />
                 <p className="font-display font-bold text-[18px] text-neutral-900">Offer Created!</p>
                 <p className="font-body text-[14px] text-neutral-500 text-center mt-[4px]">
-                  The draft offer is ready to be sent.
+                  The offer has been sent to the candidate.
                 </p>
               </div>
             )}
@@ -111,7 +126,7 @@ export default function CreateOfferModal({ isOpen, onClose }: CreateOfferModalPr
                 value={candidateId}
                 onChange={(e) => setCandidateId(e.target.value)}
                 className="w-full h-[40px] rounded-md border border-neutral-200 px-[12px] text-[14px] focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white transition-colors"
-                disabled={isSubmitting || isSuccess}
+                disabled={isSubmitting || isSuccess || !!initialCandidateId}
               >
                 <option value="">Select a candidate...</option>
                 {eligibleCandidates.map(c => (
@@ -163,7 +178,7 @@ export default function CreateOfferModal({ isOpen, onClose }: CreateOfferModalPr
               {isSubmitting ? (
                 <div className="w-[18px] h-[18px] border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
-                'Save Draft'
+                'Send Offer'
               )}
             </button>
           </div>

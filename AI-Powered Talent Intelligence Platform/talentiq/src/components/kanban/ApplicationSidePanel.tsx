@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { X, ExternalLink } from 'lucide-react'
 import { Application } from '@/types/domain.types'
 import { StageBadge } from '@/components/shared/StageBadge'
@@ -8,6 +8,8 @@ import { SourceBadge } from '@/components/shared/SourceBadge'
 import { formatDate } from '@/lib/utils'
 import { getScoreColor, getScoreLabel } from '@/lib/score'
 import { ScoreRing } from '@/components/score/ScoreRing'
+import { useCandidatesStore } from '@/store/candidates.store'
+import CreateOfferModal from '@/components/offers/CreateOfferModal'
 
 interface ApplicationSidePanelProps {
   application: Application | null
@@ -16,6 +18,16 @@ interface ApplicationSidePanelProps {
 
 export default function ApplicationSidePanel({ application, onClose }: ApplicationSidePanelProps) {
   const [activeTab, setActiveTab] = useState('Overview')
+  const [selectedStage, setSelectedStage] = useState('')
+  const [isOfferModalOpen, setIsOfferModalOpen] = useState(false)
+  const { moveCandidateStage } = useCandidatesStore()
+
+  // Sync selected stage when application changes
+  useEffect(() => {
+    if (application) {
+      setSelectedStage(application.stage)
+    }
+  }, [application])
 
   const tabs = ['Overview', 'AI Score', 'Notes', 'Resume', 'Interviews']
 
@@ -180,7 +192,11 @@ export default function ApplicationSidePanel({ application, onClose }: Applicati
             {/* Footer */}
             <div className="p-[16px] md:px-[24px] border-t border-[#E5E7EB] shrink-0 bg-neutral-50">
               <div className="flex gap-[8px] mb-[8px]">
-                <select className="flex-grow h-[36px] rounded-md border border-neutral-200 px-[12px] font-body text-[13px] focus:outline-none focus:border-primary-500 bg-white">
+                <select 
+                  value={selectedStage}
+                  onChange={(e) => setSelectedStage(e.target.value)}
+                  className="flex-grow h-[36px] rounded-md border border-neutral-200 px-[12px] font-body text-[13px] focus:outline-none focus:border-primary-500 bg-white"
+                >
                   <option value="Screening">Screening</option>
                   <option value="Phone Screen">Phone Screen</option>
                   <option value="Interview">Interview</option>
@@ -188,7 +204,17 @@ export default function ApplicationSidePanel({ application, onClose }: Applicati
                   <option value="Offer">Offer</option>
                   <option value="Hired">Hired</option>
                 </select>
-                <button className="bg-primary-500 hover:bg-primary-600 text-white font-body text-[13px] font-medium px-[16px] rounded-md transition-colors h-[36px] shrink-0">
+                <button 
+                  onClick={() => {
+                    if (selectedStage === 'Offer') {
+                      setIsOfferModalOpen(true)
+                    } else if (application) {
+                      moveCandidateStage(application.candidate.id || application.id, selectedStage)
+                      onClose()
+                    }
+                  }}
+                  className="bg-primary-500 hover:bg-primary-600 text-white font-body text-[13px] font-medium px-[16px] rounded-md transition-colors h-[36px] shrink-0"
+                >
                   Move Stage
                 </button>
               </div>
@@ -202,6 +228,19 @@ export default function ApplicationSidePanel({ application, onClose }: Applicati
           </>
         )}
       </div>
+      
+      {application && (
+        <CreateOfferModal
+          isOpen={isOfferModalOpen}
+          onClose={() => setIsOfferModalOpen(false)}
+          initialCandidateId={application.candidate.id || application.id}
+          onSuccess={(candidateId) => {
+            moveCandidateStage(candidateId, 'Offer')
+            setIsOfferModalOpen(false)
+            onClose()
+          }}
+        />
+      )}
     </>
   )
 }

@@ -27,7 +27,9 @@ export default function OffersPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
   const [showExportToast, setShowExportToast] = useState(false)
+  const [showHireLetterToast, setShowHireLetterToast] = useState(false)
   const [sendingOfferId, setSendingOfferId] = useState<string | null>(null)
+  const [hiredOfferIds, setHiredOfferIds] = useState<Set<string>>(new Set())
 
   const fetchOffers = async () => {
     try {
@@ -84,6 +86,16 @@ export default function OffersPage() {
     }, 1500)
   }
 
+  const handleSendHireLetter = (offerId: string) => {
+    setSendingOfferId(offerId)
+    setTimeout(() => {
+      setSendingOfferId(null)
+      setHiredOfferIds(prev => new Set(prev).add(offerId))
+      setShowHireLetterToast(true)
+      setTimeout(() => setShowHireLetterToast(false), 3000)
+    }, 1500)
+  }
+
   return (
     <div className="flex flex-col h-full -mx-[16px] md:-mx-[32px] -mt-[16px] md:-mt-[32px] bg-neutral-50/50 min-h-[calc(100vh-60px)] relative">
       
@@ -92,6 +104,14 @@ export default function OffersPage() {
         <div className="absolute top-[24px] right-[50%] translate-x-[50%] md:translate-x-0 md:right-[32px] bg-neutral-900 text-white px-[20px] py-[12px] rounded-[10px] shadow-lg flex items-center gap-[12px] animate-in slide-in-from-top-4 fade-in z-50">
           <CheckCircle2 size={18} className="text-emerald-400" />
           <span className="font-body text-[14px] font-medium">Offers exported to CSV successfully.</span>
+        </div>
+      )}
+
+      {/* Hire Letter Toast */}
+      {showHireLetterToast && (
+        <div className="absolute top-[24px] right-[50%] translate-x-[50%] md:translate-x-0 md:right-[32px] bg-neutral-900 text-white px-[20px] py-[12px] rounded-[10px] shadow-lg flex items-center gap-[12px] animate-in slide-in-from-top-4 fade-in z-50">
+          <CheckCircle2 size={18} className="text-blue-400" />
+          <span className="font-body text-[14px] font-medium">Hire letter sent successfully.</span>
         </div>
       )}
 
@@ -243,6 +263,23 @@ export default function OffersPage() {
                                 className="text-[12px] font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 px-[12px] py-[6px] rounded-md transition-colors flex items-center gap-[4px] disabled:opacity-50"
                               >
                                 <Send size={12} /> {sendingOfferId === offer.id ? 'Sending...' : 'Send Offer'}
+                              </button>
+                            )}
+                            {offer.status === 'accepted' && (
+                              <button 
+                                onClick={() => handleSendHireLetter(offer.id)}
+                                disabled={sendingOfferId === offer.id || hiredOfferIds.has(offer.id)}
+                                className={`text-[12px] font-semibold px-[12px] py-[6px] rounded-md transition-colors flex items-center gap-[4px] disabled:opacity-50 ${
+                                  hiredOfferIds.has(offer.id) 
+                                    ? 'bg-neutral-100 text-neutral-500' 
+                                    : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
+                                }`}
+                              >
+                                {hiredOfferIds.has(offer.id) ? (
+                                  <><CheckCircle2 size={12} /> Letter Sent</>
+                                ) : (
+                                  <><Send size={12} /> {sendingOfferId === offer.id ? 'Sending...' : 'Send Hire Letter'}</>
+                                )}
                               </button>
                             )}
                             <button className="text-neutral-400 hover:text-neutral-700 transition-colors p-[4px] rounded-md hover:bg-neutral-100">

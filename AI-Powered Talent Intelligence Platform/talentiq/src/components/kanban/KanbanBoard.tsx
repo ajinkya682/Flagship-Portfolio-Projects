@@ -17,6 +17,7 @@ import { Application } from '@/types/domain.types'
 import KanbanColumn from './KanbanColumn'
 import KanbanDragOverlay from './KanbanDragOverlay'
 import ApplicationSidePanel from './ApplicationSidePanel'
+import CreateOfferModal from '@/components/offers/CreateOfferModal'
 
 interface KanbanBoardProps {
   applications: Application[]
@@ -38,6 +39,7 @@ export default function KanbanBoard({ applications: initialApplications, jobId }
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null)
   const [activeColumn, setActiveColumn] = useState<string | null>(null)
   const [announcement, setAnnouncement] = useState<string>('')
+  const [offerApplication, setOfferApplication] = useState<Application | null>(null)
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -87,6 +89,11 @@ export default function KanbanBoard({ applications: initialApplications, jobId }
     if (!activeApp || activeApp.stage === destinationStageName) return
 
     setAnnouncement(`${activeApp.candidate.name} moved from ${activeApp.stage} to ${destinationStageName} stage.`)
+
+    if (destinationStageName === 'Offer') {
+      setOfferApplication(activeApp)
+      return
+    }
 
     // Optimistic update
     setApplications(prev => prev.map(app => {
@@ -156,6 +163,23 @@ export default function KanbanBoard({ applications: initialApplications, jobId }
         application={selectedApplication} 
         onClose={() => setSelectedApplication(null)} 
       />
+
+      {offerApplication && (
+        <CreateOfferModal
+          isOpen={!!offerApplication}
+          onClose={() => setOfferApplication(null)}
+          initialCandidateId={offerApplication.candidate?.id || offerApplication.id}
+          onSuccess={(candidateId) => {
+            setApplications(prev => prev.map(app => {
+              if (app.id === offerApplication.id) {
+                return { ...app, stage: 'Offer' }
+              }
+              return app
+            }))
+            setOfferApplication(null)
+          }}
+        />
+      )}
     </div>
   )
 }
