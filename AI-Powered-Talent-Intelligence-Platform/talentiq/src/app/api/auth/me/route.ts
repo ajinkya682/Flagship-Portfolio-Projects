@@ -30,7 +30,8 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const companyIdStr = user.company ? (user.company._id ? user.company._id.toString() : user.company.toString()) : '';
+    const company = user.company as any;
+    const companyIdStr = company ? (company._id ? company._id.toString() : company.toString()) : '';
 
     return NextResponse.json({
       user: {
@@ -39,9 +40,9 @@ export async function GET(req: Request) {
         email: user.email,
         role: user.role,
         companyId: companyIdStr,
-        companyName: user.company?.name || 'TalentIQ Demo',
-        companySlug: user.company?.slug || 'talentiq-demo',
-        companyLogo: user.company?.logo || ''
+        companyName: company?.name || 'TalentIQ Demo',
+        companySlug: company?.slug || 'talentiq-demo',
+        companyLogo: company?.logo || ''
       }
     });
 

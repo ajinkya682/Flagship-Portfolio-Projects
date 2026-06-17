@@ -59,7 +59,7 @@ export default function ScrollProgress() {
       />
       
       <div 
-        className={`fixed bottom-8 right-8 z-[150] transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
+        className={`fixed bottom-8 right-8 z-[150] transition-all duration-500 [transition-timing-function:cubic-bezier(0.34,1.56,0.64,1)] ${
           showTopButton ? 'opacity-100 translate-y-0 scale-100 pointer-events-auto' : 'opacity-0 translate-y-8 scale-90 pointer-events-none'
         }`}
       >
