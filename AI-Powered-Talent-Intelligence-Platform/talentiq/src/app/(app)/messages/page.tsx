@@ -117,7 +117,7 @@ function MessagesContent() {
   useEffect(() => {
     let socket: Socket | null = null;
     fetch('/api/socket/init').finally(() => {
-      socket = io({ path: '/api/socket/io' })
+      socket = io({ path: '/api/socket/io', transports: ['polling'] })
       socketRef.current = socket
 
       socket.on('connect', () => setIsConnected(true))
