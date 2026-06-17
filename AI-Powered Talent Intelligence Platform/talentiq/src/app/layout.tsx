@@ -25,10 +25,12 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
+// Ensure the URL is absolute and starts with http/https
+const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+const safeUrl = appUrl.startsWith("http") ? appUrl : `https://${appUrl}`;
+
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
-  ),
+  metadataBase: new URL(safeUrl),
   title: "TalentIQ — AI-Powered Talent Intelligence",
   description:
     "Stop losing great candidates to outdated filters. TalentIQ scores every applicant with explainable AI.",
@@ -37,8 +39,8 @@ export const metadata: Metadata = {
     description:
       "Stop losing great candidates to outdated filters. TalentIQ scores every applicant with explainable AI.",
     type: "website",
-    url: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
-    images: ["../../public/images/logo.png"],
+    url: safeUrl,
+    images: ["/images/logo.png"],
   },
   twitter: {
     card: "summary_large_image",
