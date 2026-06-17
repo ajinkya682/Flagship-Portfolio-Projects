@@ -30,6 +30,8 @@ export default function OffersPage() {
   const [showHireLetterToast, setShowHireLetterToast] = useState(false)
   const [sendingOfferId, setSendingOfferId] = useState<string | null>(null)
   const [hiredOfferIds, setHiredOfferIds] = useState<Set<string>>(new Set())
+  const [statusFilter, setStatusFilter] = useState<'all' | 'sent' | 'viewed' | 'accepted' | 'declined'>('all')
+  const [showDeclined, setShowDeclined] = useState(false)
 
   const fetchOffers = async () => {
     try {

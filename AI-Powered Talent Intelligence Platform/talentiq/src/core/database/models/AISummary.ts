@@ -1,0 +1,66 @@
+import mongoose, { Schema, Document, Model } from 'mongoose';
+
+export interface ICrossMatch {
+  candidateId: mongoose.Types.ObjectId;
+  candidateName: string;
+  originalJobId: mongoose.Types.ObjectId;
+  originalJobTitle: string;
+  matchedJobId: mongoose.Types.ObjectId;
+  matchedJobTitle: string;
+  matchScore: number;
+  matchedSkills: string[];
+}
+
+export interface IAISummary extends Document {
+  weekOf: Date; // Monday of the week
+  generatedAt: Date;
+  content: string; // Markdown/text summary from AI
+  pipelineHealth: number; // 0-100 score
+  pipelineHealthBreakdown: {
+    stage: string;
+    avgDaysInStage: number;
+    conversionRate: number;
+  }[];
+  crossMatches: ICrossMatch[];
+  totalCandidates: number;
+  totalHired: number;
+  totalOffersAccepted: number;
+  avgAiScore: number;
+}
+
+const CrossMatchSchema = new Schema({
+  candidateId: { type: Schema.Types.ObjectId, ref: 'Candidate' },
+  candidateName: String,
+  originalJobId: { type: Schema.Types.ObjectId, ref: 'Job' },
+  originalJobTitle: String,
+  matchedJobId: { type: Schema.Types.ObjectId, ref: 'Job' },
+  matchedJobTitle: String,
+  matchScore: Number,
+  matchedSkills: [String],
+}, { _id: false });
+
+const PipelineStageBreakdownSchema = new Schema({
+  stage: String,
+  avgDaysInStage: Number,
+  conversionRate: Number,
+}, { _id: false });
+
+const AISummarySchema: Schema = new Schema(
+  {
+    weekOf: { type: Date, required: true, unique: true },
+    generatedAt: { type: Date, default: Date.now },
+    content: { type: String, required: true },
+    pipelineHealth: { type: Number, default: 0 },
+    pipelineHealthBreakdown: { type: [PipelineStageBreakdownSchema], default: [] },
+    crossMatches: { type: [CrossMatchSchema], default: [] },
+    totalCandidates: { type: Number, default: 0 },
+    totalHired: { type: Number, default: 0 },
+    totalOffersAccepted: { type: Number, default: 0 },
+    avgAiScore: { type: Number, default: 0 },
+  },
+  { timestamps: true }
+);
+
+export const AISummary: Model<IAISummary> =
+  mongoose.models.AISummary ||
+  mongoose.model<IAISummary>('AISummary', AISummarySchema);

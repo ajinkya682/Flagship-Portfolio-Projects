@@ -29,6 +29,13 @@ export interface IApplication extends Document {
   tags: string[];
   assignedTo?: mongoose.Types.ObjectId;
   daysInStage: number;
+  timeline: Array<{
+    event: string;
+    date: Date;
+    type: 'stage_change' | 'offer' | 'offer_accepted' | 'offer_declined' | 'assignment' | 'hired' | 'message' | 'note';
+  }>;
+  assignmentId?: mongoose.Types.ObjectId;
+  hireLetterIds: mongoose.Types.ObjectId[];
 }
 
 const AIScoreSchema = new Schema({
@@ -61,7 +68,23 @@ const ApplicationSchema: Schema = new Schema({
   recruiterNotes: { type: [NoteSchema], default: [] },
   tags: { type: [String], default: [] },
   assignedTo: { type: Schema.Types.ObjectId, ref: 'User' },
-  daysInStage: { type: Number, default: 0 }
+  daysInStage: { type: Number, default: 0 },
+  timeline: {
+    type: [
+      {
+        event: { type: String, required: true },
+        date: { type: Date, default: Date.now },
+        type: {
+          type: String,
+          enum: ['stage_change', 'offer', 'offer_accepted', 'offer_declined', 'assignment', 'hired', 'message', 'note'],
+          default: 'stage_change',
+        },
+      },
+    ],
+    default: [],
+  },
+  assignmentId: { type: Schema.Types.ObjectId, ref: 'Assignment' },
+  hireLetterIds: { type: [Schema.Types.ObjectId], ref: 'HireLetter', default: [] },
 }, { timestamps: true });
 
 export const Application: Model<IApplication> = mongoose.models.Application || mongoose.model<IApplication>('Application', ApplicationSchema);
