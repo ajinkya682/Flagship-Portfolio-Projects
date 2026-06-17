@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectToDatabase from '@/core/database/mongoose';
 import { Notification } from '@/core/database/models/Notification';
-import { getServerSession } from 'next-auth';
+
 
 export async function GET(req: NextRequest) {
   try {

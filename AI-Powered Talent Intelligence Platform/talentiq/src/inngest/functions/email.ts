@@ -2,8 +2,11 @@ import { inngest } from '../client';
 import { sendEmail } from '@/lib/nodemailer';
 
 export const sendUrgentEmail = inngest.createFunction(
-  { id: 'send-urgent-email', name: 'Send Urgent Email' },
-  { event: 'email/send.urgent' },
+  { 
+    id: 'send-urgent-email', 
+    name: 'Send Urgent Email',
+    triggers: [{ event: 'email/send.urgent' }]
+  },
   async ({ event, step }) => {
     const { to, subject, html } = event.data;
 
@@ -21,9 +24,9 @@ export const sendStandardEmail = inngest.createFunction(
     name: 'Send Standard Email',
     concurrency: {
       limit: 1, // Send one by one as requested
-    }
+    },
+    triggers: [{ event: 'email/send.standard' }]
   },
-  { event: 'email/send.standard' },
   async ({ event, step }) => {
     const { to, subject, html } = event.data;
 

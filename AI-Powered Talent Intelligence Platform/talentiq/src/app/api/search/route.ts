@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
         { location: regex },
         { description: regex },
       ],
-      status: 'open',
+      status: { $in: ['published', 'active'] },
     })
       .select('title department location status')
       .limit(5)

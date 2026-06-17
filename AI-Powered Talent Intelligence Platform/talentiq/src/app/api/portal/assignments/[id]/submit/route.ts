@@ -45,13 +45,14 @@ export async function PATCH(
       });
       await application.save();
 
+      const candidate = application.candidate as any;
       const { Notification } = await import('@/core/database/models/Notification');
       await Notification.create({
         recipientUserId: 'all',
         type: 'assignment_submitted',
         title: 'Assignment Submitted',
-        message: `${application.candidate?.name || 'A candidate'} has submitted their assignment.`,
-        candidateId: application.candidate?._id,
+        message: `${candidate?.name || 'A candidate'} has submitted their assignment.`,
+        candidateId: candidate?._id,
         applicationId: application._id,
         assignmentId: assignment._id,
         linkHref: '/pipeline',

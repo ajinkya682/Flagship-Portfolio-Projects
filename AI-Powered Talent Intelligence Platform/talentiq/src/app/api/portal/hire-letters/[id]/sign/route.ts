@@ -23,6 +23,7 @@ export async function PATCH(
     }
 
     const application = await Application.findById(hireLetter.applicationId).populate('candidate');
+    const candidate = application?.candidate as any;
 
     if (action === 'sign') {
       if (!signature || !signature.trim()) {
@@ -48,8 +49,8 @@ export async function PATCH(
           recipientUserId: 'all',
           type: 'hire_accepted',
           title: 'Hire Letter Signed!',
-          message: `${application.candidate?.name || 'A candidate'} has signed the hire letter for ${hireLetter.role}.`,
-          candidateId: application.candidate?._id,
+          message: `${candidate?.name || 'A candidate'} has signed the hire letter for ${hireLetter.role}.`,
+          candidateId: candidate?._id,
           applicationId: application._id,
           hireLetterID: hireLetter._id,
           linkHref: '/pipeline',
@@ -74,8 +75,8 @@ export async function PATCH(
           recipientUserId: 'all',
           type: 'hire_declined',
           title: 'Hire Letter Declined',
-          message: `${application.candidate?.name || 'A candidate'} declined the hire letter for ${hireLetter.role}.`,
-          candidateId: application.candidate?._id,
+          message: `${candidate?.name || 'A candidate'} declined the hire letter for ${hireLetter.role}.`,
+          candidateId: candidate?._id,
           applicationId: application._id,
           hireLetterID: hireLetter._id,
           linkHref: '/pipeline',
