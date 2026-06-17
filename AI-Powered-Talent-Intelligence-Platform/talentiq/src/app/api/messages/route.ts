@@ -50,3 +50,35 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
+
+export async function POST(req: Request) {
+  try {
+    await connectToDatabase();
+    
+    const body = await req.json();
+    const { candidateId, senderId, text, time } = body;
+
+    if (!candidateId || !text) {
+      return NextResponse.json({ error: 'Candidate ID and text are required' }, { status: 400 });
+    }
+
+    const message = await Message.create({
+      candidateId,
+      senderId: senderId || 'me',
+      text,
+      time: time || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    });
+
+    return NextResponse.json({
+      id: message._id.toString(),
+      candidateId: message.candidateId,
+      senderId: message.senderId,
+      text: message.text,
+      time: message.time,
+      createdAt: message.createdAt,
+    });
+  } catch (error: any) {
+    console.error('Create message error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}

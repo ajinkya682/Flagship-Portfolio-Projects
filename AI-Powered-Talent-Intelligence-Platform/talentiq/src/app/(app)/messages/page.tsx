@@ -115,6 +115,12 @@ function MessagesContent() {
   }, [candidateIdParam, contacts.length])
 
   useEffect(() => {
+    /* 
+      DISABLED SOCKET.IO FOR VERCEL DEPLOYMENT
+      Vercel Serverless Functions do not support WebSocket or stateful long-polling. 
+      Leaving this active causes infinite 400 Bad Request errors.
+    */
+    /*
     let socket: Socket | null = null;
     fetch('/api/socket/init').finally(() => {
       socket = io({ path: '/api/socket/io', transports: ['polling'] })
@@ -169,6 +175,7 @@ function MessagesContent() {
     return () => {
       if (socketRef.current) socketRef.current.disconnect()
     }
+    */
   }, [])
 
   // When active contact changes, join new room & fetch history
@@ -208,8 +215,8 @@ function MessagesContent() {
     router.replace(`/messages?candidateId=${contactId}`, { scroll: false })
   }
 
-  const handleSendMessage = () => {
-    if (!inputText.trim() || !activeContactId || !socketRef.current) return
+  const handleSendMessage = async () => {
+    if (!inputText.trim() || !activeContactId) return
 
     const messageData = {
       candidateId: activeContactId,
@@ -218,12 +225,26 @@ function MessagesContent() {
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     }
 
-    socketRef.current.emit('send_message', messageData)
+    // Optimistically update UI
+    const tempId = Date.now().toString()
+    setActiveMessages(prev => [...prev, { ...messageData, id: tempId }])
+    
     setInputText('')
 
     // Auto-resize textarea back to normal
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto'
+    }
+
+    // Send to server
+    try {
+      await fetch('/api/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(messageData)
+      })
+    } catch (e) {
+      console.error('Failed to send message:', e)
     }
   }
 
