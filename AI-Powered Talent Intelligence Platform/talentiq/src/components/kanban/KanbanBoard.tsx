@@ -187,6 +187,24 @@ export default function KanbanBoard({ applications: initialApplications, jobId }
           }}
         />
       )}
+
+      {assignmentApplication && (
+        <AssignmentModal
+          isOpen={!!assignmentApplication}
+          onClose={() => setAssignmentApplication(null)}
+          initialCandidateId={assignmentApplication.candidate?.id || assignmentApplication.id}
+          candidateName={assignmentApplication.candidate?.name}
+          onSuccess={() => {
+            setApplications(prev => prev.map(app => {
+              if (app.id === assignmentApplication.id) {
+                return { ...app, stage: 'Assessment' }
+              }
+              return app
+            }))
+            setAssignmentApplication(null)
+          }}
+        />
+      )}
     </div>
   )
 }
