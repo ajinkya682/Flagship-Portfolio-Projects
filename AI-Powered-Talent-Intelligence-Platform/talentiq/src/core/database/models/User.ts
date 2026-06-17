@@ -13,6 +13,8 @@ export interface IUser extends Document {
   hearAbout?: string;
   createdAt: Date;
   lastActiveAt: Date;
+  resetPasswordToken?: string;
+  resetPasswordExpires?: Date;
 }
 
 const UserSchema: Schema = new Schema({
@@ -26,7 +28,9 @@ const UserSchema: Schema = new Schema({
   company: { type: Schema.Types.ObjectId, ref: 'Company', required: true },
   plan: { type: String, enum: ['starter', 'growth', 'enterprise'], default: 'starter' },
   hearAbout: { type: String },
-  lastActiveAt: { type: Date, default: Date.now }
+  lastActiveAt: { type: Date, default: Date.now },
+  resetPasswordToken: { type: String },
+  resetPasswordExpires: { type: Date }
 }, { timestamps: true });
 
 export const User: Model<IUser> = mongoose.models.User || mongoose.model<IUser>('User', UserSchema);

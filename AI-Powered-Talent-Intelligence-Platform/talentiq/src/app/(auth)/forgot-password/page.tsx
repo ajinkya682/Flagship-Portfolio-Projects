@@ -17,6 +17,7 @@ type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>
 export default function ForgotPasswordPage() {
   const [success, setSuccess] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [errorMsg, setErrorMsg] = useState('')
 
   const {
     register,
@@ -31,11 +32,26 @@ export default function ForgotPasswordPage() {
 
   const onSubmit = async (data: ForgotPasswordFormValues) => {
     setIsSubmitting(true)
-    // Simulate API call
-    setTimeout(() => {
+    setErrorMsg('')
+    try {
+      const res = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      })
+      const result = await res.json()
+      
+      if (!res.ok) {
+        setErrorMsg(result.error || 'Failed to request password reset')
+        return
+      }
+      
       setSuccess(true)
+    } catch (err) {
+      setErrorMsg('An unexpected error occurred. Please try again.')
+    } finally {
       setIsSubmitting(false)
-    }, 1500)
+    }
   }
 
   if (success) {
@@ -104,6 +120,12 @@ export default function ForgotPasswordPage() {
             <p className="text-[12px] text-red-500 mt-1 font-medium">{errors.email.message}</p>
           )}
         </div>
+
+        {errorMsg && (
+          <div className="p-3 bg-red-50 text-red-600 border border-red-100 rounded-lg text-sm font-medium">
+            {errorMsg}
+          </div>
+        )}
 
         <button
           type="submit"

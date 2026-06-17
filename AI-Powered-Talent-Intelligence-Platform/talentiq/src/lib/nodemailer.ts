@@ -1,12 +1,13 @@
 import nodemailer from 'nodemailer';
 
 const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT) || 587,
-  secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
+  service: 'gmail',
   auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
+    type: 'OAuth2',
+    user: process.env.EMAIL_USER,
+    clientId: process.env.CLIENT_ID,
+    clientSecret: process.env.CLIENT_SECRET,
+    refreshToken: process.env.REFRESH_TOKEN,
   },
 });
 
@@ -19,8 +20,8 @@ export const sendEmail = async ({
   subject: string;
   html: string;
 }) => {
-  // If SMTP env vars are not set, log the email instead of throwing an error to prevent breaking demo environments
-  if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
+  // If OAuth2 env vars are not set, log the email instead of throwing an error
+  if (!process.env.EMAIL_USER || !process.env.CLIENT_ID || !process.env.REFRESH_TOKEN) {
     console.warn('\n====== NO SMTP CONFIGURATION ======');
     console.warn(`Simulating email to: ${to}`);
     console.warn(`Subject: ${subject}`);
@@ -31,7 +32,7 @@ export const sendEmail = async ({
 
   try {
     const info = await transporter.sendMail({
-      from: `"TalentIQ" <${process.env.SMTP_USER}>`,
+      from: `"TalentIQ" <${process.env.EMAIL_USER}>`,
       to,
       subject,
       html,
