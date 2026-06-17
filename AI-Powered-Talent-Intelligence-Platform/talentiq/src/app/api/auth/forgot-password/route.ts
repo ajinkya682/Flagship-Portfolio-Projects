@@ -16,10 +16,8 @@ export async function POST(req: Request) {
 
     const user = await User.findOne({ email: email.toLowerCase() });
     
-    // We don't return a 404 to prevent email enumeration attacks. 
-    // We just return a generic success message.
     if (!user) {
-      return NextResponse.json({ message: 'If an account with that email exists, we sent a password reset link.' });
+      return NextResponse.json({ error: 'No account found with that email address.' }, { status: 404 });
     }
 
     // Generate a secure random token
