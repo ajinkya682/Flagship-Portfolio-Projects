@@ -36,15 +36,27 @@ export async function PATCH(
     await assignment.save();
 
     // Timeline event
-    await Application.findByIdAndUpdate(assignment.applicationId, {
-      $push: {
-        timeline: {
-          event: `Assignment submitted: "${assignment.title}"`,
-          date: new Date(),
-          type: 'assignment',
-        },
-      },
-    });
+    const application = await Application.findById(assignment.applicationId).populate('candidate');
+    if (application) {
+      application.timeline.push({
+        event: `Assignment submitted: "${assignment.title}"`,
+        date: new Date(),
+        type: 'assignment',
+      });
+      await application.save();
+
+      const { Notification } = await import('@/core/database/models/Notification');
+      await Notification.create({
+        recipientUserId: 'all',
+        type: 'assignment_submitted',
+        title: 'Assignment Submitted',
+        message: `${application.candidate?.name || 'A candidate'} has submitted their assignment.`,
+        candidateId: application.candidate?._id,
+        applicationId: application._id,
+        assignmentId: assignment._id,
+        linkHref: '/pipeline',
+      });
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

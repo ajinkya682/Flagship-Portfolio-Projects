@@ -50,13 +50,50 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     offer.status = status;
     await offer.save();
 
-    // If accepted, maybe update application stage to 'Hired'?
-    if (status === 'accepted') {
-      const application = await Application.findById(offer.application);
-      if (application) {
+    const application = await Application.findById(offer.application).populate('candidate');
+    
+    if (application) {
+      if (status === 'accepted') {
         application.stage = 'Hired';
-        await application.save();
+        application.timeline.push({
+          event: `Offer accepted by candidate`,
+          date: new Date(),
+          type: 'offer_accepted',
+        });
+        
+        // Notify recruiter
+        const { Notification } = await import('@/core/database/models/Notification');
+        await Notification.create({
+          recipientUserId: 'all',
+          type: 'offer_accepted',
+          title: 'Offer Accepted!',
+          message: `${application.candidate?.name || 'A candidate'} has accepted the offer for ${application.job?.title || 'the job'}.`,
+          candidateId: application.candidate?._id,
+          applicationId: application._id,
+          offerId: offer._id,
+          linkHref: '/pipeline',
+        });
+      } else if (status === 'declined') {
+        application.timeline.push({
+          event: `Offer declined by candidate`,
+          date: new Date(),
+          type: 'offer_declined',
+        });
+
+        // Notify recruiter
+        const { Notification } = await import('@/core/database/models/Notification');
+        await Notification.create({
+          recipientUserId: 'all',
+          type: 'offer_declined',
+          title: 'Offer Declined',
+          message: `${application.candidate?.name || 'A candidate'} has declined the offer.`,
+          candidateId: application.candidate?._id,
+          applicationId: application._id,
+          offerId: offer._id,
+          linkHref: '/pipeline',
+        });
       }
+      await application.save();
     }
 
     return NextResponse.json({ success: true, offer });

@@ -19,6 +19,7 @@ import KanbanDragOverlay from './KanbanDragOverlay'
 import ApplicationSidePanel from './ApplicationSidePanel'
 import CreateOfferModal from '@/components/offers/CreateOfferModal'
 import AssignmentModal from '@/components/pipeline/AssignmentModal'
+import HireLetterModal from '@/components/pipeline/HireLetterModal'
 
 interface KanbanBoardProps {
   applications: Application[]
@@ -42,6 +43,7 @@ export default function KanbanBoard({ applications: initialApplications, jobId }
   const [announcement, setAnnouncement] = useState<string>('')
   const [offerApplication, setOfferApplication] = useState<Application | null>(null)
   const [assignmentApplication, setAssignmentApplication] = useState<Application | null>(null)
+  const [hireApplication, setHireApplication] = useState<Application | null>(null)
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -99,6 +101,11 @@ export default function KanbanBoard({ applications: initialApplications, jobId }
 
     if (destinationStageName === 'Assessment') {
       setAssignmentApplication(activeApp)
+      return
+    }
+
+    if (destinationStageName === 'Hired') {
+      setHireApplication(activeApp)
       return
     }
 
@@ -202,6 +209,24 @@ export default function KanbanBoard({ applications: initialApplications, jobId }
               return app
             }))
             setAssignmentApplication(null)
+          }}
+        />
+      )}
+
+      {hireApplication && (
+        <HireLetterModal
+          isOpen={!!hireApplication}
+          onClose={() => setHireApplication(null)}
+          initialCandidateId={hireApplication.candidate?.id || hireApplication.id}
+          candidateName={hireApplication.candidate?.name}
+          onSuccess={() => {
+            setApplications(prev => prev.map(app => {
+              if (app.id === hireApplication.id) {
+                return { ...app, stage: 'Hired' }
+              }
+              return app
+            }))
+            setHireApplication(null)
           }}
         />
       )}

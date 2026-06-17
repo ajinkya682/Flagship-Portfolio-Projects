@@ -33,7 +33,11 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 
     if (body.stage) {
       application.stage = body.stage;
-      // You could also add timeline updates here in the future
+      application.timeline.push({
+        event: `Moved to ${body.stage}`,
+        date: new Date(),
+        type: 'stage_change',
+      });
     }
 
     await application.save();

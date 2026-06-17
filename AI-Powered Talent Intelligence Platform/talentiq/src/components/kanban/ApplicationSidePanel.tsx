@@ -29,7 +29,7 @@ export default function ApplicationSidePanel({ application, onClose }: Applicati
     }
   }, [application])
 
-  const tabs = ['Overview', 'AI Score', 'Notes', 'Resume', 'Interviews']
+  const tabs = ['Overview', 'Timeline', 'AI Score', 'Notes', 'Resume', 'Interviews']
 
   const score = typeof application?.aiScore === 'number' ? application.aiScore : 0
 
@@ -139,6 +139,29 @@ export default function ApplicationSidePanel({ application, onClose }: Applicati
                   ) : (
                     <div className="text-[13px] text-neutral-500 font-body italic mt-[32px]">
                       No AI Score available yet for this candidate.
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {activeTab === 'Timeline' && (
+                <div className="flex flex-col gap-[20px]">
+                  <h4 className="font-body text-[15px] font-semibold text-neutral-900 mb-[4px]">Activity Timeline</h4>
+                  {!application.timeline || application.timeline.length === 0 ? (
+                    <div className="text-[13px] text-neutral-500 font-body italic">
+                      No timeline events recorded yet.
+                    </div>
+                  ) : (
+                    <div className="flex flex-col relative pl-[16px] border-l-2 border-neutral-100 gap-[24px]">
+                      {application.timeline.slice().reverse().map((event: any, i: number) => (
+                        <div key={i} className="relative flex flex-col gap-[4px]">
+                          <div className="absolute left-[calc(-16px-5px)] top-[2px] w-[9px] h-[9px] rounded-full bg-primary-500 ring-4 ring-white" />
+                          <span className="font-body text-[13px] text-neutral-900 font-medium leading-snug">{event.event}</span>
+                          <span className="font-body text-[11px] text-neutral-400">
+                            {new Date(event.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                          </span>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>

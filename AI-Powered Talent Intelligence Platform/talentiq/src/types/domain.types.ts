@@ -109,6 +109,7 @@ export interface Application {
   tags: string[]
   assignedTo: User | undefined
   daysInStage: number
+  timeline?: { event: string; date: string | Date; type: string }[]
 }
 
 // ── AI Score ─────────────────────────────────────────────────────
