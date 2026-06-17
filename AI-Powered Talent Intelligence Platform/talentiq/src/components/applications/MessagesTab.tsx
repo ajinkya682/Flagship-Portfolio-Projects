@@ -42,7 +42,7 @@ export default function MessagesTab({ application }: MessagesTabProps) {
     fetchMessages()
 
     // 2. Initialize socket connection
-    fetch('/api/socket/io').finally(() => {
+    fetch('/api/socket/init').finally(() => {
       const socket = io({
         path: '/api/socket/io',
       })

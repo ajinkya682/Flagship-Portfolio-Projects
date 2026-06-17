@@ -114,7 +114,7 @@ export default function MessagesPage() {
 
   useEffect(() => {
     let socket: Socket | null = null;
-    fetch('/api/socket/io').finally(() => {
+    fetch('/api/socket/init').finally(() => {
       socket = io({ path: '/api/socket/io' })
       socketRef.current = socket
 

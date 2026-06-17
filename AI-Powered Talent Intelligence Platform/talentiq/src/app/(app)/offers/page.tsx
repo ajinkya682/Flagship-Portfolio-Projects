@@ -48,7 +48,8 @@ export default function OffersPage() {
           status: o.status,
           sentDate: new Date(o.sentAt || o.createdAt).toLocaleDateString(),
           expiryDate: new Date(o.expirationDate).toLocaleDateString(),
-          candidateObj: o.candidate // populated object
+          candidateObj: o.candidate, // populated object
+          hireLetterSent: o.hireLetterSent || false
         }))
         setOffers(mapped)
       }
@@ -121,14 +122,23 @@ export default function OffersPage() {
     }, 1500)
   }
 
-  const handleSendHireLetter = (offerId: string) => {
+  const handleSendHireLetter = async (offerId: string) => {
     setSendingOfferId(offerId)
-    setTimeout(() => {
+    try {
+      const res = await fetch(`/api/offers/${offerId}/send-hire-letter`, { method: 'POST' });
+      if (res.ok) {
+        setShowHireLetterToast(true)
+        setTimeout(() => setShowHireLetterToast(false), 3000)
+        await fetchOffers()
+      } else {
+        const errData = await res.json().catch(() => ({ error: 'Unknown server error' }));
+        console.error('Failed to send hire letter:', errData);
+      }
+    } catch (err) {
+      console.error('Error sending hire letter:', err);
+    } finally {
       setSendingOfferId(null)
-      setHiredOfferIds(prev => new Set(prev).add(offerId))
-      setShowHireLetterToast(true)
-      setTimeout(() => setShowHireLetterToast(false), 3000)
-    }, 1500)
+    }
   }
 
   return (
@@ -327,14 +337,14 @@ export default function OffersPage() {
                             {offer.status === 'accepted' && (
                               <button 
                                 onClick={() => handleSendHireLetter(offer.id)}
-                                disabled={sendingOfferId === offer.id || hiredOfferIds.has(offer.id)}
+                                disabled={sendingOfferId === offer.id || offer.hireLetterSent}
                                 className={`text-[12px] font-semibold px-[12px] py-[6px] rounded-md transition-colors flex items-center gap-[4px] disabled:opacity-50 ${
-                                  hiredOfferIds.has(offer.id) 
+                                  offer.hireLetterSent 
                                     ? 'bg-neutral-100 text-neutral-500' 
                                     : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
                                 }`}
                               >
-                                {hiredOfferIds.has(offer.id) ? (
+                                {offer.hireLetterSent ? (
                                   <><CheckCircle2 size={12} /> Letter Sent</>
                                 ) : (
                                   <><Send size={12} /> {sendingOfferId === offer.id ? 'Sending...' : 'Send Hire Letter'}</>

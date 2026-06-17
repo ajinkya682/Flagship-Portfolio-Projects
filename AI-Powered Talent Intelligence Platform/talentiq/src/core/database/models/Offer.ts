@@ -11,6 +11,7 @@ export interface IOffer extends Document {
   status: 'draft' | 'sent' | 'accepted' | 'declined' | 'expired';
   letterContent: string;
   sentAt?: Date;
+  hireLetterSent?: boolean;
 }
 
 const OfferSchema: Schema = new Schema({
@@ -23,7 +24,8 @@ const OfferSchema: Schema = new Schema({
   expirationDate: { type: Date, required: true },
   status: { type: String, enum: ['draft', 'sent', 'accepted', 'declined', 'expired'], default: 'draft' },
   letterContent: { type: String, required: true },
-  sentAt: { type: Date }
+  sentAt: { type: Date },
+  hireLetterSent: { type: Boolean, default: false }
 }, { timestamps: true });
 
 export const Offer: Model<IOffer> = mongoose.models.Offer || mongoose.model<IOffer>('Offer', OfferSchema);

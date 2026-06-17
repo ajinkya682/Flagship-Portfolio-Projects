@@ -92,5 +92,13 @@ export default async function SocketHandler(req: NextApiRequest, res: any) {
 
     res.socket.server.io = io;
   }
-  res.end();
+  
+  // If it's just an awakening fetch from the client (no Socket.io query params)
+  if (!req.query.EIO) {
+    res.status(200).send('Socket server awoken');
+    return;
+  }
+  
+  // Important: Let Socket.io handle the actual polling/websocket requests
+  // Do not call res.end() here unconditionally for Engine.IO requests.
 }

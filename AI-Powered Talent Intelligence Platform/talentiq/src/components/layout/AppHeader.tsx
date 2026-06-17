@@ -84,7 +84,7 @@ export default function AppHeader() {
     pollRef.current = setInterval(fetchNotifications, 30000)
 
     let socket: Socket | null = null;
-    fetch('/api/socket/io').finally(() => {
+    fetch('/api/socket/init').finally(() => {
       socket = io({ path: '/api/socket/io' });
       socket.on('new_notification', (notif: AppNotification) => {
         setNotifications(prev => [notif, ...prev.filter(n => n._id !== notif._id)]);
