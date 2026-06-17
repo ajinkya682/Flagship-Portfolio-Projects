@@ -50,8 +50,10 @@ export async function GET(req: Request) {
     // Get the company
     const company = await Company.findById(job.company);
 
-    // Get the offer
-    const offer = await Offer.findOne({ candidate: candidate._id, status: { $ne: 'draft' } }).sort({ createdAt: -1 });
+    // Get all non-draft offers
+    const allOffers = await Offer.find({ candidate: candidate._id, status: { $ne: 'draft' } }).sort({ createdAt: -1 });
+    // Latest non-declined offer for the main view
+    const latestOffer = allOffers.find(o => o.status !== 'declined') || allOffers[0] || null;
 
     const payload = {
       candidate: {
@@ -91,17 +93,32 @@ export async function GET(req: Request) {
         name: company?.name || 'Company',
         logo: company?.logo || '',
       },
-      timeline: [{ event: 'Applied via Career Site', date: new Date(application.appliedAt).toLocaleDateString(), type: 'applied' }],
+      timeline: application.timeline && application.timeline.length > 0
+        ? application.timeline.map((t: any) => ({
+            event: t.event,
+            date: new Date(t.date).toLocaleDateString(),
+            type: t.type,
+          }))
+        : [{ event: 'Applied for position', date: new Date(application.appliedAt).toLocaleDateString(), type: 'stage_change' }],
       interviews: [],
       messages: [],
-      offer: offer ? {
-        id: offer._id.toString(),
-        salary: offer.salary,
-        currency: offer.currency,
-        startDate: offer.startDate,
-        letterContent: offer.letterContent,
-        status: offer.status,
-      } : null
+      offer: latestOffer ? {
+        id: latestOffer._id.toString(),
+        salary: latestOffer.salary,
+        currency: latestOffer.currency,
+        startDate: latestOffer.startDate,
+        letterContent: latestOffer.letterContent,
+        status: latestOffer.status,
+      } : null,
+      allOffers: allOffers.map(o => ({
+        id: o._id.toString(),
+        salary: o.salary,
+        currency: o.currency,
+        startDate: o.startDate,
+        letterContent: o.letterContent,
+        status: o.status,
+        sentAt: o.sentAt,
+      }))
     };
 
     return NextResponse.json(payload);

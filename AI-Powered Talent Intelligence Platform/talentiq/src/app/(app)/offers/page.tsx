@@ -78,6 +78,19 @@ export default function OffersPage() {
 
   const activeOffers = offers.filter(o => o.status === 'sent' || o.status === 'viewed')
   const acceptedOffers = offers.filter(o => o.status === 'accepted')
+  const declinedOffers = offers.filter(o => o.status === 'declined')
+
+  // Filter logic: by default hide declined. Apply status filter.
+  const visibleOffers = offers.filter(o => {
+    if (statusFilter !== 'all') return o.status === statusFilter
+    if (!showDeclined && o.status === 'declined') return false
+    return true
+  }).filter(o => {
+    if (!search) return true
+    const c = candidates.find(c => c.id === o.candidateId) || o.candidateObj
+    const name = c?.name || ''
+    return name.toLowerCase().includes(search.toLowerCase()) || o.role.toLowerCase().includes(search.toLowerCase())
+  })
 
   const handleExport = () => {
     setIsExporting(true)
@@ -186,6 +199,27 @@ export default function OffersPage() {
         ) : (
           <div className="bg-white rounded-[16px] border border-neutral-100 shadow-sm overflow-hidden">
             
+            {/* Status Filter Tabs */}
+            <div className="px-[20px] py-[0] border-b border-neutral-100 flex items-center gap-0 overflow-x-auto">
+              {(['all', 'sent', 'viewed', 'accepted', 'declined'] as const).map(s => (
+                <button
+                  key={s}
+                  onClick={() => { setStatusFilter(s); if (s === 'declined') setShowDeclined(true) }}
+                  className={`h-[44px] px-[16px] font-body text-[13px] font-semibold border-b-2 whitespace-nowrap transition-all ${
+                    statusFilter === s
+                      ? 'border-primary-500 text-primary-700'
+                      : 'border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-200'
+                  }`}
+                >
+                  {s === 'all' ? 'All Offers' : s.charAt(0).toUpperCase() + s.slice(1)}
+                  {s === 'all' && <span className="ml-[6px] bg-neutral-100 text-neutral-500 text-[10px] font-bold px-[6px] py-[1px] rounded-full">{offers.filter(o => o.status !== 'declined').length}</span>}
+                  {s === 'declined' && declinedOffers.length > 0 && <span className="ml-[6px] bg-red-50 text-red-500 text-[10px] font-bold px-[6px] py-[1px] rounded-full">{declinedOffers.length}</span>}
+                  {s === 'accepted' && acceptedOffers.length > 0 && <span className="ml-[6px] bg-emerald-50 text-emerald-600 text-[10px] font-bold px-[6px] py-[1px] rounded-full">{acceptedOffers.length}</span>}
+                  {s === 'sent' && <span className="ml-[6px] bg-neutral-100 text-neutral-500 text-[10px] font-bold px-[6px] py-[1px] rounded-full">{offers.filter(o => o.status === 'sent').length}</span>}
+                </button>
+              ))}
+            </div>
+
             {/* Table Toolbar */}
             <div className="px-[20px] py-[16px] border-b border-neutral-50 flex flex-wrap items-center justify-between gap-[16px]">
               <div className="relative">
@@ -198,11 +232,14 @@ export default function OffersPage() {
                   className="w-[280px] h-[36px] pl-[34px] pr-[12px] bg-neutral-50 border border-neutral-200 rounded-[8px] text-[13px] text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-primary-400 focus:bg-white transition-all"
                 />
               </div>
-              <div className="flex items-center gap-[8px]">
-                <button className="h-[36px] px-[12px] bg-white border border-neutral-200 text-neutral-600 font-body text-[12px] font-semibold rounded-[8px] hover:bg-neutral-50 transition-colors flex items-center gap-[6px]">
-                  <Filter size={14} /> Status: All
+              {!showDeclined && statusFilter === 'all' && declinedOffers.length > 0 && (
+                <button
+                  onClick={() => setShowDeclined(true)}
+                  className="h-[36px] px-[12px] text-[12px] font-semibold text-red-500 hover:bg-red-50 rounded-[8px] transition-colors"
+                >
+                  Show {declinedOffers.length} declined
                 </button>
-              </div>
+              )}
             </div>
 
             {/* Table */}
@@ -218,7 +255,7 @@ export default function OffersPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {offers.map(offer => {
+                  {visibleOffers.map(offer => {
                     const candidate = candidates.find(c => c.id === offer.candidateId) || offer.candidateObj
                     if (!candidate) return null
                     const style = STATUS_STYLES[offer.status] || STATUS_STYLES.draft
