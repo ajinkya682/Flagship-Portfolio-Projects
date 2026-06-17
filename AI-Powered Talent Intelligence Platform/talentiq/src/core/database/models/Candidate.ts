@@ -18,6 +18,8 @@ export interface ICandidate extends Document {
   portalToken?: string;
   hasPortalAccess: boolean;
   isBlocked: boolean;
+  resetPasswordToken?: string;
+  resetPasswordExpires?: Date;
 }
 
 const CandidateSchema: Schema = new Schema({
@@ -37,7 +39,9 @@ const CandidateSchema: Schema = new Schema({
   extractedEducation: { type: [String], default: [] },
   portalToken: { type: String },
   hasPortalAccess: { type: Boolean, default: false },
-  isBlocked: { type: Boolean, default: false }
+  isBlocked: { type: Boolean, default: false },
+  resetPasswordToken: { type: String },
+  resetPasswordExpires: { type: Date }
 }, { timestamps: true });
 
 export const Candidate: Model<ICandidate> = mongoose.models.Candidate || mongoose.model<ICandidate>('Candidate', CandidateSchema);

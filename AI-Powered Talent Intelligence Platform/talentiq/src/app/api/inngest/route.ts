@@ -1,6 +1,8 @@
-// DEMO MODE — Stubbed (Inngest background jobs disabled)
-export const dynamic = 'force-dynamic'
-import { NextResponse } from 'next/server'
-export async function GET() { return NextResponse.json({ ok: true }) }
-export async function POST() { return NextResponse.json({ ok: true }) }
-export async function PUT() { return NextResponse.json({ ok: true }) }
+import { serve } from 'inngest/next';
+import { inngest } from '@/inngest/client';
+import { functions } from '@/inngest';
+
+export const { GET, POST, PUT } = serve({
+  client: inngest,
+  functions: functions,
+});
