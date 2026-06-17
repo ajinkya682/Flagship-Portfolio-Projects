@@ -62,6 +62,19 @@ export default async function SocketHandler(req: NextApiRequest, res: any) {
             createdAt: newMessage.createdAt,
           };
 
+          if (data.senderId === 'candidate' && candidate) {
+            const { Notification } = await import('@/core/database/models/Notification');
+            const notif = await Notification.create({
+              recipientUserId: 'all',
+              type: 'candidate_message',
+              title: 'New Message',
+              message: `${candidate.name} sent you a message: "${data.text.substring(0, 50)}${data.text.length > 50 ? '...' : ''}"`,
+              candidateId: candidate._id,
+              linkHref: `/messages?candidateId=${candidate._id}`,
+            });
+            io.emit('new_notification', notif);
+          }
+
           // Broadcast to the candidate-specific room (for detail view chat)
           io.to(data.candidateId).emit('receive_message', messagePayload);
 

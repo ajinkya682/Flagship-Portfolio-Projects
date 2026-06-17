@@ -9,6 +9,7 @@ import Link from 'next/link'
 import { useDomainStore } from '@/store/domain.store'
 import { useCandidatesStore } from '@/store/candidates.store'
 import { useEffect } from 'react'
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import CreateOfferModal from '@/components/offers/CreateOfferModal'
 
 const STATUS_STYLES: Record<string, { bg: string; text: string; icon: React.ElementType; border: string }> = {
@@ -73,6 +74,25 @@ export default function OffersPage() {
       console.error('Failed to send offer:', error)
     } finally {
       setSendingOfferId(null)
+    }
+  }
+
+  const handleOfferAction = async (offerId: string, action: 'cancel' | 'reject' | 'remove') => {
+    try {
+      if (action === 'remove') {
+        const res = await fetch(`/api/offers/${offerId}`, { method: 'DELETE' });
+        if (res.ok) await fetchOffers();
+      } else {
+        const newStatus = action === 'cancel' ? 'draft' : 'declined';
+        const res = await fetch(`/api/offers/${offerId}`, { 
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: newStatus })
+        });
+        if (res.ok) await fetchOffers();
+      }
+    } catch (err) {
+      console.error('Action failed:', err);
     }
   }
 
@@ -321,9 +341,31 @@ export default function OffersPage() {
                                 )}
                               </button>
                             )}
-                            <button className="text-neutral-400 hover:text-neutral-700 transition-colors p-[4px] rounded-md hover:bg-neutral-100">
-                              <MoreHorizontal size={18} />
-                            </button>
+                            <DropdownMenu.Root>
+                              <DropdownMenu.Trigger asChild>
+                                <button className="text-neutral-400 hover:text-neutral-700 transition-colors p-[4px] rounded-md hover:bg-neutral-100 outline-none">
+                                  <MoreHorizontal size={18} />
+                                </button>
+                              </DropdownMenu.Trigger>
+                              <DropdownMenu.Portal>
+                                <DropdownMenu.Content align="end" sideOffset={5} className="min-w-[160px] bg-white rounded-[12px] p-[6px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-neutral-100 z-50 animate-in fade-in zoom-in-95 duration-200">
+                                  {(offer.status === 'sent' || offer.status === 'viewed') && (
+                                    <DropdownMenu.Item onSelect={() => handleOfferAction(offer.id, 'cancel')} className="flex items-center gap-[8px] w-full px-[12px] py-[8px] text-[13px] font-medium text-neutral-700 hover:bg-neutral-50 rounded-[8px] cursor-pointer outline-none">
+                                      Cancel Offer
+                                    </DropdownMenu.Item>
+                                  )}
+                                  {offer.status !== 'declined' && offer.status !== 'accepted' && (
+                                    <DropdownMenu.Item onSelect={() => handleOfferAction(offer.id, 'reject')} className="flex items-center gap-[8px] w-full px-[12px] py-[8px] text-[13px] font-medium text-amber-600 hover:bg-amber-50 rounded-[8px] cursor-pointer outline-none">
+                                      Mark as Rejected
+                                    </DropdownMenu.Item>
+                                  )}
+                                  <DropdownMenu.Separator className="h-[1px] bg-neutral-100 my-[4px]" />
+                                  <DropdownMenu.Item onSelect={() => handleOfferAction(offer.id, 'remove')} className="flex items-center gap-[8px] w-full px-[12px] py-[8px] text-[13px] font-medium text-red-600 hover:bg-red-50 rounded-[8px] cursor-pointer outline-none">
+                                    <XCircle size={14} className="text-red-500" /> Remove Offer
+                                  </DropdownMenu.Item>
+                                </DropdownMenu.Content>
+                              </DropdownMenu.Portal>
+                            </DropdownMenu.Root>
                           </div>
                         </td>
                       </tr>

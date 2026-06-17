@@ -16,6 +16,8 @@ import { Settings, CreditCard, LogOut, Menu } from 'lucide-react'
 import { useUIStore } from '@/store/ui.store'
 import { useAuth } from '@/hooks/useAuth'
 import GlobalSearch from './GlobalSearch'
+import { useRouter } from 'next/navigation'
+import { io, Socket } from 'socket.io-client'
 
 interface AppNotification {
   _id: string
@@ -43,6 +45,7 @@ function getNotifIcon(type: string) {
 }
 
 function timeAgo(dateStr: string) {
+  if (!dateStr) return 'just now'
   const now = Date.now()
   const diff = now - new Date(dateStr).getTime()
   const mins = Math.floor(diff / 60000)
@@ -54,6 +57,7 @@ function timeAgo(dateStr: string) {
 }
 
 export default function AppHeader() {
+  const router = useRouter()
   const { user } = useCurrentUser()
   const { logout } = useAuth()
   const { setMobileSidebarOpen } = useUIStore()
@@ -76,9 +80,21 @@ export default function AppHeader() {
 
   useEffect(() => {
     fetchNotifications()
-    // Poll every 30 seconds
+    // Poll every 30 seconds as fallback
     pollRef.current = setInterval(fetchNotifications, 30000)
-    return () => { if (pollRef.current) clearInterval(pollRef.current) }
+
+    let socket: Socket | null = null;
+    fetch('/api/socket/io').finally(() => {
+      socket = io({ path: '/api/socket/io' });
+      socket.on('new_notification', (notif: AppNotification) => {
+        setNotifications(prev => [notif, ...prev.filter(n => n._id !== notif._id)]);
+      });
+    });
+
+    return () => { 
+      if (pollRef.current) clearInterval(pollRef.current)
+      if (socket) socket.disconnect();
+    }
   }, [])
 
   // Keyboard shortcut Cmd+K
@@ -184,9 +200,12 @@ export default function AppHeader() {
                   return (
                     <div
                       key={notif._id}
-                      onClick={() => {
+                      onClick={async () => {
                         handleMarkRead(notif._id)
-                        if (notif.linkHref) window.location.href = notif.linkHref
+                        if (notif.linkHref) {
+                          setNotifOpen(false)
+                          router.push(notif.linkHref)
+                        }
                       }}
                       className={`flex items-start gap-[12px] px-[16px] py-[12px] hover:bg-neutral-50 cursor-pointer transition-colors ${!notif.isRead ? 'bg-blue-50/30' : ''}`}
                     >
