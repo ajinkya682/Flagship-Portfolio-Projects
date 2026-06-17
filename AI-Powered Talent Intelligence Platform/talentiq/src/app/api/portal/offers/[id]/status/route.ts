@@ -50,9 +50,12 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     offer.status = status;
     await offer.save();
 
-    const application = await Application.findById(offer.application).populate('candidate');
+    const application = await Application.findById(offer.application).populate('candidate').populate('job');
     
     if (application) {
+      const candidate = application.candidate as any;
+      const job = application.job as any;
+
       if (status === 'accepted') {
         application.stage = 'Hired';
         application.timeline.push({
@@ -67,8 +70,8 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
           recipientUserId: 'all',
           type: 'offer_accepted',
           title: 'Offer Accepted!',
-          message: `${application.candidate?.name || 'A candidate'} has accepted the offer for ${application.job?.title || 'the job'}.`,
-          candidateId: application.candidate?._id,
+          message: `${candidate?.name || 'A candidate'} has accepted the offer for ${job?.title || 'the job'}.`,
+          candidateId: candidate?._id,
           applicationId: application._id,
           offerId: offer._id,
           linkHref: '/pipeline',
@@ -86,8 +89,8 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
           recipientUserId: 'all',
           type: 'offer_declined',
           title: 'Offer Declined',
-          message: `${application.candidate?.name || 'A candidate'} has declined the offer.`,
-          candidateId: application.candidate?._id,
+          message: `${candidate?.name || 'A candidate'} has declined the offer.`,
+          candidateId: candidate?._id,
           applicationId: application._id,
           offerId: offer._id,
           linkHref: '/pipeline',
