@@ -5,6 +5,8 @@ import { Application } from '@/core/database/models/Application';
 import { Job } from '@/core/database/models/Job';
 import { Company } from '@/core/database/models/Company';
 import { Offer } from '@/core/database/models/Offer';
+import { HireLetter } from '@/core/database/models/HireLetter';
+import { Assignment } from '@/core/database/models/Assignment';
 import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret';
@@ -53,7 +55,13 @@ export async function GET(req: Request) {
     // Get all non-draft offers
     const allOffers = await Offer.find({ candidate: candidate._id, status: { $ne: 'draft' } }).sort({ createdAt: -1 });
     // Latest non-declined offer for the main view
-    const latestOffer = allOffers.find(o => o.status !== 'declined') || allOffers[0] || null;
+    const latestOffer = allOffers.find((o: any) => o.status !== 'declined') || allOffers[0] || null;
+
+    // Get latest hire letter
+    const hireLetter = await HireLetter.findOne({ candidateId: candidate._id }).sort({ createdAt: -1 });
+
+    // Get assignment if in Assessment stage
+    const assignment = await Assignment.findOne({ candidateId: candidate._id, status: { $in: ['pending', 'submitted'] } }).sort({ createdAt: -1 });
 
     const payload = {
       candidate: {
@@ -110,7 +118,7 @@ export async function GET(req: Request) {
         letterContent: latestOffer.letterContent,
         status: latestOffer.status,
       } : null,
-      allOffers: allOffers.map(o => ({
+      allOffers: allOffers.map((o: any) => ({
         id: o._id.toString(),
         salary: o.salary,
         currency: o.currency,
@@ -118,7 +126,28 @@ export async function GET(req: Request) {
         letterContent: o.letterContent,
         status: o.status,
         sentAt: o.sentAt,
-      }))
+      })),
+      hireLetter: hireLetter ? {
+        id: hireLetter._id.toString(),
+        role: hireLetter.role,
+        companyName: hireLetter.companyName,
+        salary: hireLetter.salary,
+        startDate: hireLetter.startDate,
+        letterContent: hireLetter.letterContent,
+        status: hireLetter.status,
+        sentAt: hireLetter.sentAt,
+        signedAt: hireLetter.signedAt,
+      } : null,
+      assignment: assignment ? {
+        id: assignment._id.toString(),
+        title: assignment.title,
+        description: assignment.description,
+        deadline: assignment.deadline,
+        referenceLink: assignment.referenceLink,
+        status: assignment.status,
+        submittedAt: assignment.submittedAt,
+        submissionLink: assignment.submissionLink,
+      } : null,
     };
 
     return NextResponse.json(payload);
