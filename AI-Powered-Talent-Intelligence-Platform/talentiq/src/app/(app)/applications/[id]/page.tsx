@@ -6,7 +6,7 @@ import Link from 'next/link'
 import {
   ArrowLeft, Sparkles, Mail, Phone, Linkedin, Globe, FileText, MessageSquare,
   CheckCircle2, XCircle, ChevronRight, Tag, Clock, Star, Plus, Send, AlertTriangle,
-  Code, GraduationCap, Search, ThumbsUp, ThumbsDown, Briefcase
+  Code, GraduationCap, Search, ThumbsUp, ThumbsDown, Briefcase, Check, X
 } from 'lucide-react'
 import { useDomainStore } from '@/store/domain.store'
 import { useJobsStore } from '@/store/jobs.store'
@@ -51,6 +51,31 @@ export default function ApplicationDetailPage() {
   const job = jobs.find(j => j.id === candidate?.jobId)
 
   const [noteText, setNoteText] = useState('')
+  const [isAddingTag, setIsAddingTag] = useState(false)
+  const [newTag, setNewTag] = useState('')
+
+  const handleAddTag = async () => {
+    if (!newTag.trim() || !candidate) {
+      setIsAddingTag(false)
+      return
+    }
+    const updatedTags = [...(candidate.tags || []), newTag.trim()]
+    try {
+      const res = await fetch(`/api/applications/${candidate.applicationId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tags: updatedTags })
+      })
+      if (res.ok) {
+        updateCandidate(candidate.id, { tags: updatedTags })
+        setNewTag('')
+        setIsAddingTag(false)
+      }
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
   const [showRejectModal, setShowRejectModal] = useState(false)
   const [rejectReason, setRejectReason] = useState(REJECT_REASONS[0])
   const [rejectConfirmed, setRejectConfirmed] = useState(false)
@@ -540,9 +565,24 @@ export default function ApplicationDetailPage() {
                     {tag}
                   </span>
                 ))}
-                <button className="flex items-center gap-[3px] text-[11px] font-medium text-primary-600 hover:text-primary-700">
-                  <Plus size={11} /> Add tag
-                </button>
+                {isAddingTag ? (
+                  <div className="flex items-center gap-[4px]">
+                    <input 
+                      type="text" 
+                      value={newTag} 
+                      onChange={(e) => setNewTag(e.target.value)} 
+                      onKeyDown={(e) => { if (e.key === 'Enter') handleAddTag(); else if (e.key === 'Escape') setIsAddingTag(false); }}
+                      autoFocus
+                      className="font-body text-[11px] font-semibold px-[8px] py-[3px] bg-white border border-primary-500 rounded-full w-[80px] outline-none text-neutral-600" 
+                    />
+                    <button onClick={handleAddTag} className="text-primary-600 hover:text-primary-700 bg-primary-50 rounded-full p-[2px]"><Check size={11}/></button>
+                    <button onClick={() => setIsAddingTag(false)} className="text-neutral-400 hover:text-neutral-600 bg-neutral-100 rounded-full p-[2px]"><X size={11}/></button>
+                  </div>
+                ) : (
+                  <button onClick={() => setIsAddingTag(true)} className="flex items-center gap-[3px] text-[11px] font-medium text-primary-600 hover:text-primary-700">
+                    <Plus size={11} /> Add tag
+                  </button>
+                )}
               </div>
             </div>
 

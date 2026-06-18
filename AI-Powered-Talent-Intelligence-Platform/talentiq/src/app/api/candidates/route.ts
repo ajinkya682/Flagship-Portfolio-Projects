@@ -118,6 +118,7 @@ export async function POST(req: Request) {
       daysInStage: application.daysInStage,
       appliedAt: application.appliedAt,
       notes: application.recruiterNotes || [],
+      tags: application.tags || [],
       timeline: [{ event: 'Applied via Career Site', date: 'Just now', type: 'applied' }],
       extractedSkills: newCandidate.extractedSkills || [],
       extractedCompanies: newCandidate.extractedCompanies || [],
@@ -208,6 +209,7 @@ export async function GET(req: Request) {
             }))
           : [{ event: 'Applied via Career Site', date: new Date(app.appliedAt).toLocaleDateString(), type: 'applied' }],
         extractedSkills: c.extractedSkills || [],
+        tags: app.tags || [],
         extractedCompanies: c.extractedCompanies || [],
         extractedEducation: c.extractedEducation || [],
         strengths: app.aiScore?.strengths || [],

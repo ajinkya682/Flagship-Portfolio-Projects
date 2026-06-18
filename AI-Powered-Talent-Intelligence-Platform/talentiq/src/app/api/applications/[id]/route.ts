@@ -41,6 +41,10 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       });
     }
 
+    if (body.tags !== undefined) {
+      application.tags = body.tags;
+    }
+
     await application.save();
 
     return NextResponse.json({ success: true, stage: application.stage });
