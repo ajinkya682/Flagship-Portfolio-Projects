@@ -24,6 +24,7 @@ export default function AddCandidateModal({ isOpen, onClose, initialJobId, initi
   const [stage, setStage] = useState('Applied')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
+  const [generatedToken, setGeneratedToken] = useState('')
   
   const [resumeUrl, setResumeUrl] = useState<string | null>(null)
   const [isUploadingResume, setIsUploadingResume] = useState(false)
@@ -86,22 +87,14 @@ export default function AddCandidateModal({ isOpen, onClose, initialJobId, initi
       
       const score = aiResult.aiScore || Math.floor(Math.random() * 40) + 60
 
-      addCandidate({
-        id: `c_${Math.random().toString(36).substring(2, 10)}`,
+      const createdCandidate = await addCandidate({
         name: name,
         email: email,
         phone: '',
-        role: selectedJob?.title || 'Unknown Role',
         jobId: jobId,
-        stage: stage,
         source: 'Manually Added',
         aiScore: score,
-        daysInStage: 0,
-        appliedAt: new Date().toISOString(),
-        notes: [],
-        timeline: [{ event: 'Manually Added', date: 'Just now', type: 'applied' }],
         avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`,
-        hasPortalAccess: false,
         resumeUrl: resumeUrl || undefined,
         extractedSkills: aiResult.extractedSkills || [],
         extractedEducation: aiResult.extractedEducation || [],
@@ -110,11 +103,10 @@ export default function AddCandidateModal({ isOpen, onClose, initialJobId, initi
         gaps: aiResult.gaps || [],
       })
       
+      setGeneratedToken(createdCandidate.portalToken)
       setIsSuccess(true)
       
-      setTimeout(() => {
-        handleClose()
-      }, 1500)
+      // Removed auto-close so they can copy the token
     } catch (err) {
       console.error(err)
       alert("Failed to add candidate")
@@ -133,6 +125,7 @@ export default function AddCandidateModal({ isOpen, onClose, initialJobId, initi
       setResumeUrl(null)
       setIsSuccess(false)
       setIsSubmitting(false)
+      setGeneratedToken('')
     }, 300)
   }
 
@@ -155,12 +148,31 @@ export default function AddCandidateModal({ isOpen, onClose, initialJobId, initi
 
           <div className="p-[24px] flex flex-col gap-[16px] relative">
             {isSuccess && (
-              <div className="absolute inset-0 bg-white/90 z-10 flex flex-col items-center justify-center animate-in fade-in">
-                <CheckCircle2 size={48} className="text-emerald-500 mb-[12px] animate-bounce" />
-                <p className="font-display font-bold text-[18px] text-neutral-900">Candidate Added!</p>
-                <p className="font-body text-[14px] text-neutral-500 text-center mt-[4px]">
+              <div className="absolute inset-0 bg-white/95 z-20 flex flex-col items-center justify-center animate-in fade-in p-[32px]">
+                <CheckCircle2 size={48} className="text-emerald-500 mb-[16px] animate-bounce" />
+                <p className="font-display font-bold text-[20px] text-neutral-900">Candidate Added!</p>
+                <p className="font-body text-[14px] text-neutral-500 text-center mt-[8px] mb-[24px]">
                   {name} is now in the pipeline.
                 </p>
+                
+                {generatedToken && (
+                  <div className="bg-neutral-50 border border-neutral-200 rounded-[12px] p-[16px] w-full max-w-[300px] mb-[24px]">
+                    <p className="text-[12px] font-semibold text-neutral-500 uppercase tracking-wider text-center mb-[8px]">Portal Login Code</p>
+                    <div className="flex items-center justify-center bg-white border border-neutral-200 rounded-[8px] py-[8px] px-[16px]">
+                      <code className="text-[18px] font-mono font-bold text-primary-600 tracking-widest">{generatedToken}</code>
+                    </div>
+                    <p className="text-[11px] text-neutral-400 text-center mt-[8px]">
+                      Share this code with the candidate. They can use it to log into their application portal at /portal/login.
+                    </p>
+                  </div>
+                )}
+                
+                <button 
+                  onClick={handleClose}
+                  className="w-full max-w-[200px] h-[40px] bg-primary-600 text-white text-[14px] font-semibold rounded-[8px] hover:bg-primary-700 transition-colors"
+                >
+                  Done
+                </button>
               </div>
             )}
 

@@ -5,7 +5,7 @@ import api from '@/lib/api'
 interface CandidatesState {
   candidates: Candidate[]
   isLoading: boolean
-  addCandidate: (candidate: Partial<Candidate>) => Promise<void>
+  addCandidate: (candidate: Partial<Candidate>) => Promise<any>
   updateCandidate: (id: string, updates: Partial<Candidate>) => void
   moveCandidateStage: (candidateId: string, newStage: string) => Promise<void>
   addCandidateNote: (candidateId: string, note: any) => void
@@ -42,6 +42,7 @@ export const useCandidatesStore = create<CandidatesState>()(
         if (!res.ok) throw new Error('Failed to create candidate');
         const data = await res.json();
         set((state) => ({ candidates: [data, ...state.candidates] }))
+        return data;
       } catch (error) {
         console.error('Failed to create candidate:', error)
         throw error

@@ -133,6 +133,7 @@ export async function POST(req: Request) {
       passportPhotoUrl: newCandidate.passportPhotoUrl,
       signature: newCandidate.signature,
       availableStartDate: newCandidate.availableStartDate,
+      portalToken: newCandidate.portalToken,
     };
 
     return NextResponse.json(formattedCandidate, { status: 201 });
