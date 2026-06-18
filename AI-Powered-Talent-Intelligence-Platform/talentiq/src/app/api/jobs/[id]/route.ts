@@ -9,16 +9,30 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const body = await req.json();
     const jobId = params.id;
     
-    // We only expect status updates for now
-    const { status } = body;
+    const { 
+      status, title, department, location, type, remote, 
+      salaryMin, salaryMax, description, requirements, skills, 
+      applicationFormConfig 
+    } = body;
     
-    if (!status) {
-      return NextResponse.json({ error: 'Status is required' }, { status: 400 });
-    }
+    // Build update object dynamically to only update provided fields
+    const updateData: any = {};
+    if (status !== undefined) updateData.status = status;
+    if (title !== undefined) updateData.title = title;
+    if (department !== undefined) updateData.department = department;
+    if (location !== undefined) updateData.location = location;
+    if (type !== undefined) updateData.type = type;
+    if (remote !== undefined) updateData.remote = remote;
+    if (salaryMin !== undefined) updateData.salaryMin = salaryMin;
+    if (salaryMax !== undefined) updateData.salaryMax = salaryMax;
+    if (description !== undefined) updateData.description = description;
+    if (requirements !== undefined) updateData.requirements = requirements;
+    if (skills !== undefined) updateData.skills = skills;
+    if (applicationFormConfig !== undefined) updateData.applicationFormConfig = applicationFormConfig;
 
     const job = await Job.findByIdAndUpdate(
       jobId, 
-      { status }, 
+      { $set: updateData }, 
       { new: true }
     );
 

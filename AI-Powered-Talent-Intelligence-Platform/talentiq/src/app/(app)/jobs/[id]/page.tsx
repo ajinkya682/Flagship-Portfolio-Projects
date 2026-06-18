@@ -44,6 +44,27 @@ export default function JobDetailPage() {
   const jobCandidates = candidates.filter(c => c.jobId === jobId)
 
   const [editedStatus, setEditedStatus] = useState<string>(job?.status || 'published')
+  const [editedTitle, setEditedTitle] = useState(job?.title || '')
+  const [editedDepartment, setEditedDepartment] = useState(job?.department || '')
+  const [editedLocation, setEditedLocation] = useState(job?.location || '')
+  const [editedType, setEditedType] = useState(job?.type || '')
+  const [editedRemote, setEditedRemote] = useState(job?.remote || 'On-site')
+  const [editedSalaryMin, setEditedSalaryMin] = useState(job?.salaryMin?.toString() || '')
+  const [editedSalaryMax, setEditedSalaryMax] = useState(job?.salaryMax?.toString() || '')
+  const [editedDescription, setEditedDescription] = useState(job?.description || '')
+  
+  const [editedConfig, setEditedConfig] = useState(job?.applicationFormConfig || {
+    requireFullName: true,
+    requireMobileNumber: false,
+    requireDate: false,
+    requireLinkedin: true,
+    requireGithub: false,
+    requirePortfolio: false,
+    requireResume: true,
+    requirePassportPhoto: false,
+    requireSignature: false,
+  })
+
   const [statusToConfirm, setStatusToConfirm] = useState<string | null>(null)
   const [isUpdating, setIsUpdating] = useState(false)
 
@@ -90,26 +111,39 @@ export default function JobDetailPage() {
   ]
 
   const handleSaveSettings = () => {
-    if (editedStatus === 'closed' || editedStatus === 'draft' || editedStatus === 'paused') {
+    if (editedStatus !== job.status && (editedStatus === 'closed' || editedStatus === 'draft' || editedStatus === 'paused')) {
       setStatusToConfirm(editedStatus)
     } else {
-      executeStatusUpdate(editedStatus)
+      executeJobUpdate(editedStatus)
     }
   }
 
-  const executeStatusUpdate = async (status: string) => {
+  const executeJobUpdate = async (statusToSave: string) => {
     setIsUpdating(true)
+    const payload = {
+      status: statusToSave,
+      title: editedTitle,
+      department: editedDepartment,
+      location: editedLocation,
+      type: editedType,
+      remote: editedRemote,
+      salaryMin: editedSalaryMin ? parseInt(editedSalaryMin) : undefined,
+      salaryMax: editedSalaryMax ? parseInt(editedSalaryMax) : undefined,
+      description: editedDescription,
+      applicationFormConfig: editedConfig
+    }
+    
     try {
       const res = await fetch(`/api/jobs/${job.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status })
+        body: JSON.stringify(payload)
       })
       if (res.ok) {
-        updateJob(job.id, { status: status as any })
+        updateJob(job.id, payload as any)
       }
     } catch (e) {
-      console.error('Failed to update job status', e)
+      console.error('Failed to update job', e)
     } finally {
       setIsUpdating(false)
       setStatusToConfirm(null)
@@ -393,14 +427,16 @@ export default function JobDetailPage() {
 
       {activeTab === 'settings' && (
         <div className="bg-white rounded-[16px] border border-neutral-100 shadow-sm p-[24px]">
-          <h3 className="font-display text-[16px] font-bold text-neutral-900 mb-[20px]">Job Settings</h3>
-          <div className="flex flex-col gap-[20px] max-w-[520px]">
+          <h3 className="font-display text-[16px] font-bold text-neutral-900 mb-[20px]">Edit Job Details</h3>
+          
+          <div className="flex flex-col gap-[20px] max-w-[800px]">
+            {/* Status */}
             <div className="flex flex-col gap-[6px]">
-              <label className="font-body text-[13px] font-semibold text-neutral-700">Status</label>
+              <label className="font-body text-[13px] font-semibold text-neutral-700">Job Status</label>
               <select 
                 value={editedStatus}
                 onChange={(e) => setEditedStatus(e.target.value)}
-                className="h-[42px] rounded-[10px] border border-neutral-200 px-[12px] font-body text-[14px] focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 bg-white"
+                className="h-[42px] rounded-[10px] border border-neutral-200 px-[12px] font-body text-[14px] focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white"
               >
                 <option value="published">Active — accepting applications</option>
                 <option value="paused">Paused — temporarily not accepting</option>
@@ -408,9 +444,89 @@ export default function JobDetailPage() {
                 <option value="draft">Draft — not published</option>
               </select>
             </div>
-            <div className="flex items-center justify-between pt-[20px] border-t border-neutral-100">
-              <button onClick={handleSaveSettings} disabled={isUpdating} className="h-[40px] px-[20px] bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-body text-[13px] font-semibold rounded-[10px] shadow-sm disabled:opacity-50">
-                {isUpdating ? 'Saving...' : 'Save Changes'}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-[16px]">
+              <div className="flex flex-col gap-[6px]">
+                <label className="font-body text-[13px] font-semibold text-neutral-700">Job Title</label>
+                <input value={editedTitle} onChange={e => setEditedTitle(e.target.value)} className="h-[42px] px-[12px] rounded-[10px] border border-neutral-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" />
+              </div>
+              <div className="flex flex-col gap-[6px]">
+                <label className="font-body text-[13px] font-semibold text-neutral-700">Department</label>
+                <input value={editedDepartment} onChange={e => setEditedDepartment(e.target.value)} className="h-[42px] px-[12px] rounded-[10px] border border-neutral-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" />
+              </div>
+              <div className="flex flex-col gap-[6px]">
+                <label className="font-body text-[13px] font-semibold text-neutral-700">Location</label>
+                <input value={editedLocation} onChange={e => setEditedLocation(e.target.value)} className="h-[42px] px-[12px] rounded-[10px] border border-neutral-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" />
+              </div>
+              <div className="flex flex-col gap-[6px]">
+                <label className="font-body text-[13px] font-semibold text-neutral-700">Employment Type</label>
+                <input value={editedType} onChange={e => setEditedType(e.target.value)} className="h-[42px] px-[12px] rounded-[10px] border border-neutral-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" />
+              </div>
+              <div className="flex flex-col gap-[6px]">
+                <label className="font-body text-[13px] font-semibold text-neutral-700">Work Model</label>
+                <select value={editedRemote} onChange={e => setEditedRemote(e.target.value)} className="h-[42px] px-[12px] rounded-[10px] border border-neutral-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none bg-white">
+                  <option value="On-site">On-site</option>
+                  <option value="Hybrid">Hybrid</option>
+                  <option value="Remote">Remote</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-[16px]">
+              <div className="flex flex-col gap-[6px]">
+                <label className="font-body text-[13px] font-semibold text-neutral-700">Min Salary (USD)</label>
+                <input type="number" value={editedSalaryMin} onChange={e => setEditedSalaryMin(e.target.value)} className="h-[42px] px-[12px] rounded-[10px] border border-neutral-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" />
+              </div>
+              <div className="flex flex-col gap-[6px]">
+                <label className="font-body text-[13px] font-semibold text-neutral-700">Max Salary (USD)</label>
+                <input type="number" value={editedSalaryMax} onChange={e => setEditedSalaryMax(e.target.value)} className="h-[42px] px-[12px] rounded-[10px] border border-neutral-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" />
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-[6px]">
+              <label className="font-body text-[13px] font-semibold text-neutral-700">Job Description</label>
+              <textarea value={editedDescription} onChange={e => setEditedDescription(e.target.value)} className="min-h-[200px] p-[12px] rounded-[10px] border border-neutral-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none resize-y" />
+            </div>
+
+            <div className="pt-[16px] border-t border-neutral-100">
+              <h4 className="font-display text-[15px] font-bold text-neutral-900 mb-[12px]">Application Form Requirements</h4>
+              <p className="text-[13px] text-neutral-500 mb-[16px]">Select the fields candidates must fill out when applying for this job.</p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-[16px]">
+                {Object.entries(editedConfig).map(([key, value]) => {
+                  const labelMap: Record<string, string> = {
+                    requireFullName: 'Full Name',
+                    requireMobileNumber: 'Mobile Number',
+                    requireDate: 'Available Date',
+                    requireLinkedin: 'LinkedIn Profile',
+                    requireGithub: 'GitHub Profile',
+                    requirePortfolio: 'Portfolio',
+                    requireResume: 'Resume (PDF/Doc)',
+                    requirePassportPhoto: 'Passport Photo',
+                    requireSignature: 'Digital Signature'
+                  }
+                  
+                  return (
+                    <label key={key} className="flex items-center gap-[8px] cursor-pointer group">
+                      <div className={`w-[20px] h-[20px] rounded-[6px] border flex items-center justify-center transition-colors ${value ? 'bg-blue-600 border-blue-600' : 'bg-white border-neutral-300 group-hover:border-blue-400'}`}>
+                        {value && <CheckCircle size={12} className="text-white" />}
+                      </div>
+                      <input 
+                        type="checkbox" 
+                        className="hidden" 
+                        checked={value as boolean} 
+                        onChange={(e) => setEditedConfig(prev => ({ ...prev, [key]: e.target.checked }))} 
+                      />
+                      <span className="text-[14px] text-neutral-700 font-medium group-hover:text-neutral-900">{labelMap[key] || key}</span>
+                    </label>
+                  )
+                })}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end pt-[24px] mt-[8px] border-t border-neutral-100">
+              <button onClick={handleSaveSettings} disabled={isUpdating} className="h-[42px] px-[24px] bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-body text-[14px] font-semibold rounded-[10px] shadow-sm disabled:opacity-50 transition-all hover:shadow-md">
+                {isUpdating ? 'Saving Changes...' : 'Save All Changes'}
               </button>
             </div>
           </div>
@@ -448,7 +564,7 @@ export default function JobDetailPage() {
                 </button>
               </Dialog.Close>
               <button 
-                onClick={() => executeStatusUpdate(statusToConfirm as string)}
+                onClick={() => executeJobUpdate(statusToConfirm as string)}
                 disabled={isUpdating}
                 className="px-[16px] py-[8px] text-[14px] font-medium text-white bg-amber-600 hover:bg-amber-700 rounded-md transition-colors shadow-sm disabled:opacity-70 flex items-center justify-center min-w-[100px]"
               >

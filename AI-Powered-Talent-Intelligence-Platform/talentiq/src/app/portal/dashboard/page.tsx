@@ -424,9 +424,9 @@ export default function CandidateDashboard() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-[20px]">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-[20px] items-start">
           {/* Left sidebar */}
-          <div className="lg:col-span-1 flex flex-col gap-[16px]">
+          <div className="lg:col-span-1 flex flex-col gap-[16px] lg:sticky lg:top-[90px] lg:h-[calc(100vh-120px)]">
             {/* Application Progress */}
             <div className="bg-white rounded-[18px] border border-neutral-100 shadow-sm p-[22px]">
               <h3 className="font-display text-[14px] font-bold text-neutral-900 mb-[18px] flex items-center gap-[8px]">
@@ -478,11 +478,11 @@ export default function CandidateDashboard() {
             </div>
 
             {/* Timeline */}
-            <div className="bg-white rounded-[18px] border border-neutral-100 shadow-sm p-[22px]">
-              <h3 className="font-display text-[14px] font-bold text-neutral-900 mb-[16px] flex items-center gap-[8px]">
+            <div className="bg-white rounded-[18px] border border-neutral-100 shadow-sm p-[22px] flex-1 flex flex-col min-h-0">
+              <h3 className="font-display text-[14px] font-bold text-neutral-900 mb-[16px] flex items-center gap-[8px] shrink-0">
                 <Clock size={14} className="text-blue-500" /> Timeline
               </h3>
-              <div className="flex flex-col gap-[14px]">
+              <div className="flex flex-col gap-[14px] overflow-y-auto pr-[8px] flex-1 min-h-0 pb-[10px]">
                 {timeline.map((item, i) => (
                   <div key={i} className="flex items-start gap-[10px]">
                     <div className="mt-[3px] w-[6px] h-[6px] rounded-full bg-blue-500 shrink-0" />
