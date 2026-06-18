@@ -36,7 +36,7 @@ export default function CheckoutModal({ isOpen, onClose, planName, price, billin
       const res = await api.patch(`/companies/${user.company.id}`, {
         billing: {
           plan: newPlan,
-          billingCycle: billingPeriod,
+          billingCycle: billingPeriod === 'annual' ? 'annually' : 'monthly',
           status: 'active'
         }
       })
