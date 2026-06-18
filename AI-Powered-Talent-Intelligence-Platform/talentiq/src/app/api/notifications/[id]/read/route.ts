@@ -30,13 +30,20 @@ export async function PATCH(
     const { id } = params;
 
     if (id === 'all') {
-      // Mark all as read for the specific user
-      await Notification.updateMany({ recipientUserId: decoded.userId }, { isRead: true });
+      // Mark all as read for the specific user in this company
+      await Notification.updateMany({ 
+        companyId: decoded.companyId,
+        recipientUserId: decoded.userId 
+      }, { isRead: true });
       return NextResponse.json({ success: true });
     }
 
     const notification = await Notification.findOneAndUpdate(
-      { _id: id, recipientUserId: decoded.userId },
+      { 
+        _id: id, 
+        companyId: decoded.companyId,
+        recipientUserId: decoded.userId 
+      },
       { isRead: true },
       { new: true }
     );

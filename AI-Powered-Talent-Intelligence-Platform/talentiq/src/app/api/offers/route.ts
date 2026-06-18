@@ -3,13 +3,28 @@ import connectToDatabase from '@/core/database/mongoose';
 import { Offer } from '@/core/database/models/Offer';
 import { Candidate } from '@/core/database/models/Candidate';
 import { Job } from '@/core/database/models/Job';
+import { verifyAccessToken } from '@/core/auth/jwt';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     await connectToDatabase();
     
+    // Auth Check
+    let token = req.headers.get('authorization')?.split(' ')[1];
+    if (!token) {
+      token = req.headers.get('cookie')?.split(';').find(c => c.trim().startsWith('accessToken='))?.split('=')[1];
+    }
+    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    let decoded;
+    try {
+      decoded = verifyAccessToken(token);
+    } catch (e) {
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+    }
+    const companyId = decoded.companyId;
+
     // Fetch offers and populate candidate and job
-    const offers = await Offer.find()
+    const offers = await Offer.find({ companyId })
       .populate('candidate', 'name email role avatar stage')
       .populate('job', 'title department')
       .sort({ createdAt: -1 });
@@ -26,6 +41,20 @@ export async function POST(req: NextRequest) {
     await connectToDatabase();
     const body = await req.json();
     
+    // Auth Check
+    let token = req.headers.get('authorization')?.split(' ')[1];
+    if (!token) {
+      token = req.headers.get('cookie')?.split(';').find(c => c.trim().startsWith('accessToken='))?.split('=')[1];
+    }
+    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    let decoded;
+    try {
+      decoded = verifyAccessToken(token);
+    } catch (e) {
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+    }
+    const companyId = decoded.companyId;
+
     const { candidateId, jobId, amount, equity } = body;
     
     if (!candidateId || !amount) {
@@ -37,7 +66,7 @@ export async function POST(req: NextRequest) {
     // or create a dummy object ID for application to satisfy the schema temporarily.
     // The schema requires 'application', 'candidate', 'job', 'salary', 'startDate', 'expirationDate', 'letterContent'
     
-    const candidate = await Candidate.findById(candidateId);
+    const candidate = await Candidate.findOne({ _id: candidateId, companyId });
     if (!candidate) {
       return NextResponse.json({ error: 'Candidate not found' }, { status: 404 });
     }
@@ -45,6 +74,7 @@ export async function POST(req: NextRequest) {
     const offerJobId = jobId || (candidate as any).job;
 
     const newOffer = new Offer({
+      companyId,
       application: (candidate as any).applicationId || candidate._id, // fallback if no explicit application
       candidate: candidate._id,
       job: offerJobId,

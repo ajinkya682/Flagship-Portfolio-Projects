@@ -3,6 +3,7 @@ import connectToDatabase from '@/core/database/mongoose';
 import { Interview } from '@/core/database/models/Interview';
 import { Application } from '@/core/database/models/Application';
 import mongoose from 'mongoose';
+import { verifyAccessToken } from '@/core/auth/jwt';
 
 export async function GET(req: Request) {
   try {
@@ -12,7 +13,21 @@ export async function GET(req: Request) {
     const dateQuery = url.searchParams.get('date'); // YYYY-MM-DD
     const candidateId = url.searchParams.get('candidateId');
 
-    let filter: any = {};
+    // Auth Check
+    let token = req.headers.get('authorization')?.split(' ')[1];
+    if (!token) {
+      token = req.headers.get('cookie')?.split(';').find(c => c.trim().startsWith('accessToken='))?.split('=')[1];
+    }
+    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    let decoded;
+    try {
+      decoded = verifyAccessToken(token);
+    } catch (e) {
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+    }
+    const companyId = decoded.companyId;
+
+    let filter: any = { companyId };
     if (candidateId) filter.candidate = candidateId;
 
     if (dateQuery) {
@@ -42,6 +57,20 @@ export async function POST(req: Request) {
     if (!candidateId || !applicationId || !jobId || !scheduledAt) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
+
+    // Auth Check
+    let token = req.headers.get('authorization')?.split(' ')[1];
+    if (!token) {
+      token = req.headers.get('cookie')?.split(';').find(c => c.trim().startsWith('accessToken='))?.split('=')[1];
+    }
+    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    let decoded;
+    try {
+      decoded = verifyAccessToken(token);
+    } catch (e) {
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+    }
+    const companyId = decoded.companyId;
 
     // 45 minute duration strictly
     const duration = 45;
@@ -84,6 +113,7 @@ export async function POST(req: Request) {
 
     // Create the interview
     const interview = new Interview({
+      companyId,
       application: new mongoose.Types.ObjectId(applicationId),
       candidate: new mongoose.Types.ObjectId(candidateId),
       job: new mongoose.Types.ObjectId(jobId),

@@ -3,7 +3,7 @@
 import { useState, Suspense } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import { CheckCircle, Hexagon, Eye, EyeOff } from 'lucide-react'
+import { CheckCircle, Hexagon, Eye, EyeOff, KeyRound } from 'lucide-react'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 
 function ResetPasswordForm() {
@@ -72,18 +72,27 @@ function ResetPasswordForm() {
   }
 
   return (
-    <>
-      <h1 className="font-display text-[28px] font-bold text-neutral-900 leading-tight text-center">
-        Set new password
-      </h1>
+    <div>
+      <div className="mb-[32px] text-center flex flex-col items-center">
+        <div className="w-[48px] h-[48px] bg-primary-50 rounded-xl flex items-center justify-center mb-[24px] border border-primary-100 shadow-sm relative overflow-hidden">
+          <div className="absolute inset-0 bg-primary-500/10" />
+          <KeyRound className="w-[24px] h-[24px] text-primary-600 relative z-10" />
+        </div>
+        <h1 className="font-display text-[28px] font-bold text-neutral-900 leading-tight">
+          Set new password
+        </h1>
+        <p className="font-body text-[15px] text-neutral-500 mt-[8px]">
+          Please enter your new password below.
+        </p>
+      </div>
       
       {!token && (
-        <div className="mt-6 p-3 bg-red-50 text-red-600 border border-red-100 rounded-lg text-sm font-medium text-center">
+        <div className="mt-2 mb-6 p-3 bg-red-50 text-red-600 border border-red-100 rounded-lg text-sm font-medium text-center">
           Missing reset token. Please use the link sent to your email.
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="mt-[32px] flex flex-col gap-[16px]">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-[20px]">
         <div className="flex flex-col gap-[6px]">
           <label className="font-body text-[13px] font-semibold text-neutral-700">New Password</label>
           <div className="relative">
@@ -92,7 +101,8 @@ function ResetPasswordForm() {
               required
               value={password}
               onChange={e => setPassword(e.target.value)}
-              className="w-full h-[44px] pl-[12px] pr-[40px] bg-white border border-neutral-200 rounded-lg text-[15px] focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
+              placeholder="••••••••"
+              className="w-full h-[44px] pl-[12px] pr-[40px] bg-white border border-neutral-200 rounded-lg text-[15px] focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
             />
             <button
               type="button"
@@ -104,12 +114,12 @@ function ResetPasswordForm() {
           </div>
           <div className="flex flex-col gap-1 mt-2">
             <div className="flex items-center gap-2">
-              <CheckCircle size={12} className={hasMinLength ? "text-accent-500" : "text-neutral-300"} />
-              <span className={`text-[12px] ${hasMinLength ? "text-neutral-700" : "text-neutral-500"}`}>8+ characters</span>
+              <CheckCircle size={12} className={hasMinLength ? "text-green-500" : "text-neutral-300"} />
+              <span className={`text-[12px] font-medium ${hasMinLength ? "text-neutral-700" : "text-neutral-500"}`}>8+ characters</span>
             </div>
             <div className="flex items-center gap-2">
-              <CheckCircle size={12} className={hasNumber ? "text-accent-500" : "text-neutral-300"} />
-              <span className={`text-[12px] ${hasNumber ? "text-neutral-700" : "text-neutral-500"}`}>At least 1 number</span>
+              <CheckCircle size={12} className={hasNumber ? "text-green-500" : "text-neutral-300"} />
+              <span className={`text-[12px] font-medium ${hasNumber ? "text-neutral-700" : "text-neutral-500"}`}>At least 1 number</span>
             </div>
           </div>
         </div>
@@ -121,10 +131,11 @@ function ResetPasswordForm() {
             required
             value={confirmPassword}
             onChange={e => setConfirmPassword(e.target.value)}
-            className="h-[44px] px-[12px] bg-white border border-neutral-200 rounded-lg text-[15px] focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
+            placeholder="••••••••"
+            className="h-[44px] px-[12px] bg-white border border-neutral-200 rounded-lg text-[15px] focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
           />
           {password && confirmPassword && password !== confirmPassword && (
-            <p className="text-[12px] text-red-500 mt-1">Passwords do not match</p>
+            <p className="text-[12px] text-red-500 mt-1 font-medium">Passwords do not match</p>
           )}
         </div>
 
@@ -137,28 +148,21 @@ function ResetPasswordForm() {
         <button
           type="submit"
           disabled={isSubmitting || !hasMinLength || !hasNumber || password !== confirmPassword || !token}
-          className="mt-[8px] w-full h-[44px] bg-primary-500 hover:bg-primary-600 text-white font-body text-[15px] font-semibold rounded-lg shadow-sm disabled:opacity-70 flex items-center justify-center gap-2"
+          className="mt-[8px] w-full h-[44px] bg-primary-500 hover:bg-primary-600 text-white font-body text-[15px] font-semibold rounded-lg shadow-sm disabled:opacity-70 flex items-center justify-center gap-2 transition-colors disabled:cursor-not-allowed"
         >
           {isSubmitting ? <LoadingSpinner size="sm" className="text-white" /> : 'Reset password'}
         </button>
       </form>
-    </>
+    </div>
   )
 }
 
 export default function ResetPasswordPage() {
   return (
-    <div className="min-h-screen bg-neutral-50 flex flex-col items-center justify-center p-[24px]">
-      <Link href="/" className="flex items-center gap-2 mb-[32px]">
-        <Hexagon className="w-8 h-8 text-primary-600 fill-primary-600" />
-        <span className="font-display text-[22px] font-bold text-neutral-900 tracking-tight">TalentIQ</span>
-      </Link>
-
-      <div className="w-full max-w-[440px] bg-white p-[32px] md:p-[48px] rounded-[16px] md:rounded-[24px] shadow-sm md:shadow-lg border border-neutral-100/50">
-        <Suspense fallback={<div className="flex justify-center"><LoadingSpinner size="md" className="text-primary-500" /></div>}>
-          <ResetPasswordForm />
-        </Suspense>
-      </div>
+    <div className="flex flex-col w-full animate-in fade-in duration-500">
+      <Suspense fallback={<div className="flex justify-center py-8"><LoadingSpinner size="md" className="text-primary-500" /></div>}>
+        <ResetPasswordForm />
+      </Suspense>
     </div>
   )
 }

@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export interface IAssignment extends Document {
+  companyId: mongoose.Types.ObjectId;
   applicationId: mongoose.Types.ObjectId;
   candidateId: mongoose.Types.ObjectId;
   jobId: mongoose.Types.ObjectId;
@@ -18,6 +19,7 @@ export interface IAssignment extends Document {
 
 const AssignmentSchema: Schema = new Schema(
   {
+    companyId: { type: Schema.Types.ObjectId, ref: 'Company', required: true },
     applicationId: { type: Schema.Types.ObjectId, ref: 'Application', required: true },
     candidateId: { type: Schema.Types.ObjectId, ref: 'Candidate', required: true },
     jobId: { type: Schema.Types.ObjectId, ref: 'Job', required: true },

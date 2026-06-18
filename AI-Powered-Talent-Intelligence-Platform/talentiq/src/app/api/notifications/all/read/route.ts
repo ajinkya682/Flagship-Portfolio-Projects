@@ -25,7 +25,10 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
-    await Notification.updateMany({ recipientUserId: decoded.userId }, { isRead: true });
+    await Notification.updateMany({ 
+      companyId: decoded.companyId,
+      recipientUserId: decoded.userId 
+    }, { isRead: true });
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error marking all notifications read:', error);

@@ -13,6 +13,7 @@ export type NotificationType =
 
 export interface INotification extends Document {
   recipientUserId: string; // recruiter/admin user ID
+  companyId: mongoose.Types.ObjectId; // Strict multi-tenant isolation
   type: NotificationType;
   title: string;
   message: string;
@@ -29,6 +30,7 @@ export interface INotification extends Document {
 const NotificationSchema: Schema = new Schema(
   {
     recipientUserId: { type: String, required: true, index: true },
+    companyId: { type: Schema.Types.ObjectId, ref: 'Company', required: true, index: true },
     type: {
       type: String,
       enum: [

@@ -286,6 +286,28 @@ export default function CandidateDashboard() {
     }
   }
 
+  const handleDownloadPDF = async (elementId: string, filename: string) => {
+    const element = document.getElementById(elementId)
+    if (!element) return
+
+    try {
+      // Dynamically import html2pdf to avoid SSR issues
+      const html2pdf = (await import('html2pdf.js')).default
+      
+      const opt = {
+        margin: 0,
+        filename: `${activeTab === 'offer' ? 'offer_letter' : 'hire_letter'}.pdf`,
+        image: { type: 'jpeg' as const, quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4' as const, orientation: 'portrait' as const }
+      }
+
+      html2pdf().set(opt).from(element).save()
+    } catch (error) {
+      console.error('Failed to generate PDF:', error)
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
@@ -820,10 +842,80 @@ export default function CandidateDashboard() {
                     </div>
                   </div>
 
-                  <div className="mt-[8px]">
-                    <h3 className="text-[14px] font-bold text-neutral-900 mb-[12px]">Offer Letter</h3>
-                    <div className="p-[24px] bg-white border border-neutral-200 rounded-[16px] shadow-sm whitespace-pre-wrap font-serif leading-relaxed text-neutral-800">
-                      {portalData.offer.letterContent}
+                  <div className="relative mt-[8px]">
+                    <div className="flex items-center justify-between mb-[12px]">
+                      <h3 className="text-[14px] font-bold text-neutral-900">Offer Letter</h3>
+                      <button 
+                        onClick={() => handleDownloadPDF('offer-letter-doc', `${company.name.replace(/\s+/g, '_')}_Offer_Letter.pdf`)}
+                        className="flex items-center gap-[6px] px-[14px] py-[7px] bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-[8px] text-[12px] font-semibold transition-colors shadow-sm border border-neutral-200"
+                      >
+                        <FileText size={14} /> Download PDF
+                      </button>
+                    </div>
+                    
+                    {/* A4 Document Container */}
+                    <div className="bg-neutral-100/50 p-[20px] sm:p-[40px] rounded-[16px] border border-neutral-200 overflow-x-auto">
+                      <div 
+                        id="offer-letter-doc"
+                        className="bg-white mx-auto shadow-md border border-neutral-200 relative"
+                        style={{ width: '210mm', minHeight: '297mm', padding: '25mm' }}
+                      >
+                        {/* Letterhead */}
+                        <div className="flex items-start justify-between border-b-[2px] border-neutral-900 pb-[24px] mb-[40px]">
+                          <div className="flex items-center gap-[16px]">
+                            {company.logo ? (
+                              <img src={company.logo} alt={company.name} className="h-[48px] object-contain" />
+                            ) : (
+                              <div className="w-[48px] h-[48px] bg-blue-600 rounded-[10px] flex items-center justify-center text-white font-bold text-[22px] shadow-sm">
+                                {company.name.charAt(0)}
+                              </div>
+                            )}
+                            <div>
+                              <h2 className="text-[24px] font-bold text-neutral-900 tracking-tight leading-none">{company.name}</h2>
+                              <p className="text-[13px] text-neutral-500 font-medium mt-[4px] uppercase tracking-wider">Official Offer of Employment</p>
+                            </div>
+                          </div>
+                          <div className="text-right flex flex-col items-end">
+                            <div className="bg-neutral-100 px-[12px] py-[6px] rounded-[6px]">
+                              <p className="text-[13px] font-semibold text-neutral-700">{new Date(portalData.offer.startDate).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                            </div>
+                            <p className="text-[11px] text-red-600/80 font-bold mt-[8px] uppercase tracking-widest">Private & Confidential</p>
+                          </div>
+                        </div>
+                        
+                        {/* Body */}
+                        <div className="whitespace-pre-wrap font-serif text-[15px] leading-[1.8] text-neutral-800 text-justify">
+                          {portalData.offer.letterContent}
+                        </div>
+                        
+                        {/* Signatures */}
+                        <div className="mt-[80px] grid grid-cols-2 gap-[60px] pb-[40px]">
+                          <div>
+                            <div className="border-b-[1.5px] border-neutral-400 pb-[8px] mb-[12px] relative">
+                              <p className="font-serif italic text-neutral-400 text-[22px] px-[8px]">Authorized Signatory</p>
+                            </div>
+                            <p className="text-[15px] font-bold text-neutral-900">{company.name} HR</p>
+                            <p className="text-[12px] text-neutral-500 mt-[2px] uppercase tracking-wider font-semibold">Company Representative</p>
+                          </div>
+                          <div>
+                            <div className="border-b-[1.5px] border-neutral-400 pb-[8px] mb-[12px] relative">
+                              {portalData.offer.status === 'accepted' ? (
+                                <p className="font-serif italic text-blue-700 text-[26px] px-[8px]">{candidate.name}</p>
+                              ) : (
+                                <div className="h-[34px]" />
+                              )}
+                            </div>
+                            <p className="text-[15px] font-bold text-neutral-900">{candidate.name}</p>
+                            <p className="text-[12px] text-neutral-500 mt-[2px] uppercase tracking-wider font-semibold">Candidate Signature</p>
+                          </div>
+                        </div>
+                        
+                        {/* Footer decorative */}
+                        <div className="absolute bottom-[25mm] left-[25mm] right-[25mm] border-t border-neutral-200 pt-[16px] flex justify-between items-center text-[10px] text-neutral-400 uppercase tracking-widest font-semibold">
+                          <span>{company.name} © {new Date().getFullYear()}</span>
+                          <span>Page 1 of 1</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
@@ -892,10 +984,80 @@ export default function CandidateDashboard() {
                     </div>
                   </div>
 
-                  <div>
-                    <h3 className="text-[14px] font-bold text-neutral-900 mb-[12px]">Hire Letter</h3>
-                    <div className="p-[28px] bg-white border border-neutral-200 rounded-[16px] shadow-sm whitespace-pre-wrap font-serif leading-relaxed text-neutral-800 text-[14px]">
-                      {portalData.hireLetter.letterContent}
+                  <div className="relative">
+                    <div className="flex items-center justify-between mb-[12px]">
+                      <h3 className="text-[14px] font-bold text-neutral-900">Official Hire Letter</h3>
+                      <button 
+                        onClick={() => handleDownloadPDF('hire-letter-doc', `${company.name.replace(/\s+/g, '_')}_Hire_Letter.pdf`)}
+                        className="flex items-center gap-[6px] px-[14px] py-[7px] bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-[8px] text-[12px] font-semibold transition-colors shadow-sm border border-neutral-200"
+                      >
+                        <FileText size={14} /> Download PDF
+                      </button>
+                    </div>
+
+                    {/* A4 Document Container */}
+                    <div className="bg-neutral-100/50 p-[20px] sm:p-[40px] rounded-[16px] border border-neutral-200 overflow-x-auto">
+                      <div 
+                        id="hire-letter-doc"
+                        className="bg-white mx-auto shadow-md border border-neutral-200 relative"
+                        style={{ width: '210mm', minHeight: '297mm', padding: '25mm' }}
+                      >
+                        {/* Letterhead */}
+                        <div className="flex items-start justify-between border-b-[2px] border-neutral-900 pb-[24px] mb-[40px]">
+                          <div className="flex items-center gap-[16px]">
+                            {company.logo ? (
+                              <img src={company.logo} alt={company.name} className="h-[48px] object-contain" />
+                            ) : (
+                              <div className="w-[48px] h-[48px] bg-indigo-600 rounded-[10px] flex items-center justify-center text-white font-bold text-[22px] shadow-sm">
+                                {company.name.charAt(0)}
+                              </div>
+                            )}
+                            <div>
+                              <h2 className="text-[24px] font-bold text-neutral-900 tracking-tight leading-none">{company.name}</h2>
+                              <p className="text-[13px] text-neutral-500 font-medium mt-[4px] uppercase tracking-wider">Official Hire Letter</p>
+                            </div>
+                          </div>
+                          <div className="text-right flex flex-col items-end">
+                            <div className="bg-neutral-100 px-[12px] py-[6px] rounded-[6px]">
+                              <p className="text-[13px] font-semibold text-neutral-700">{new Date(portalData.hireLetter.startDate).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                            </div>
+                            <p className="text-[11px] text-red-600/80 font-bold mt-[8px] uppercase tracking-widest">Private & Confidential</p>
+                          </div>
+                        </div>
+                        
+                        {/* Body */}
+                        <div className="whitespace-pre-wrap font-serif text-[15px] leading-[1.8] text-neutral-800 text-justify">
+                          {portalData.hireLetter.letterContent}
+                        </div>
+                        
+                        {/* Signatures */}
+                        <div className="mt-[80px] grid grid-cols-2 gap-[60px] pb-[40px]">
+                          <div>
+                            <div className="border-b-[1.5px] border-neutral-400 pb-[8px] mb-[12px] relative">
+                              <p className="font-serif italic text-neutral-400 text-[22px] px-[8px]">Authorized Signatory</p>
+                            </div>
+                            <p className="text-[15px] font-bold text-neutral-900">{company.name} HR</p>
+                            <p className="text-[12px] text-neutral-500 mt-[2px] uppercase tracking-wider font-semibold">Company Representative</p>
+                          </div>
+                          <div>
+                            <div className="border-b-[1.5px] border-neutral-400 pb-[8px] mb-[12px] relative">
+                              {portalData.hireLetter.status === 'signed' ? (
+                                <p className="font-serif italic text-indigo-700 text-[26px] px-[8px]">{candidate.signature || candidate.name}</p>
+                              ) : (
+                                <div className="h-[34px]" />
+                              )}
+                            </div>
+                            <p className="text-[15px] font-bold text-neutral-900">{candidate.name}</p>
+                            <p className="text-[12px] text-neutral-500 mt-[2px] uppercase tracking-wider font-semibold">Employee Signature</p>
+                          </div>
+                        </div>
+                        
+                        {/* Footer decorative */}
+                        <div className="absolute bottom-[25mm] left-[25mm] right-[25mm] border-t border-neutral-200 pt-[16px] flex justify-between items-center text-[10px] text-neutral-400 uppercase tracking-widest font-semibold">
+                          <span>{company.name} © {new Date().getFullYear()}</span>
+                          <span>Page 1 of 1</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
 

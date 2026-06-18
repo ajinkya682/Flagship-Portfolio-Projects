@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export interface IInterview extends Document {
+  companyId: mongoose.Types.ObjectId;
   application: mongoose.Types.ObjectId;
   candidate: mongoose.Types.ObjectId;
   job: mongoose.Types.ObjectId;
@@ -14,6 +15,7 @@ export interface IInterview extends Document {
 }
 
 const InterviewSchema: Schema = new Schema({
+  companyId: { type: Schema.Types.ObjectId, ref: 'Company', required: true },
   application: { type: Schema.Types.ObjectId, ref: 'Application', required: true },
   candidate: { type: Schema.Types.ObjectId, ref: 'Candidate', required: true },
   job: { type: Schema.Types.ObjectId, ref: 'Job', required: true },
