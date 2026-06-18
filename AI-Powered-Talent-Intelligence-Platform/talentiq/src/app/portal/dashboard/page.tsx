@@ -126,8 +126,6 @@ export default function CandidateDashboard() {
   }, [upcomingInterview]);
 
   const [realtimeMessages, setRealtimeMessages] = useState<any[]>([])
-  const [isConnected, setIsConnected] = useState(false)
-  const socketRef = useRef<Socket | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -145,36 +143,23 @@ export default function CandidateDashboard() {
     if (!portalData) return
     const candidateId = portalData.candidate.id
 
-    fetch(`/api/messages?candidateId=${candidateId}`)
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) setRealtimeMessages(data)
-      })
-      .catch(console.error)
-
-    /*
-    fetch('/api/socket/init').finally(() => {
-      const socket = io({ path: '/api/socket/io' })
-      socketRef.current = socket
-
-      socket.on('connect', () => {
-        setIsConnected(true)
-        socket.emit('join_room', candidateId)
-      })
-
-      socket.on('receive_message', (message: any) => {
-        setRealtimeMessages(prev => [...prev, message])
-      })
-
-      socket.on('disconnect', () => {
-        setIsConnected(false)
-      })
-    })
-
-    return () => {
-      if (socketRef.current) socketRef.current.disconnect()
+    const fetchMessages = () => {
+      fetch(`/api/messages?candidateId=${candidateId}`)
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data)) {
+            setRealtimeMessages(prev => {
+              if (prev.length !== data.length) return data
+              return prev
+            })
+          }
+        })
+        .catch(console.error)
     }
-    */
+
+    fetchMessages()
+    const interval = setInterval(fetchMessages, 5000)
+    return () => clearInterval(interval)
   }, [portalData?.candidate?.id])
 
   useEffect(() => {
@@ -1236,11 +1221,6 @@ export default function CandidateDashboard() {
               {activeTab === 'messages' && (
 
                 <div className="flex flex-col h-[500px] relative">
-                  {!isConnected && (
-                    <div className="absolute top-2 left-1/2 -translate-x-1/2 z-10 bg-neutral-800 text-white text-[11px] px-3 py-1 rounded-full opacity-70">
-                      Connecting to chat...
-                    </div>
-                  )}
                   <div className="flex-1 overflow-y-auto p-[24px] flex flex-col gap-[14px]">
                     {realtimeMessages.length === 0 ? (
                       <div className="flex-1 flex flex-col items-center justify-center text-center h-full">
@@ -1277,12 +1257,12 @@ export default function CandidateDashboard() {
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
                         placeholder="Type a message..."
-                        disabled={candidate.isBlocked || !isConnected}
+                        disabled={candidate.isBlocked}
                         className="flex-1 h-[42px] px-[16px] rounded-full border border-neutral-200 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 bg-white text-[14px] disabled:opacity-50"
                       />
                       <button
                         type="submit"
-                        disabled={!newMessage.trim() || !isConnected || candidate.isBlocked}
+                        disabled={!newMessage.trim() || candidate.isBlocked}
                         className="w-[42px] h-[42px] rounded-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center transition-colors disabled:opacity-40 shrink-0"
                       >
                         <Send size={16} className="ml-[1px]" />

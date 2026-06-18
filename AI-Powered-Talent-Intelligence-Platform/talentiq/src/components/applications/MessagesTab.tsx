@@ -20,57 +20,29 @@ interface Message {
 export default function MessagesTab({ application }: MessagesTabProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState('')
-  const [isConnected, setIsConnected] = useState(false)
-  const socketRef = useRef<Socket | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const candidateId = application.candidate.id
 
   useEffect(() => {
-    // 1. Fetch initial message history
     const fetchMessages = async () => {
       try {
         const res = await fetch(`/api/messages?candidateId=${candidateId}`)
         if (res.ok) {
           const data = await res.json()
-          setMessages(data)
+          setMessages(prev => {
+            if (prev.length !== data.length) return data
+            return prev
+          })
         }
       } catch (error) {
         console.error('Failed to fetch messages:', error)
       }
     }
     fetchMessages()
+    const interval = setInterval(fetchMessages, 5000)
 
-    /*
-    // 2. Initialize socket connection
-    fetch('/api/socket/init').finally(() => {
-      const socket = io({
-        path: '/api/socket/io',
-      })
-
-      socketRef.current = socket
-
-      socket.on('connect', () => {
-        setIsConnected(true)
-        // Join the candidate's specific room
-        socket.emit('join_room', candidateId)
-      })
-
-      socket.on('receive_message', (message: Message) => {
-        setMessages((prev) => [...prev, message])
-      })
-
-      socket.on('disconnect', () => {
-        setIsConnected(false)
-      })
-    })
-
-    return () => {
-      if (socketRef.current) {
-        socketRef.current.disconnect()
-      }
-    }
-    */
+    return () => clearInterval(interval)
   }, [candidateId])
 
   // Scroll to bottom when messages change
@@ -107,11 +79,6 @@ export default function MessagesTab({ application }: MessagesTabProps) {
 
   return (
     <div className="flex flex-col h-[600px] border-t border-neutral-100 relative">
-      {!isConnected && (
-        <div className="absolute top-2 left-1/2 -translate-x-1/2 z-10 bg-neutral-800 text-white text-[11px] px-3 py-1 rounded-full opacity-70">
-          Connecting to chat...
-        </div>
-      )}
       
       <div className="flex-1 overflow-y-auto p-[24px] flex flex-col gap-[16px] bg-neutral-50/50">
         {messages.length === 0 ? (
@@ -159,7 +126,7 @@ export default function MessagesTab({ application }: MessagesTabProps) {
           />
           <button
             type="submit"
-            disabled={!newMessage.trim() || !isConnected}
+            disabled={!newMessage.trim()}
             className="w-[44px] h-[44px] rounded-full bg-primary-600 hover:bg-primary-700 text-white flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
           >
             <Send size={18} className="ml-[2px]" />
