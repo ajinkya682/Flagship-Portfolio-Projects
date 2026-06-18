@@ -27,7 +27,7 @@ export async function PATCH(req: NextRequest) {
 
     await Notification.updateMany({ 
       companyId: decoded.companyId,
-      recipientUserId: decoded.userId 
+      recipientUserId: { $in: [decoded.userId, 'all'] }
     }, { isRead: true });
     return NextResponse.json({ success: true });
   } catch (error) {

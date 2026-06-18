@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
-import { X, CheckCircle2 } from 'lucide-react'
+import { X, CheckCircle2, UploadCloud, Loader2 } from 'lucide-react'
 import { useDomainStore } from '@/store/domain.store'
 import { useJobsStore } from '@/store/jobs.store'
 import { useCandidatesStore } from '@/store/candidates.store'
@@ -24,6 +24,10 @@ export default function AddCandidateModal({ isOpen, onClose, initialJobId, initi
   const [stage, setStage] = useState('Applied')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
+  
+  const [resumeUrl, setResumeUrl] = useState<string | null>(null)
+  const [isUploadingResume, setIsUploadingResume] = useState(false)
+  const resumeInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (isOpen) {
@@ -32,13 +36,56 @@ export default function AddCandidateModal({ isOpen, onClose, initialJobId, initi
     }
   }, [isOpen, initialJobId, initialStage])
 
-  const handleSubmit = () => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Resume must be less than 5MB.")
+      return
+    }
+
+    setIsUploadingResume(true)
+    const formData = new FormData()
+    formData.append('file', file)
+
+    try {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      })
+      if (!res.ok) throw new Error('Upload failed')
+      const data = await res.json()
+      setResumeUrl(data.url)
+    } catch (err) {
+      console.error(err)
+      alert("Failed to upload file")
+    } finally {
+      setIsUploadingResume(false)
+    }
+  }
+
+  const handleSubmit = async () => {
     if (!name || !email || !jobId) return
     setIsSubmitting(true)
     
-    setTimeout(() => {
+    try {
       const selectedJob = jobs.find(j => j.id === jobId)
+      let aiResult: any = {}
+
+      if (resumeUrl && selectedJob) {
+        const scoreRes = await fetch('/api/candidates/score', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ resumeUrl, job: selectedJob })
+        })
+        if (scoreRes.ok) {
+          aiResult = await scoreRes.json()
+        }
+      }
       
+      const score = aiResult.aiScore || Math.floor(Math.random() * 40) + 60
+
       addCandidate({
         id: `c_${Math.random().toString(36).substring(2, 10)}`,
         name: name,
@@ -48,22 +95,32 @@ export default function AddCandidateModal({ isOpen, onClose, initialJobId, initi
         jobId: jobId,
         stage: stage,
         source: 'Manually Added',
-        aiScore: Math.floor(Math.random() * 40) + 60, // random score 60-100
+        aiScore: score,
         daysInStage: 0,
         appliedAt: new Date().toISOString(),
         notes: [],
         timeline: [{ event: 'Manually Added', date: 'Just now', type: 'applied' }],
         avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`,
-        hasPortalAccess: false
+        hasPortalAccess: false,
+        resumeUrl: resumeUrl || undefined,
+        extractedSkills: aiResult.extractedSkills || [],
+        extractedEducation: aiResult.extractedEducation || [],
+        extractedCompanies: aiResult.extractedCompanies || [],
+        strengths: aiResult.strengths || [],
+        gaps: aiResult.gaps || [],
       })
       
-      setIsSubmitting(false)
       setIsSuccess(true)
       
       setTimeout(() => {
         handleClose()
       }, 1500)
-    }, 800)
+    } catch (err) {
+      console.error(err)
+      alert("Failed to add candidate")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const handleClose = () => {
@@ -73,6 +130,7 @@ export default function AddCandidateModal({ isOpen, onClose, initialJobId, initi
       setEmail('')
       setJobId('')
       setStage('Applied')
+      setResumeUrl(null)
       setIsSuccess(false)
       setIsSubmitting(false)
     }, 300)
@@ -131,6 +189,34 @@ export default function AddCandidateModal({ isOpen, onClose, initialJobId, initi
             </div>
             
             <div className="flex flex-col gap-[6px]">
+              <label className="text-[13px] font-semibold text-neutral-700">Resume / CV (Optional)</label>
+              <div 
+                onClick={() => resumeInputRef.current?.click()}
+                className={`w-full border-2 border-dashed border-neutral-200 hover:border-blue-500 hover:bg-blue-50/50 rounded-xl p-[16px] flex flex-col items-center justify-center cursor-pointer transition-colors ${resumeUrl ? 'bg-blue-50/50 border-blue-500' : ''} ${isSubmitting || isSuccess ? 'opacity-50 pointer-events-none' : ''}`}
+              >
+                <input 
+                  type="file" 
+                  accept=".pdf,.doc,.docx" 
+                  className="hidden" 
+                  ref={resumeInputRef}
+                  onChange={handleFileUpload}
+                  disabled={isSubmitting || isSuccess || isUploadingResume}
+                />
+                {isUploadingResume ? (
+                  <Loader2 className="w-[20px] h-[20px] text-blue-600 mb-[8px] animate-spin" />
+                ) : resumeUrl ? (
+                  <CheckCircle2 className="w-[20px] h-[20px] text-emerald-500 mb-[8px]" />
+                ) : (
+                  <UploadCloud className="w-[20px] h-[20px] text-blue-600 mb-[8px]" />
+                )}
+                
+                <p className="font-body text-[13px] font-semibold text-neutral-900">
+                  {isUploadingResume ? 'Uploading...' : resumeUrl ? 'Resume Uploaded' : 'Upload Resume / CV'}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-[6px]">
               <label className="text-[13px] font-semibold text-neutral-700">Select Job <span className="text-red-500">*</span></label>
               <select 
                 value={jobId}
@@ -177,7 +263,10 @@ export default function AddCandidateModal({ isOpen, onClose, initialJobId, initi
               className="px-[24px] py-[8px] text-[14px] font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors shadow-sm w-full sm:w-auto disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center min-w-[140px]"
             >
               {isSubmitting ? (
-                <div className="w-[18px] h-[18px] border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <div className="flex items-center gap-[6px]">
+                  <Loader2 className="w-[18px] h-[18px] animate-spin" />
+                  <span>Processing...</span>
+                </div>
               ) : (
                 'Add Candidate'
               )}
