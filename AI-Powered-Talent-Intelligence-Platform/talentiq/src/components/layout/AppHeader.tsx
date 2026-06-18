@@ -80,8 +80,8 @@ export default function AppHeader() {
 
   useEffect(() => {
     fetchNotifications()
-    // Poll every 30 seconds as fallback
-    pollRef.current = setInterval(fetchNotifications, 30000)
+    // Poll every 5 seconds for real-time feel
+    pollRef.current = setInterval(fetchNotifications, 5000)
 
     /*
     let socket: Socket | null = null;

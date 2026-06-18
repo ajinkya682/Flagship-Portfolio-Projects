@@ -47,6 +47,7 @@ export async function PATCH(
         const { Notification } = await import('@/core/database/models/Notification');
         await Notification.create({
           recipientUserId: 'all',
+          companyId: application.companyId,
           type: 'hire_accepted',
           title: 'Hire Letter Signed!',
           message: `${candidate?.name || 'A candidate'} has signed the hire letter for ${hireLetter.role}.`,
@@ -73,6 +74,7 @@ export async function PATCH(
         const { Notification } = await import('@/core/database/models/Notification');
         await Notification.create({
           recipientUserId: 'all',
+          companyId: application.companyId,
           type: 'hire_declined',
           title: 'Hire Letter Declined',
           message: `${candidate?.name || 'A candidate'} declined the hire letter for ${hireLetter.role}.`,

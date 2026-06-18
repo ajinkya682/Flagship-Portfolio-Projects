@@ -68,6 +68,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
         const { Notification } = await import('@/core/database/models/Notification');
         await Notification.create({
           recipientUserId: 'all',
+          companyId: application.companyId,
           type: 'offer_accepted',
           title: 'Offer Accepted!',
           message: `${candidate?.name || 'A candidate'} has accepted the offer for ${job?.title || 'the job'}.`,
@@ -87,6 +88,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
         const { Notification } = await import('@/core/database/models/Notification');
         await Notification.create({
           recipientUserId: 'all',
+          companyId: application.companyId,
           type: 'offer_declined',
           title: 'Offer Declined',
           message: `${candidate?.name || 'A candidate'} has declined the offer.`,

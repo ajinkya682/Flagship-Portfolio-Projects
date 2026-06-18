@@ -49,6 +49,7 @@ export async function PATCH(
       const { Notification } = await import('@/core/database/models/Notification');
       await Notification.create({
         recipientUserId: 'all',
+        companyId: application.companyId,
         type: 'assignment_submitted',
         title: 'Assignment Submitted',
         message: `${candidate?.name || 'A candidate'} has submitted their assignment.`,

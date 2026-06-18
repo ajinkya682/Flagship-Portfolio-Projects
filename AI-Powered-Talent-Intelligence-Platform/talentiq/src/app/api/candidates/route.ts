@@ -82,6 +82,19 @@ export async function POST(req: Request) {
     job.applicantCount = (job.applicantCount || 0) + 1;
     await job.save();
 
+    // 4. Create Notification for Recruiter
+    const { Notification } = await import('@/core/database/models/Notification');
+    await Notification.create({
+      recipientUserId: 'all',
+      companyId: job.company,
+      type: 'new_application',
+      title: 'New Application Received',
+      message: `${newCandidate.name} applied for ${job.title}.`,
+      candidateId: newCandidate._id,
+      applicationId: application._id,
+      linkHref: `/pipeline`,
+    });
+
     // Format for frontend response
     const formattedCandidate = {
       id: newCandidate._id.toString(),

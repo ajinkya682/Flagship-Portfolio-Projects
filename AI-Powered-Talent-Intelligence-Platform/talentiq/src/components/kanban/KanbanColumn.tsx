@@ -15,13 +15,20 @@ interface KanbanColumnProps {
   }
   applications: Application[]
   onOpenPanel: (app: Application) => void
-  isOver?: boolean
-  onAddCandidate?: (stage: string) => void
+  onMoveStage?: (app: Application, stageName: string) => void
+  isOver: boolean
+  onAddCandidate?: (stageName: string) => void
   isFilteredOut?: boolean
   isHighlighted?: boolean
 }
 
-export default function KanbanColumn({ stage, applications, onOpenPanel, isOver = false, onAddCandidate, isFilteredOut = false, isHighlighted = false }: KanbanColumnProps) {
+export default function KanbanColumn({ 
+  stage, 
+  applications, 
+  onOpenPanel, 
+  onMoveStage,
+  isOver, 
+  onAddCandidate, isFilteredOut = false, isHighlighted = false }: KanbanColumnProps) {
   const [isBouncing, setIsBouncing] = useState(false)
   const count = applications.length
 
@@ -85,6 +92,7 @@ export default function KanbanColumn({ stage, applications, onOpenPanel, isOver 
               key={app.id} 
               application={app} 
               onOpenPanel={onOpenPanel} 
+              onMoveStage={onMoveStage}
             />
           ))}
         </SortableContext>

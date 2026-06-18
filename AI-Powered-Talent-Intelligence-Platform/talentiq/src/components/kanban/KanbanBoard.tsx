@@ -147,6 +147,58 @@ export default function KanbanBoard({ applications: initialApplications, jobId, 
     }
   }
 
+  const handleMoveStage = (app: Application, destinationStageName: string) => {
+    if (!STAGES.some(s => s.name === destinationStageName)) return
+    if (app.stage === destinationStageName) return
+
+    setAnnouncement(`${app.candidate.name} moved from ${app.stage} to ${destinationStageName} stage.`)
+
+    if (destinationStageName === 'Offer') {
+      setOfferApplication(app)
+      return
+    }
+
+    if (destinationStageName === 'Assessment') {
+      setAssignmentApplication(app)
+      return
+    }
+
+    if (destinationStageName === 'Hired') {
+      setHireApplication(app)
+      return
+    }
+
+    // Optimistic update
+    setApplications(prev => prev.map(a => {
+      if (a.id === app.id) {
+        return { ...a, stage: destinationStageName }
+      }
+      return a
+    }))
+
+    if (onStageChange) {
+      onStageChange(app.id, destinationStageName)
+    }
+
+    if (destinationStageName === 'Hired') {
+      setTimeout(() => {
+        const cardEl = document.getElementById(`kanban-card-${app.id}`)
+        if (cardEl) {
+          cardEl.classList.add('animate-pulse-accent')
+          setTimeout(() => cardEl.classList.remove('animate-pulse-accent'), 600)
+          
+          const rect = cardEl.getBoundingClientRect()
+          const x = (rect.left + rect.width / 2) / window.innerWidth
+          const y = (rect.top + rect.height / 2) / window.innerHeight
+          
+          import('@/lib/confetti').then(({ fireMiniConfetti }) => {
+            fireMiniConfetti({ x, y })
+          })
+        }
+      }, 50)
+    }
+  }
+
   const handleOpenPanel = (app: Application) => {
     setSelectedApplication(app)
   }
@@ -172,6 +224,7 @@ export default function KanbanBoard({ applications: initialApplications, jobId, 
                 stage={stage}
                 applications={columnApps}
                 onOpenPanel={handleOpenPanel}
+                onMoveStage={handleMoveStage}
                 isOver={activeColumn === stage.name}
                 onAddCandidate={onAddCandidate}
                 isFilteredOut={filteredStages.length > 0 && !filteredStages.includes(stage.name)}

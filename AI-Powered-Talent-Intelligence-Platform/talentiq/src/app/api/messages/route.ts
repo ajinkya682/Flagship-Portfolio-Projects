@@ -80,6 +80,19 @@ export async function POST(req: Request) {
       time: time || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     });
 
+    if (senderId === 'candidate') {
+      const { Notification } = await import('@/core/database/models/Notification');
+      await Notification.create({
+        recipientUserId: 'all',
+        companyId: candidate.companyId,
+        type: 'candidate_message',
+        title: 'New Message from Candidate',
+        message: `${candidate.name} sent you a message.`,
+        candidateId: candidate._id,
+        linkHref: `/applications/${candidateId}`,
+      });
+    }
+
     return NextResponse.json({
       id: message._id.toString(),
       candidateId: message.candidateId,
