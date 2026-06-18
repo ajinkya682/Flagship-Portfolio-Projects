@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   DndContext,
   closestCorners,
@@ -24,6 +24,9 @@ import HireLetterModal from '@/components/pipeline/HireLetterModal'
 interface KanbanBoardProps {
   applications: Application[]
   jobId: string
+  onStageChange?: (applicationId: string, newStage: string) => void
+  onAddCandidate?: (stageName: string) => void
+  filteredStages?: string[]
 }
 
 const STAGES = [
@@ -35,7 +38,7 @@ const STAGES = [
   { name: 'Hired', color: '#059669' },
 ]
 
-export default function KanbanBoard({ applications: initialApplications, jobId }: KanbanBoardProps) {
+export default function KanbanBoard({ applications: initialApplications, jobId, onStageChange, onAddCandidate, filteredStages = [] }: KanbanBoardProps) {
   const [applications, setApplications] = useState<Application[]>(initialApplications)
   const [activeId, setActiveId] = useState<string | null>(null)
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null)
@@ -44,6 +47,10 @@ export default function KanbanBoard({ applications: initialApplications, jobId }
   const [offerApplication, setOfferApplication] = useState<Application | null>(null)
   const [assignmentApplication, setAssignmentApplication] = useState<Application | null>(null)
   const [hireApplication, setHireApplication] = useState<Application | null>(null)
+
+  useEffect(() => {
+    setApplications(initialApplications)
+  }, [initialApplications])
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -117,6 +124,10 @@ export default function KanbanBoard({ applications: initialApplications, jobId }
       return app
     }))
 
+    if (onStageChange) {
+      onStageChange(activeAppId, destinationStageName)
+    }
+
     if (destinationStageName === 'Hired') {
       setTimeout(() => {
         const cardEl = document.getElementById(`kanban-card-${activeAppId}`)
@@ -162,6 +173,9 @@ export default function KanbanBoard({ applications: initialApplications, jobId }
                 applications={columnApps}
                 onOpenPanel={handleOpenPanel}
                 isOver={activeColumn === stage.name}
+                onAddCandidate={onAddCandidate}
+                isFilteredOut={filteredStages.length > 0 && !filteredStages.includes(stage.name)}
+                isHighlighted={filteredStages.length > 0 && filteredStages.includes(stage.name)}
               />
             )
           })}
@@ -190,6 +204,9 @@ export default function KanbanBoard({ applications: initialApplications, jobId }
               }
               return app
             }))
+            if (onStageChange) {
+              onStageChange(offerApplication.id, 'Offer')
+            }
             setOfferApplication(null)
           }}
         />
@@ -208,6 +225,9 @@ export default function KanbanBoard({ applications: initialApplications, jobId }
               }
               return app
             }))
+            if (onStageChange) {
+              onStageChange(assignmentApplication.id, 'Assessment')
+            }
             setAssignmentApplication(null)
           }}
         />
@@ -226,6 +246,9 @@ export default function KanbanBoard({ applications: initialApplications, jobId }
               }
               return app
             }))
+            if (onStageChange) {
+              onStageChange(hireApplication.id, 'Hired')
+            }
             setHireApplication(null)
           }}
         />

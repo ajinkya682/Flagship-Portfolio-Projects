@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
-import { MoreHorizontal, Plus } from 'lucide-react'
+import { MoreHorizontal, Plus, UserPlus } from 'lucide-react'
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { Application } from '@/types/domain.types'
 import KanbanCard from './KanbanCard'
 
@@ -15,9 +16,12 @@ interface KanbanColumnProps {
   applications: Application[]
   onOpenPanel: (app: Application) => void
   isOver?: boolean
+  onAddCandidate?: (stage: string) => void
+  isFilteredOut?: boolean
+  isHighlighted?: boolean
 }
 
-export default function KanbanColumn({ stage, applications, onOpenPanel, isOver = false }: KanbanColumnProps) {
+export default function KanbanColumn({ stage, applications, onOpenPanel, isOver = false, onAddCandidate, isFilteredOut = false, isHighlighted = false }: KanbanColumnProps) {
   const [isBouncing, setIsBouncing] = useState(false)
   const count = applications.length
 
@@ -33,7 +37,7 @@ export default function KanbanColumn({ stage, applications, onOpenPanel, isOver 
 
   return (
     <div 
-      className="w-[280px] shrink-0 flex flex-col h-full rounded-md overflow-hidden"
+      className={`w-[280px] shrink-0 flex flex-col h-full rounded-md overflow-hidden transition-all duration-200 ${isFilteredOut ? 'opacity-40 grayscale-[0.5]' : ''} ${isHighlighted ? 'ring-2 ring-primary-400 shadow-md' : ''}`}
       aria-label={`${stage.name} - ${count} candidates`}
     >
       
@@ -49,9 +53,23 @@ export default function KanbanColumn({ stage, applications, onOpenPanel, isOver 
         <div className={`bg-neutral-100 text-neutral-700 text-[10px] font-bold px-[8px] py-[2px] rounded-full ml-auto ${isBouncing ? 'animate-spring-in' : ''}`}>
           {count}
         </div>
-        <button className="text-neutral-400 hover:text-neutral-600 transition-colors cursor-pointer" aria-label="Column options">
-          <MoreHorizontal size={16} />
-        </button>
+        <DropdownMenu.Root>
+          <DropdownMenu.Trigger asChild>
+            <button className="text-neutral-400 hover:text-neutral-600 transition-colors cursor-pointer outline-none focus:ring-2 focus:ring-blue-100 rounded-sm" aria-label="Column options">
+              <MoreHorizontal size={16} />
+            </button>
+          </DropdownMenu.Trigger>
+          <DropdownMenu.Portal>
+            <DropdownMenu.Content align="end" sideOffset={5} className="z-50 min-w-[160px] bg-white rounded-lg shadow-lg border border-neutral-100 p-1 font-body animate-in fade-in slide-in-from-top-2">
+              <DropdownMenu.Item 
+                className="flex items-center gap-2 px-3 py-2 text-[13px] font-medium text-neutral-600 rounded-md hover:bg-neutral-50 hover:text-neutral-900 cursor-pointer focus:bg-neutral-50 focus:outline-none"
+                onClick={() => onAddCandidate?.(stage.name)}
+              >
+                <UserPlus size={14} className="text-blue-500" /> Add Candidate
+              </DropdownMenu.Item>
+            </DropdownMenu.Content>
+          </DropdownMenu.Portal>
+        </DropdownMenu.Root>
       </div>
 
       {/* Body */}
@@ -73,14 +91,20 @@ export default function KanbanColumn({ stage, applications, onOpenPanel, isOver 
 
         {applications.length === 0 && (
           <div className="h-[80px] border-2 border-dashed border-neutral-200 rounded-md flex items-center justify-center">
-            <button className="flex items-center gap-[4px] text-neutral-400 hover:text-neutral-500 font-body text-[12px] font-medium transition-colors">
+            <button 
+              onClick={() => onAddCandidate?.(stage.name)}
+              className="flex items-center gap-[4px] text-neutral-400 hover:text-neutral-500 font-body text-[12px] font-medium transition-colors"
+            >
               <Plus size={14} /> Add Candidate
             </button>
           </div>
         )}
 
         <div className="mt-auto pt-[8px] pb-[4px]">
-          <button className="w-full flex items-center justify-center gap-[4px] text-neutral-400 hover:text-neutral-600 font-body text-[12px] font-medium transition-colors py-[8px] hover:bg-neutral-200/50 rounded-md">
+          <button 
+            onClick={() => onAddCandidate?.(stage.name)}
+            className="w-full flex items-center justify-center gap-[4px] text-neutral-400 hover:text-neutral-600 font-body text-[12px] font-medium transition-colors py-[8px] hover:bg-neutral-200/50 rounded-md"
+          >
             <Plus size={14} /> Add Candidate
           </button>
         </div>

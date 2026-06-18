@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import {
   Search, Filter, Plus, MoreHorizontal, Sparkles,
-  Clock, GitMerge, ChevronDown, CheckCircle2, ArrowLeft, XCircle
+  Clock, GitMerge, ChevronDown, CheckCircle2, ArrowLeft, XCircle, UserPlus
 } from 'lucide-react'
 import Link from 'next/link'
 import {
@@ -159,7 +159,7 @@ function DraggableCandidate({ candidate, onMoveStage }: { candidate: any, onMove
   )
 }
 
-function DroppableColumn({ stage, children, count }: { stage: any, children: React.ReactNode, count: number }) {
+function DroppableColumn({ stage, children, count, onAddCandidate }: { stage: any, children: React.ReactNode, count: number, onAddCandidate?: (stage: string) => void }) {
   const { setNodeRef, isOver } = useDroppable({
     id: stage.name,
   })
@@ -170,9 +170,26 @@ function DroppableColumn({ stage, children, count }: { stage: any, children: Rea
       <div className="px-[16px] py-[14px] bg-neutral-50 border-b border-neutral-200/60" style={{ borderTop: `4px solid ${stage.color}` }}>
         <div className="flex items-center justify-between mb-[4px]">
           <h3 className="font-display text-[14px] font-bold text-neutral-900">{stage.name}</h3>
-          <span className="bg-white border border-neutral-200 text-neutral-600 text-[11px] font-bold px-[8px] py-[2px] rounded-full shadow-sm">
-            {count}
-          </span>
+          <div className="flex items-center gap-[8px]">
+            <span className="bg-white border border-neutral-200 text-neutral-600 text-[11px] font-bold px-[8px] py-[2px] rounded-full shadow-sm">
+              {count}
+            </span>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="text-neutral-400 hover:text-neutral-600 transition-colors cursor-pointer outline-none focus:ring-2 focus:ring-blue-100 rounded-sm">
+                  <MoreHorizontal size={16} />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" sideOffset={5} className="z-50 min-w-[160px] bg-white rounded-lg shadow-lg border border-neutral-100 p-1 font-body animate-in fade-in slide-in-from-top-2">
+                <DropdownMenuItem 
+                  className="flex items-center gap-2 px-3 py-2 text-[13px] font-medium text-neutral-600 rounded-md hover:bg-neutral-50 hover:text-neutral-900 cursor-pointer focus:bg-neutral-50 focus:outline-none"
+                  onClick={() => onAddCandidate?.(stage.name)}
+                >
+                  <UserPlus size={14} className="text-blue-500" /> Add Candidate
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </div>
 
@@ -203,8 +220,21 @@ export default function PipelinePage() {
   const [assignmentCandidate, setAssignmentCandidate] = useState<any>(null)
   const [hireCandidate, setHireCandidate] = useState<any>(null)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [addModalStage, setAddModalStage] = useState('Applied')
+  const [addModalJobId, setAddModalJobId] = useState('')
   
   const JOBS = ['All Jobs', ...Array.from(new Set(jobs.map(j => j.title)))]
+
+  const handleAddCandidate = (stageName: string) => {
+    setAddModalStage(stageName)
+    if (jobFilter !== 'All Jobs') {
+      const selectedJob = jobs.find(j => j.title === jobFilter)
+      setAddModalJobId(selectedJob ? selectedJob.id : '')
+    } else {
+      setAddModalJobId('')
+    }
+    setIsAddModalOpen(true)
+  }
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -331,7 +361,7 @@ export default function PipelinePage() {
                 })
 
                 return (
-                  <DroppableColumn key={stage.id} stage={stage} count={visibleCandidates.length}>
+                  <DroppableColumn key={stage.id} stage={stage} count={visibleCandidates.length} onAddCandidate={handleAddCandidate}>
                     {visibleCandidates.map(c => (
                       <DraggableCandidate key={c.id} candidate={c} onMoveStage={handleStageChange} />
                     ))}
@@ -349,7 +379,12 @@ export default function PipelinePage() {
         )}
       </div>
 
-      <AddCandidateModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} />
+      <AddCandidateModal 
+        isOpen={isAddModalOpen} 
+        onClose={() => setIsAddModalOpen(false)} 
+        initialJobId={addModalJobId}
+        initialStage={addModalStage}
+      />
       
       <InterviewBookingModal 
         isOpen={!!bookingCandidate}

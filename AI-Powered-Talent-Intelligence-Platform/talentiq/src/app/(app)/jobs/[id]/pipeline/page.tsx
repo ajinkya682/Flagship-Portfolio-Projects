@@ -5,78 +5,22 @@ import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import JobStatusBadge from '@/components/jobs/JobStatusBadge'
 import FilterBar, { type FiltersState } from '@/components/kanban/FilterBar'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import dynamic from 'next/dynamic'
+import { useJobsStore } from '@/store/jobs.store'
+import { useCandidatesStore } from '@/store/candidates.store'
+import AddCandidateModal from '@/components/pipeline/AddCandidateModal'
 
 const KanbanBoard = dynamic(() => import('@/components/kanban/KanbanBoard'), { ssr: false })
-
-// Mock Applications Data
-const mockApplications: any[] = [
-  {
-    id: 'a1',
-    candidate: { name: 'Jennifer Park', email: 'jennifer@example.com' },
-    job: { title: 'Senior Software Engineer' },
-    currentStage: 'Screening',
-    source: 'linkedin',
-    aiScore: { score: 92, details: { technical: 95, experience: 90, education: 85, communication: 88 }, reasons: [], strengths: [], gaps: [] },
-    appliedAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 'a2',
-    candidate: { name: 'David Chen', email: 'david@example.com' },
-    job: { title: 'Senior Software Engineer' },
-    currentStage: 'Screening',
-    source: 'career-page',
-    aiScore: { score: 88, details: { technical: 85, experience: 90, education: 80, communication: 90 }, reasons: [], strengths: [], gaps: [] },
-    appliedAt: new Date().toISOString(),
-    updatedAt: new Date(Date.now() - 86400000 * 2).toISOString(),
-  },
-  {
-    id: 'a3',
-    candidate: { name: 'Sarah Kim', email: 'sarah@example.com' },
-    job: { title: 'Senior Software Engineer' },
-    currentStage: 'Screening',
-    source: 'referral',
-    aiScore: { score: 65, details: { technical: 60, experience: 70, education: 60, communication: 70 }, reasons: [], strengths: [], gaps: [] },
-    appliedAt: new Date().toISOString(),
-    updatedAt: new Date(Date.now() - 86400000 * 5).toISOString(),
-  },
-  {
-    id: 'a4',
-    candidate: { name: 'Marcus Rodriguez', email: 'marcus@example.com' },
-    job: { title: 'Senior Software Engineer' },
-    currentStage: 'Interview',
-    source: 'linkedin',
-    aiScore: { score: 95, details: { technical: 98, experience: 95, education: 90, communication: 92 }, reasons: [], strengths: [], gaps: [] },
-    appliedAt: new Date().toISOString(),
-    updatedAt: new Date(Date.now() - 86400000 * 3).toISOString(),
-  },
-  {
-    id: 'a5',
-    candidate: { name: 'Alex Torres', email: 'alex@example.com' },
-    job: { title: 'Senior Software Engineer' },
-    currentStage: 'Interview',
-    source: 'indeed',
-    aiScore: { score: 82, details: { technical: 80, experience: 85, education: 80, communication: 85 }, reasons: [], strengths: [], gaps: [] },
-    appliedAt: new Date().toISOString(),
-    updatedAt: new Date(Date.now() - 86400000 * 1).toISOString(),
-  },
-  {
-    id: 'a6',
-    candidate: { name: 'Michael Wong', email: 'michael@example.com' },
-    job: { title: 'Senior Software Engineer' },
-    currentStage: 'Offer',
-    source: 'referral',
-    aiScore: { score: 96, details: { technical: 98, experience: 95, education: 95, communication: 90 }, reasons: [], strengths: [], gaps: [] },
-    appliedAt: new Date().toISOString(),
-    updatedAt: new Date(Date.now() - 86400000 * 4).toISOString(),
-  }
-]
 
 export default function JobPipelinePage() {
   const params = useParams()
   const jobId = params?.id as string
+
+  const { jobs } = useJobsStore()
+  const { candidates, moveCandidateStage } = useCandidatesStore()
+
+  const job = jobs.find(j => j.id === jobId)
 
   const [filters, setFilters] = useState<FiltersState>({
     source: '',
@@ -85,29 +29,88 @@ export default function JobPipelinePage() {
     search: ''
   })
 
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [addModalStage, setAddModalStage] = useState('Applied')
+
+  const handleAddCandidate = (stageName: string) => {
+    setAddModalStage(stageName)
+    setIsAddModalOpen(true)
+  }
+
+  // Map store candidates to the Application format expected by KanbanBoard
+  const jobApplications = useMemo(() => {
+    if (!job) return []
+    return candidates
+      .filter(c => c.jobId === jobId)
+      // Apply filters
+      .filter(c => {
+        if (filters.source && c.source !== filters.source) return false
+        if (c.aiScore < filters.scoreRange[0] || c.aiScore > filters.scoreRange[1]) return false
+        if (filters.search && !c.name.toLowerCase().includes(filters.search.toLowerCase())) return false
+        return true
+      })
+      .map(c => ({
+        id: c.id,
+        jobId: c.jobId,
+        job: job,
+        candidate: c,
+        stage: c.stage,
+        aiScore: c.aiScore,
+        appliedAt: c.appliedAt,
+        source: c.source,
+        recruiterNotes: [],
+        tags: c.tags || [],
+        assignedTo: undefined,
+        daysInStage: c.daysInStage,
+        timeline: c.timeline
+      }))
+  }, [candidates, jobId, filters, job])
+
+  if (!job) {
+    return (
+      <div className="flex flex-col h-[calc(100vh-60px-32px)] items-center justify-center bg-white">
+        <p className="text-neutral-500">Job not found.</p>
+        <Link href="/jobs" className="mt-4 text-primary-600 hover:underline">Return to Jobs</Link>
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-col h-[calc(100vh-60px-32px)] -mx-[16px] md:-mx-[32px] -mt-[16px] md:-mt-[32px] bg-white">
       
       {/* Header Area */}
       <div className="px-[16px] md:px-[32px] py-[24px] border-b border-[#E5E7EB] shrink-0">
         <Link 
-          href="/jobs"
+          href={`/jobs/${jobId}`}
           className="flex items-center gap-[6px] text-[13px] font-medium text-neutral-500 hover:text-neutral-900 transition-colors mb-[12px] w-fit"
         >
-          <ArrowLeft size={14} /> Back to Jobs
+          <ArrowLeft size={14} /> Back to Job Details
         </Link>
         <div className="flex items-center gap-[16px]">
           <h1 className="font-display text-[24px] font-bold text-neutral-900 tracking-tight">
-            Senior Software Engineer
+            {job.title}
           </h1>
-          <JobStatusBadge status="active" />
+          <JobStatusBadge status={job.status as any} />
         </div>
       </div>
 
       <FilterBar filters={filters} onFiltersChange={setFilters} />
 
       {/* Kanban Board Area */}
-      <KanbanBoard applications={mockApplications} jobId={jobId} />
+      <KanbanBoard 
+        applications={jobApplications as any} 
+        jobId={jobId} 
+        onStageChange={(appId, newStage) => moveCandidateStage(appId, newStage)}
+        onAddCandidate={handleAddCandidate}
+        filteredStages={filters.stages}
+      />
+
+      <AddCandidateModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        initialJobId={jobId}
+        initialStage={addModalStage}
+      />
       
     </div>
   )

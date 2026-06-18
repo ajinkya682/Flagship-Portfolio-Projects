@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { X, CheckCircle2 } from 'lucide-react'
 import { useDomainStore } from '@/store/domain.store'
@@ -10,9 +10,11 @@ import { useCandidatesStore } from '@/store/candidates.store'
 interface AddCandidateModalProps {
   isOpen: boolean
   onClose: () => void
+  initialJobId?: string
+  initialStage?: string
 }
 
-export default function AddCandidateModal({ isOpen, onClose }: AddCandidateModalProps) {
+export default function AddCandidateModal({ isOpen, onClose, initialJobId, initialStage }: AddCandidateModalProps) {
   const { jobs } = useJobsStore()
   const { addCandidate } = useCandidatesStore()
   
@@ -22,6 +24,13 @@ export default function AddCandidateModal({ isOpen, onClose }: AddCandidateModal
   const [stage, setStage] = useState('Applied')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
+
+  useEffect(() => {
+    if (isOpen) {
+      if (initialJobId) setJobId(initialJobId)
+      if (initialStage) setStage(initialStage)
+    }
+  }, [isOpen, initialJobId, initialStage])
 
   const handleSubmit = () => {
     if (!name || !email || !jobId) return
