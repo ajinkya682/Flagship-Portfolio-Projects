@@ -111,6 +111,8 @@ export default function InterviewsPage() {
             else if (isYesterday(dateObj)) dateStr = 'Yesterday'
             
             const isMissed = i.status === 'scheduled' && now > endTime
+            const hoursSinceStart = (now.getTime() - dateObj.getTime()) / (1000 * 60 * 60)
+            const isExpired = isMissed && hoursSinceStart > 24
             // Allow joining 15 minutes before the start time
             const isJoinable = i.status === 'scheduled' && now >= new Date(dateObj.getTime() - 15 * 60000) && now <= endTime
 
@@ -128,9 +130,10 @@ export default function InterviewsPage() {
               scorecardStatus: i.scorecards && i.scorecards.length > 0 ? 'submitted' : 'pending',
               rating: null,
               isJoinable,
-              isMissed
+              isMissed,
+              isExpired
             }
-          })
+          }).filter((i: any) => !i.isExpired)
           setInterviews(mapped)
         }
       } catch (err) {
