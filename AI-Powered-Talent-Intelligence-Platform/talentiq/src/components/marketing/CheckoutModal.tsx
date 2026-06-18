@@ -5,6 +5,9 @@ import * as Dialog from '@radix-ui/react-dialog'
 import { X, CheckCircle2, CreditCard, ShieldCheck } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
+import { useAuthStore } from '@/store/auth.store'
+import api from '@/lib/api'
+
 interface CheckoutModalProps {
   isOpen: boolean
   onClose: () => void
@@ -15,23 +18,53 @@ interface CheckoutModalProps {
 
 export default function CheckoutModal({ isOpen, onClose, planName, price, billingPeriod }: CheckoutModalProps) {
   const router = useRouter()
+  const { user, setUser } = useAuthStore()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setIsSubmitting(true)
+    setError(null)
     
-    // Simulate payment processing
-    setTimeout(() => {
-      setIsSubmitting(false)
+    try {
+      if (!user?.company?.id) throw new Error('No company found')
+      
+      const newPlan = planName.toLowerCase() // 'enterprise' or 'growth'
+      
+      // Call our API to update billing
+      const res = await api.patch(`/companies/${user.company.id}`, {
+        billing: {
+          plan: newPlan,
+          billingCycle: billingPeriod,
+          status: 'active'
+        }
+      })
+      
+      // Update local state to immediately show new plan globally
+      setUser({
+        ...user,
+        company: {
+          ...user.company,
+          billing: {
+            plan: newPlan,
+            status: 'active'
+          }
+        }
+      })
+      
       setIsSuccess(true)
       
-      // Redirect to dashboard after success
       setTimeout(() => {
-        router.push('/dashboard')
+        setIsSubmitting(false)
+        setIsSuccess(false)
         onClose()
+        router.refresh()
       }, 2000)
-    }, 1500)
+    } catch (err: any) {
+      setError(err.message || 'Payment failed')
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -64,6 +97,12 @@ export default function CheckoutModal({ isOpen, onClose, planName, price, billin
                 <p className="font-body text-[14px] text-neutral-500 text-center mt-[8px] max-w-[250px]">
                   Welcome to the {planName} plan. Redirecting you to your dashboard...
                 </p>
+              </div>
+            )}
+
+            {error && (
+              <div className="bg-red-50 text-red-600 border border-red-100 p-3 rounded-lg text-sm font-medium">
+                {error}
               </div>
             )}
 

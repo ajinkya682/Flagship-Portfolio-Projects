@@ -70,9 +70,15 @@ export async function POST(req: Request) {
         role: user.role,
         avatar: user.avatar,
         companyId: companyIdStr,
-        companyName: (user.company as any).name || 'TalentIQ Demo',
-        companySlug: (user.company as any).slug || 'talentiq-demo',
-        companyLogo: (user.company as any).logo
+        company: {
+          id: companyIdStr,
+          name: (user.company as any)?.name || 'TalentIQ Demo',
+          slug: (user.company as any)?.slug || 'talentiq-demo',
+          logo: (user.company as any)?.logo || '',
+          ssoEnabled: (user.company as any)?.ssoEnabled || false,
+          billing: (user.company as any)?.billing || { plan: 'starter' },
+          pipelineStages: (user.company as any)?.pipelineStages || [],
+        }
       },
       accessToken,
       refreshToken

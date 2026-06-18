@@ -190,7 +190,9 @@ function SidebarContent({ isMobile = false }: { isMobile?: boolean }) {
                   </p>
                   <div className="flex items-center gap-[4px] mt-[2px]">
                     <Zap size={10} className="text-amber-500 fill-amber-500/20" />
-                    <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider">Growth Plan</span>
+                    <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider">
+                      {user?.company?.billing?.plan ? `${user.company.billing.plan} Plan` : 'Starter Plan'}
+                    </span>
                   </div>
                 </div>
                 <ChevronDown size={14} className="text-neutral-400 group-hover:text-neutral-600 shrink-0 transition-colors" />
@@ -204,7 +206,10 @@ function SidebarContent({ isMobile = false }: { isMobile?: boolean }) {
                 onClick={() => handlePlanSelect('Startup')}
                 className="flex items-center justify-between px-[8px] py-[8px] rounded-[6px] text-[13px] font-medium text-neutral-700 hover:bg-neutral-50 cursor-pointer outline-none"
               >
-                <span>Startup Plan</span>
+                <div className="flex items-center gap-[6px]">
+                  <span>Startup Plan</span>
+                  {user?.company?.billing?.plan === 'startup' && <span className="text-[9px] font-bold bg-amber-100 text-amber-700 px-[4px] py-[1px] rounded-full">CURRENT</span>}
+                </div>
                 <span className="text-[11px] text-neutral-400">$99/mo</span>
               </DropdownMenuItem>
               <DropdownMenuItem 
@@ -213,7 +218,7 @@ function SidebarContent({ isMobile = false }: { isMobile?: boolean }) {
               >
                 <div className="flex items-center gap-[6px]">
                   <span>Growth Plan</span>
-                  <span className="text-[9px] font-bold bg-amber-100 text-amber-700 px-[4px] py-[1px] rounded-full">CURRENT</span>
+                  {(user?.company?.billing?.plan === 'growth' || user?.company?.billing?.plan === 'pro' || !user?.company?.billing?.plan) && <span className="text-[9px] font-bold bg-amber-100 text-amber-700 px-[4px] py-[1px] rounded-full">CURRENT</span>}
                 </div>
                 <span className="text-[11px] text-neutral-400">$299/mo</span>
               </DropdownMenuItem>
@@ -221,7 +226,10 @@ function SidebarContent({ isMobile = false }: { isMobile?: boolean }) {
                 onClick={() => handlePlanSelect('Enterprise')}
                 className="flex items-center justify-between px-[8px] py-[8px] rounded-[6px] text-[13px] font-medium text-neutral-700 hover:bg-neutral-50 cursor-pointer outline-none"
               >
-                <span>Enterprise Plan</span>
+                <div className="flex items-center gap-[6px]">
+                  <span>Enterprise Plan</span>
+                  {user?.company?.billing?.plan === 'enterprise' && <span className="text-[9px] font-bold bg-amber-100 text-amber-700 px-[4px] py-[1px] rounded-full">CURRENT</span>}
+                </div>
                 <span className="text-[11px] text-neutral-400">$999/mo</span>
               </DropdownMenuItem>
               

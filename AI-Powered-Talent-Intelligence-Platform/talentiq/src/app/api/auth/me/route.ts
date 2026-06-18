@@ -42,9 +42,15 @@ export async function GET(req: Request) {
         role: user.role,
         avatar: user.avatar,
         companyId: companyIdStr,
-        companyName: company?.name || 'TalentIQ Demo',
-        companySlug: company?.slug || 'talentiq-demo',
-        companyLogo: company?.logo || ''
+        company: {
+          id: companyIdStr,
+          name: company?.name || 'TalentIQ Demo',
+          slug: company?.slug || 'talentiq-demo',
+          logo: company?.logo || '',
+          ssoEnabled: company?.ssoEnabled || false,
+          billing: company?.billing || { plan: 'starter' },
+          pipelineStages: company?.pipelineStages || [],
+        }
       }
     });
 

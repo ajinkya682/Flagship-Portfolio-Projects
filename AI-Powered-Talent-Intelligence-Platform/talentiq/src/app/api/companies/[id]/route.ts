@@ -21,7 +21,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     }
 
     const body = await req.json();
-    const { name, slug, logo, pipelineStages, ssoEnabled, apiKeys } = body;
+    const { name, slug, logo, pipelineStages, ssoEnabled, apiKeys, billing } = body;
 
     const updateData: any = {};
     if (name !== undefined) updateData.name = name;
@@ -29,6 +29,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     if (logo !== undefined) updateData.logo = logo;
     if (pipelineStages !== undefined) updateData.pipelineStages = pipelineStages;
     if (ssoEnabled !== undefined) updateData.ssoEnabled = ssoEnabled;
+    if (billing !== undefined) updateData.billing = billing;
     if (apiKeys !== undefined) {
       updateData.apiKeys = apiKeys;
     }

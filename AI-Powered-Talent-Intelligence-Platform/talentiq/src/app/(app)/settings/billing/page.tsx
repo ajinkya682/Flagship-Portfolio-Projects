@@ -30,7 +30,10 @@ const MOCK_INVOICES = [
   },
 ];
 
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+
 export default function BillingPage() {
+  const { user } = useCurrentUser();
   const [isUpgradeOpen, setIsUpgradeOpen] = useState(false);
 
   return (
@@ -75,9 +78,10 @@ export default function BillingPage() {
             price="$99"
             renewalDate="N/A"
             features={["3 Active Jobs", "100 AI Screenings", "Basic Analytics"]}
+            isCurrent={user?.company?.billing?.plan === 'starter' || !user?.company?.billing?.plan}
           />
           <PlanCard
-            name="Pro"
+            name="Growth"
             price="$199"
             renewalDate="Nov 1, 2023"
             features={[
@@ -86,7 +90,7 @@ export default function BillingPage() {
               "Advanced Analytics",
               "Custom Pipelines",
             ]}
-            isCurrent={true}
+            isCurrent={user?.company?.billing?.plan === 'growth' || user?.company?.billing?.plan === 'pro'}
           />
           <PlanCard
             name="Enterprise"
@@ -98,6 +102,7 @@ export default function BillingPage() {
               "SSO / SAML",
               "Dedicated Support",
             ]}
+            isCurrent={user?.company?.billing?.plan === 'enterprise'}
           />
         </div>
 

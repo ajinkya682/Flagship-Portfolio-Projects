@@ -256,8 +256,8 @@ export default function AppHeader() {
               <div className="px-[12px] py-[10px] mb-[4px]">
                 <p className="text-[13px] font-semibold text-neutral-900">{user?.name || 'Sarah Recruiter'}</p>
                 <p className="text-[11px] text-neutral-500 mt-[1px]">{user?.email || 'sarah@acme.com'}</p>
-                <span className="inline-flex items-center gap-[4px] mt-[6px] text-[10px] font-semibold text-amber-600 bg-amber-50 border border-amber-200/60 rounded-full px-[6px] py-[2px]">
-                  Growth Plan
+                <span className="inline-flex items-center gap-[4px] mt-[6px] text-[10px] font-semibold text-amber-600 bg-amber-50 border border-amber-200/60 rounded-full px-[6px] py-[2px] capitalize">
+                  {user?.company?.billing?.plan || 'starter'} Plan
                 </span>
               </div>
               <DropdownMenuSeparator className="bg-neutral-100 h-[1px] m-0" />
