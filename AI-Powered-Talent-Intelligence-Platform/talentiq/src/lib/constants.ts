@@ -1,8 +1,8 @@
 import type { Stage } from '@/types/domain.types'
 
 export const STAGES: Stage[] = [
+  { name: 'Applied', color: '#94A3B8' },
   { name: 'Screening', color: '#2563EB' },
-  { name: 'Phone Screen', color: '#3B82F6' },
   { name: 'Interview', color: '#F59E0B' },
   { name: 'Assessment', color: '#8B5CF6' },
   { name: 'Offer', color: '#10B981' },

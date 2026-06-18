@@ -30,8 +30,8 @@ interface KanbanBoardProps {
 }
 
 const STAGES = [
+  { name: 'Applied', color: '#94A3B8' },
   { name: 'Screening', color: '#3B82F6' },
-  { name: 'Phone Screen', color: '#0EA5E9' },
   { name: 'Interview', color: '#8B5CF6' },
   { name: 'Assessment', color: '#EC4899' },
   { name: 'Offer', color: '#10B981' },

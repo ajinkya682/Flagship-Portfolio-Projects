@@ -61,8 +61,8 @@ export default function FilterBar({ filters, onFiltersChange }: FilterBarProps) 
           className="h-[36px] w-[180px] rounded-md border border-neutral-200 px-[12px] font-body text-[13px] focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 bg-white"
         >
           <option value="">All Stages</option>
+          <option value="Applied">Applied</option>
           <option value="Screening">Screening</option>
-          <option value="Phone Screen">Phone Screen</option>
           <option value="Interview">Interview</option>
           <option value="Assessment">Assessment</option>
           <option value="Offer">Offer</option>

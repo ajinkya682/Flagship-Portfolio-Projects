@@ -10,8 +10,8 @@ export function StageBadge({ stage, className }: StageBadgeProps) {
     switch (stg.toLowerCase()) {
       case 'screening':
         return 'bg-primary-50 text-primary-700'
-      case 'phone screen':
-        return 'bg-blue-50 text-blue-700'
+      case 'applied':
+        return 'bg-slate-100 text-slate-700'
       case 'interview':
         return 'bg-amber-50 text-amber-700'
       case 'assessment':

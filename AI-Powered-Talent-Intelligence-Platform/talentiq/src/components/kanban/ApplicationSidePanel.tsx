@@ -220,8 +220,8 @@ export default function ApplicationSidePanel({ application, onClose }: Applicati
                   onChange={(e) => setSelectedStage(e.target.value)}
                   className="flex-grow h-[36px] rounded-md border border-neutral-200 px-[12px] font-body text-[13px] focus:outline-none focus:border-primary-500 bg-white"
                 >
+                  <option value="Applied">Applied</option>
                   <option value="Screening">Screening</option>
-                  <option value="Phone Screen">Phone Screen</option>
                   <option value="Interview">Interview</option>
                   <option value="Assessment">Assessment</option>
                   <option value="Offer">Offer</option>
