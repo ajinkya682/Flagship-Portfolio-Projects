@@ -10,7 +10,7 @@ export interface JwtPayload {
 }
 
 export function generateTokens(payload: JwtPayload) {
-  const accessToken = jwt.sign(payload, JWT_SECRET, { expiresIn: '15m' });
+  const accessToken = jwt.sign(payload, JWT_SECRET, { expiresIn: '60m' });
   const refreshToken = jwt.sign({ userId: payload.userId }, JWT_REFRESH_SECRET, { expiresIn: '7d' });
   
   return { accessToken, refreshToken };
