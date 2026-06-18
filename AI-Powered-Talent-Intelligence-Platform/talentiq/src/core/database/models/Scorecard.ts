@@ -7,7 +7,6 @@ export interface IScorecardCriterion {
 }
 
 export interface IScorecard extends Document {
-  companyId: mongoose.Types.ObjectId;
   interview: mongoose.Types.ObjectId;
   interviewer: mongoose.Types.ObjectId;
   overallRating: 'strong-yes' | 'yes' | 'no' | 'strong-no';
@@ -17,7 +16,6 @@ export interface IScorecard extends Document {
 }
 
 const ScorecardSchema: Schema = new Schema({
-  companyId: { type: Schema.Types.ObjectId, ref: 'Company', required: true },
   interview: { type: Schema.Types.ObjectId, ref: 'Interview', required: true },
   interviewer: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   overallRating: { type: String, enum: ['strong-yes', 'yes', 'no', 'strong-no'], required: true },

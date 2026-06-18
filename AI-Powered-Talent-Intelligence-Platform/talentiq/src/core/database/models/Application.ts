@@ -13,7 +13,6 @@ export interface IAIScore {
 }
 
 export interface IApplication extends Document {
-  companyId: mongoose.Types.ObjectId;
   job: mongoose.Types.ObjectId;
   candidate: mongoose.Types.ObjectId;
   stage: string;
@@ -60,7 +59,6 @@ const NoteSchema = new Schema({
 }, { _id: false });
 
 const ApplicationSchema: Schema = new Schema({
-  companyId: { type: Schema.Types.ObjectId, ref: 'Company', required: true },
   job: { type: Schema.Types.ObjectId, ref: 'Job', required: true },
   candidate: { type: Schema.Types.ObjectId, ref: 'Candidate', required: true },
   stage: { type: String, default: 'applied' },

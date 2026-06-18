@@ -3,7 +3,6 @@ import { NextResponse } from 'next/server';
 import connectToDatabase from '@/core/database/mongoose';
 import { Message } from '@/core/database/models/Message';
 import { Candidate } from '@/core/database/models/Candidate';
-import { verifyAccessToken } from '@/core/auth/jwt';
 
 export async function GET(req: Request) {
   try {
@@ -12,22 +11,8 @@ export async function GET(req: Request) {
     const url = new URL(req.url);
     const requestedCandidateId = url.searchParams.get('candidateId');
 
-    // Auth Check
-    let token = req.headers.get('authorization')?.split(' ')[1];
-    if (!token) {
-      token = req.headers.get('cookie')?.split(';').find(c => c.trim().startsWith('accessToken='))?.split('=')[1];
-    }
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    let decoded;
-    try {
-      decoded = verifyAccessToken(token);
-    } catch (e) {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
-    }
-    const companyId = decoded.companyId;
-
     // Find all distinct candidateIds that have messages
-    const distinctCandidateIds = await Message.distinct('candidateId', { companyId });
+    const distinctCandidateIds = await Message.distinct('candidateId');
 
     // If requestedCandidateId is present but not in distinct list, we still want to fetch them
     const candidateIdsToFetch = new Set<string>(distinctCandidateIds.map(id => id.toString()));
@@ -42,7 +27,6 @@ export async function GET(req: Request) {
     // Fetch candidate info for each
     const candidates = await Candidate.find({
       _id: { $in: Array.from(candidateIdsToFetch) },
-      companyId
     }).select('_id name email avatar isBlocked');
 
     // For each candidate, get the last message
@@ -50,7 +34,6 @@ export async function GET(req: Request) {
       candidates.map(async (candidate) => {
         const lastMessage = await Message.findOne({
           candidateId: candidate._id.toString(),
-          companyId
         })
           .sort({ createdAt: -1 })
           .lean();

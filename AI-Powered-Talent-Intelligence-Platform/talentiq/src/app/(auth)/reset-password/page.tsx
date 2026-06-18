@@ -3,7 +3,7 @@
 import { useState, Suspense } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import { CheckCircle, Hexagon, Eye, EyeOff, KeyRound } from 'lucide-react'
+import { CheckCircle, Hexagon, Eye, EyeOff } from 'lucide-react'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 
 function ResetPasswordForm() {
@@ -72,7 +72,7 @@ function ResetPasswordForm() {
   }
 
   return (
-    <div>
+    <>
       <div className="mb-[32px] text-center flex flex-col items-center">
         <div className="w-[48px] h-[48px] bg-primary-50 rounded-xl flex items-center justify-center mb-[24px] border border-primary-100 shadow-sm relative overflow-hidden">
           <div className="absolute inset-0 bg-primary-500/10" />

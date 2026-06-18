@@ -3,7 +3,6 @@ import connectToDatabase from '@/core/database/mongoose';
 import { HireLetter } from '@/core/database/models/HireLetter';
 import { Application } from '@/core/database/models/Application';
 import { Candidate } from '@/core/database/models/Candidate';
-import { verifyAccessToken } from '@/core/auth/jwt';
 
 export async function GET(req: NextRequest) {
   try {
@@ -11,21 +10,7 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const candidateId = searchParams.get('candidateId');
 
-    // Auth Check
-    let token = req.headers.get('authorization')?.split(' ')[1];
-    if (!token) {
-      token = req.headers.get('cookie')?.split(';').find(c => c.trim().startsWith('accessToken='))?.split('=')[1];
-    }
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    let decoded;
-    try {
-      decoded = verifyAccessToken(token);
-    } catch (e) {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
-    }
-    const companyId = decoded.companyId;
-
-    const query: any = { companyId };
+    const query: any = {};
     if (candidateId) query.candidateId = candidateId;
 
     const letters = await HireLetter.find(query)
@@ -61,33 +46,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Auth Check
-    let token = req.headers.get('authorization')?.split(' ')[1];
-    if (!token) {
-      token = req.headers.get('cookie')?.split(';').find(c => c.trim().startsWith('accessToken='))?.split('=')[1];
-    }
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    let decoded;
-    try {
-      decoded = verifyAccessToken(token);
-    } catch (e) {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
-    }
-    const companyId = decoded.companyId;
-
-    const candidate = await Candidate.findOne({ _id: candidateId, companyId });
+    const candidate = await Candidate.findById(candidateId);
     if (!candidate) {
       return NextResponse.json({ error: 'Candidate not found' }, { status: 404 });
     }
 
     // Find the latest application for this candidate
-    const application = await Application.findOne({ candidate: candidateId, companyId }).sort({ createdAt: -1 });
+    const application = await Application.findOne({ candidate: candidateId }).sort({ createdAt: -1 });
     if (!application) {
       return NextResponse.json({ error: 'Application not found' }, { status: 404 });
     }
 
     const hireLetter = new HireLetter({
-      companyId,
       applicationId: application._id,
       candidateId: candidate._id,
       jobId: application.job,

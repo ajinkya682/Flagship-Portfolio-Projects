@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import connectToDatabase from '@/core/database/mongoose';
 import { Message } from '@/core/database/models/Message';
-import { verifyAccessToken } from '@/core/auth/jwt';
 
 export async function GET(req: Request) {
   try {
@@ -10,25 +9,11 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const candidateId = searchParams.get('candidateId');
 
-    // Auth Check
-    let token = req.headers.get('authorization')?.split(' ')[1];
-    if (!token) {
-      token = req.headers.get('cookie')?.split(';').find(c => c.trim().startsWith('accessToken='))?.split('=')[1];
-    }
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    let decoded;
-    try {
-      decoded = verifyAccessToken(token);
-    } catch (e) {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
-    }
-    const companyId = decoded.companyId;
-
     if (!candidateId) {
       return NextResponse.json({ error: 'Candidate ID is required' }, { status: 400 });
     }
 
-    const messages = await Message.find({ candidateId, companyId }).sort({ createdAt: 1 });
+    const messages = await Message.find({ candidateId }).sort({ createdAt: 1 });
 
     const formattedMessages = messages.map(msg => ({
       id: msg._id.toString(),
@@ -53,25 +38,11 @@ export async function DELETE(req: Request) {
     const { searchParams } = new URL(req.url);
     const candidateId = searchParams.get('candidateId');
 
-    // Auth Check
-    let token = req.headers.get('authorization')?.split(' ')[1];
-    if (!token) {
-      token = req.headers.get('cookie')?.split(';').find(c => c.trim().startsWith('accessToken='))?.split('=')[1];
-    }
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    let decoded;
-    try {
-      decoded = verifyAccessToken(token);
-    } catch (e) {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
-    }
-    const companyId = decoded.companyId;
-
     if (!candidateId) {
       return NextResponse.json({ error: 'Candidate ID is required' }, { status: 400 });
     }
 
-    await Message.deleteMany({ candidateId, companyId });
+    await Message.deleteMany({ candidateId });
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
@@ -87,26 +58,11 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { candidateId, senderId, text, time } = body;
 
-    // Auth Check
-    let token = req.headers.get('authorization')?.split(' ')[1];
-    if (!token) {
-      token = req.headers.get('cookie')?.split(';').find(c => c.trim().startsWith('accessToken='))?.split('=')[1];
-    }
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    let decoded;
-    try {
-      decoded = verifyAccessToken(token);
-    } catch (e) {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
-    }
-    const companyId = decoded.companyId;
-
     if (!candidateId || !text) {
       return NextResponse.json({ error: 'Candidate ID and text are required' }, { status: 400 });
     }
 
     const message = await Message.create({
-      companyId,
       candidateId,
       senderId: senderId || 'me',
       text,

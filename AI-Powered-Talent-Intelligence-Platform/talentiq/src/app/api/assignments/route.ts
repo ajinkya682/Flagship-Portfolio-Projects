@@ -3,7 +3,6 @@ import connectToDatabase from '@/core/database/mongoose';
 import { Assignment } from '@/core/database/models/Assignment';
 import { Application } from '@/core/database/models/Application';
 import { Candidate } from '@/core/database/models/Candidate';
-import { verifyAccessToken } from '@/core/auth/jwt';
 
 export async function GET(req: NextRequest) {
   try {
@@ -12,21 +11,7 @@ export async function GET(req: NextRequest) {
     const candidateId = searchParams.get('candidateId');
     const applicationId = searchParams.get('applicationId');
 
-    // Auth Check
-    let token = req.headers.get('authorization')?.split(' ')[1];
-    if (!token) {
-      token = req.headers.get('cookie')?.split(';').find(c => c.trim().startsWith('accessToken='))?.split('=')[1];
-    }
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    let decoded;
-    try {
-      decoded = verifyAccessToken(token);
-    } catch (e) {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
-    }
-    const companyId = decoded.companyId;
-
-    const query: any = { companyId };
+    const query: any = {};
     if (candidateId) query.candidateId = candidateId;
     if (applicationId) query.applicationId = applicationId;
 
@@ -54,38 +39,23 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Auth Check
-    let token = req.headers.get('authorization')?.split(' ')[1];
-    if (!token) {
-      token = req.headers.get('cookie')?.split(';').find(c => c.trim().startsWith('accessToken='))?.split('=')[1];
-    }
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    let decoded;
-    try {
-      decoded = verifyAccessToken(token);
-    } catch (e) {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
-    }
-    const companyId = decoded.companyId;
-
     // Find the application to get proper IDs
     const application = await Application.findOne(
       applicationId
-        ? { _id: applicationId, companyId }
-        : { candidate: candidateId, companyId }
+        ? { _id: applicationId }
+        : { candidate: candidateId }
     ).sort({ createdAt: -1 });
 
     if (!application) {
       return NextResponse.json({ error: 'Application not found' }, { status: 404 });
     }
 
-    const candidate = await Candidate.findOne({ _id: candidateId, companyId });
+    const candidate = await Candidate.findById(candidateId);
     if (!candidate) {
       return NextResponse.json({ error: 'Candidate not found' }, { status: 404 });
     }
 
     const assignment = new Assignment({
-      companyId,
       applicationId: application._id,
       candidateId: candidate._id,
       jobId: jobId || application.job,

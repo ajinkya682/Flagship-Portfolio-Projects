@@ -1,7 +1,6 @@
 import mongoose, { Document, Model } from 'mongoose';
 
 export interface IMessage extends Document {
-  companyId: mongoose.Types.ObjectId;
   candidateId: string;
   senderId: string; // 'me' for recruiter, or 'candidate'
   text: string;
@@ -10,7 +9,6 @@ export interface IMessage extends Document {
 }
 
 const messageSchema = new mongoose.Schema<IMessage>({
-  companyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
   candidateId: {
     type: String,
     required: true,

@@ -17,18 +17,16 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    let decoded;
     try {
-      decoded = verifyAccessToken(token);
+      verifyAccessToken(token);
     } catch (e) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
-    const companyId = decoded.companyId;
 
     const { id } = params;
     const body = await req.json();
     
-    const application = await Application.findOne({ _id: id, companyId });
+    const application = await Application.findById(id);
     if (!application) {
       return NextResponse.json({ error: 'Application not found' }, { status: 404 });
     }
