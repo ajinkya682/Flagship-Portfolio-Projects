@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { io, Socket } from 'socket.io-client';
 
 const ICE_SERVERS = {
   iceServers: [
@@ -24,65 +23,105 @@ export function useWebRTC({ roomId, userId, hasJoined }: WebRTCProps) {
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
 
-  const socketRef = useRef<Socket | null>(null);
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
+  const lastPollRef = useRef<number>(Date.now() - 60000); // Look back 1 minute for initial connect
+  const listenersRef = useRef<Record<string, Function[]>>({});
+  
+  // Mock socket interface for page.tsx compatibility
+  const mockSocket = useRef({
+    emit: async (event: string, payload: any) => {
+      // POST to our signal API
+      await fetch(`/api/interviews/room/${roomId}/signal`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ senderId: userId, type: event, payload })
+      }).catch(console.error);
+    },
+    on: (event: string, callback: Function) => {
+      if (!listenersRef.current[event]) listenersRef.current[event] = [];
+      listenersRef.current[event].push(callback);
+    },
+    off: (event: string, callback: Function) => {
+      if (!listenersRef.current[event]) return;
+      listenersRef.current[event] = listenersRef.current[event].filter(cb => cb !== callback);
+    },
+    disconnect: () => {}
+  });
 
-  // Initialize Socket.IO
+  // Signaling polling loop
   useEffect(() => {
     if (!hasJoined) return;
 
-    // Determine signaling server URL (fallback to 3001 locally if on 3000)
-    const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3001';
-    const socket = io(socketUrl);
-    socketRef.current = socket;
+    // We consider ourselves connected to the signaling mechanism once we start polling
+    setIsConnected(true);
+    
+    // Announce presence
+    mockSocket.current.emit('user-connected', { userId });
 
-    socket.on('connect', () => {
-      setIsConnected(true);
-      socket.emit('join-room', { roomId, userId });
-    });
+    const pollInterval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/interviews/room/${roomId}/signal?since=${lastPollRef.current}`);
+        if (!res.ok) return;
+        const signals = await res.json();
+        
+        if (signals && signals.length > 0) {
+          lastPollRef.current = new Date(signals[signals.length - 1].createdAt).getTime();
 
-    socket.on('user-connected', async ({ userId: connectedUserId, socketId }) => {
-      // Create offer when someone joins
-      const peerConnection = createPeerConnection(socketId);
-      const offer = await peerConnection.createOffer();
-      await peerConnection.setLocalDescription(offer);
-      socket.emit('offer', { target: socketId, sdp: offer });
-    });
+          for (const signal of signals) {
+            if (signal.senderId === userId) continue; // Skip our own signals
+            
+            // Dispatch to registered mockSocket listeners
+            const callbacks = listenersRef.current[signal.type] || [];
+            callbacks.forEach(cb => cb(signal.payload));
 
-    socket.on('offer', async ({ caller, sdp }) => {
-      const peerConnection = createPeerConnection(caller);
-      await peerConnection.setRemoteDescription(new RTCSessionDescription(sdp));
-      const answer = await peerConnection.createAnswer();
-      await peerConnection.setLocalDescription(answer);
-      socket.emit('answer', { target: caller, sdp: answer });
-    });
-
-    socket.on('answer', async ({ caller, sdp }) => {
-      if (peerConnectionRef.current) {
-        await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(sdp));
-      }
-    });
-
-    socket.on('ice-candidate', async ({ caller, candidate }) => {
-      if (peerConnectionRef.current) {
-        try {
-          await peerConnectionRef.current.addIceCandidate(new RTCIceCandidate(candidate));
-        } catch (e) {
-          console.error('Error adding ICE candidate', e);
+            // Internal WebRTC handling
+            if (signal.type === 'user-connected') {
+              const peerConnection = createPeerConnection(signal.senderId);
+              const offer = await peerConnection.createOffer();
+              await peerConnection.setLocalDescription(offer);
+              mockSocket.current.emit('offer', { target: signal.senderId, caller: userId, sdp: offer });
+            } 
+            else if (signal.type === 'offer' && signal.payload.target === userId) {
+              const peerConnection = createPeerConnection(signal.payload.caller);
+              await peerConnection.setRemoteDescription(new RTCSessionDescription(signal.payload.sdp));
+              const answer = await peerConnection.createAnswer();
+              await peerConnection.setLocalDescription(answer);
+              mockSocket.current.emit('answer', { target: signal.payload.caller, caller: userId, sdp: answer });
+            }
+            else if (signal.type === 'answer' && signal.payload.target === userId) {
+              if (peerConnectionRef.current) {
+                await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(signal.payload.sdp));
+              }
+            }
+            else if (signal.type === 'ice-candidate' && signal.payload.target === userId) {
+              if (peerConnectionRef.current) {
+                try {
+                  await peerConnectionRef.current.addIceCandidate(new RTCIceCandidate(signal.payload.candidate));
+                } catch (e) {
+                  console.error('Error adding ICE candidate', e);
+                }
+              }
+            }
+            else if (signal.type === 'user-disconnected') {
+              setRemoteStream(null);
+              if (peerConnectionRef.current) {
+                peerConnectionRef.current.close();
+                peerConnectionRef.current = null;
+              }
+            }
+          }
         }
+      } catch (err) {
+        console.error("Polling error", err);
       }
-    });
-
-    socket.on('user-disconnected', () => {
-      setRemoteStream(null);
-      if (peerConnectionRef.current) {
-        peerConnectionRef.current.close();
-        peerConnectionRef.current = null;
-      }
-    });
+    }, 2000); // Poll every 2 seconds
 
     return () => {
-      socket.disconnect();
+      clearInterval(pollInterval);
+      mockSocket.current.emit('user-disconnected', { userId });
+      if (peerConnectionRef.current) {
+        peerConnectionRef.current.close();
+      }
     };
   }, [roomId, userId, hasJoined]);
 
@@ -97,16 +136,17 @@ export function useWebRTC({ roomId, userId, hasJoined }: WebRTCProps) {
     }
   }, []);
 
-  const createPeerConnection = (targetSocketId: string) => {
+  const createPeerConnection = (targetUserId: string) => {
     if (peerConnectionRef.current) peerConnectionRef.current.close();
     
     const pc = new RTCPeerConnection(ICE_SERVERS);
     peerConnectionRef.current = pc;
 
     pc.onicecandidate = (event) => {
-      if (event.candidate && socketRef.current) {
-        socketRef.current.emit('ice-candidate', {
-          target: targetSocketId,
+      if (event.candidate) {
+        mockSocket.current.emit('ice-candidate', {
+          target: targetUserId,
+          caller: userId,
           candidate: event.candidate,
         });
       }
@@ -116,7 +156,6 @@ export function useWebRTC({ roomId, userId, hasJoined }: WebRTCProps) {
       setRemoteStream(event.streams[0]);
     };
 
-    // Add local tracks to the connection
     if (localStream) {
       localStream.getTracks().forEach((track) => {
         pc.addTrack(track, localStream);
@@ -132,7 +171,7 @@ export function useWebRTC({ roomId, userId, hasJoined }: WebRTCProps) {
       if (audioTrack) {
         audioTrack.enabled = !audioTrack.enabled;
         setIsMuted(!audioTrack.enabled);
-        socketRef.current?.emit('toggle-media', { type: 'audio', isMuted: !audioTrack.enabled });
+        mockSocket.current.emit('toggle-media', { type: 'audio', isMuted: !audioTrack.enabled });
       }
     }
   };
@@ -143,7 +182,7 @@ export function useWebRTC({ roomId, userId, hasJoined }: WebRTCProps) {
       if (videoTrack) {
         videoTrack.enabled = !videoTrack.enabled;
         setIsVideoOff(!videoTrack.enabled);
-        socketRef.current?.emit('toggle-media', { type: 'video', isVideoOff: !videoTrack.enabled });
+        mockSocket.current.emit('toggle-media', { type: 'video', isVideoOff: !videoTrack.enabled });
       }
     }
   };
@@ -159,7 +198,6 @@ export function useWebRTC({ roomId, userId, hasJoined }: WebRTCProps) {
           if (sender) sender.replaceTrack(screenTrack);
         }
         
-        // Update local stream preview
         setLocalStream((prev) => {
           if (!prev) return screenStream;
           const newStream = new MediaStream([screenTrack, ...prev.getAudioTracks()]);
@@ -167,11 +205,7 @@ export function useWebRTC({ roomId, userId, hasJoined }: WebRTCProps) {
         });
         
         setIsScreenSharing(true);
-
-        // When user stops sharing via browser UI
-        screenTrack.onended = () => {
-          stopScreenShare();
-        };
+        screenTrack.onended = () => stopScreenShare();
       } catch (err) {
         console.error('Error sharing screen', err);
       }
@@ -209,7 +243,7 @@ export function useWebRTC({ roomId, userId, hasJoined }: WebRTCProps) {
     if (peerConnectionRef.current) {
       peerConnectionRef.current.close();
     }
-    socketRef.current?.disconnect();
+    mockSocket.current.emit('user-disconnected', { userId });
   };
 
   return {
@@ -224,6 +258,6 @@ export function useWebRTC({ roomId, userId, hasJoined }: WebRTCProps) {
     toggleVideo,
     toggleScreenShare,
     endCall,
-    socket: socketRef.current,
+    socket: mockSocket.current,
   };
 }
