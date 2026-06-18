@@ -3,6 +3,7 @@ import connectToDatabase from '@/core/database/mongoose';
 import { Assignment } from '@/core/database/models/Assignment';
 import { Application } from '@/core/database/models/Application';
 import { Candidate } from '@/core/database/models/Candidate';
+import { verifyAccessToken } from '@/core/auth/jwt';
 
 export async function GET(req: NextRequest) {
   try {
@@ -11,7 +12,13 @@ export async function GET(req: NextRequest) {
     const candidateId = searchParams.get('candidateId');
     const applicationId = searchParams.get('applicationId');
 
-    const query: any = {};
+    let token = req.headers.get('authorization')?.split(' ')[1];
+    if (!token) token = req.headers.get('cookie')?.split(';').find(c => c.trim().startsWith('accessToken='))?.split('=')[1];
+    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    let decoded;
+    try { decoded = verifyAccessToken(token) as any; } catch (e) { return NextResponse.json({ error: 'Invalid token' }, { status: 401 }); }
+
+    const query: any = { companyId: decoded.companyId };
     if (candidateId) query.candidateId = candidateId;
     if (applicationId) query.applicationId = applicationId;
 
@@ -30,6 +37,13 @@ export async function POST(req: NextRequest) {
   try {
     await connectToDatabase();
     const body = await req.json();
+
+    let token = req.headers.get('authorization')?.split(' ')[1];
+    if (!token) token = req.headers.get('cookie')?.split(';').find(c => c.trim().startsWith('accessToken='))?.split('=')[1];
+    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    let decoded;
+    try { decoded = verifyAccessToken(token) as any; } catch (e) { return NextResponse.json({ error: 'Invalid token' }, { status: 401 }); }
+
     const { candidateId, jobId, applicationId, title, description, deadline, referenceLink } = body;
 
     if (!candidateId || !title || !description || !deadline) {
@@ -56,6 +70,7 @@ export async function POST(req: NextRequest) {
     }
 
     const assignment = new Assignment({
+      companyId: decoded.companyId,
       applicationId: application._id,
       candidateId: candidate._id,
       jobId: jobId || application.job,

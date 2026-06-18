@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import connectToDatabase from '@/core/database/mongoose';
 import { Message } from '@/core/database/models/Message';
+import { Candidate } from '@/core/database/models/Candidate';
 
 export async function GET(req: Request) {
   try {
@@ -12,8 +13,11 @@ export async function GET(req: Request) {
     if (!candidateId) {
       return NextResponse.json({ error: 'Candidate ID is required' }, { status: 400 });
     }
+    
+    const candidate = await Candidate.findById(candidateId);
+    if (!candidate) return NextResponse.json({ error: 'Candidate not found' }, { status: 404 });
 
-    const messages = await Message.find({ candidateId }).sort({ createdAt: 1 });
+    const messages = await Message.find({ candidateId, companyId: candidate.companyId }).sort({ createdAt: 1 });
 
     const formattedMessages = messages.map(msg => ({
       id: msg._id.toString(),
@@ -41,8 +45,11 @@ export async function DELETE(req: Request) {
     if (!candidateId) {
       return NextResponse.json({ error: 'Candidate ID is required' }, { status: 400 });
     }
+    
+    const candidate = await Candidate.findById(candidateId);
+    if (!candidate) return NextResponse.json({ error: 'Candidate not found' }, { status: 404 });
 
-    await Message.deleteMany({ candidateId });
+    await Message.deleteMany({ candidateId, companyId: candidate.companyId });
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
@@ -61,8 +68,12 @@ export async function POST(req: Request) {
     if (!candidateId || !text) {
       return NextResponse.json({ error: 'Candidate ID and text are required' }, { status: 400 });
     }
+    
+    const candidate = await Candidate.findById(candidateId);
+    if (!candidate) return NextResponse.json({ error: 'Candidate not found' }, { status: 404 });
 
     const message = await Message.create({
+      companyId: candidate.companyId,
       candidateId,
       senderId: senderId || 'me',
       text,

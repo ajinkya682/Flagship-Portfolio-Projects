@@ -3,13 +3,20 @@ import connectToDatabase from '@/core/database/mongoose';
 import { Offer } from '@/core/database/models/Offer';
 import { Candidate } from '@/core/database/models/Candidate';
 import { Job } from '@/core/database/models/Job';
+import { verifyAccessToken } from '@/core/auth/jwt';
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
     await connectToDatabase();
     
+    let token = req.headers.get('authorization')?.split(' ')[1];
+    if (!token) token = req.headers.get('cookie')?.split(';').find(c => c.trim().startsWith('accessToken='))?.split('=')[1];
+    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    let decoded;
+    try { decoded = verifyAccessToken(token) as any; } catch (e) { return NextResponse.json({ error: 'Invalid token' }, { status: 401 }); }
+
     // Fetch offers and populate candidate and job
-    const offers = await Offer.find()
+    const offers = await Offer.find({ companyId: decoded.companyId })
       .populate('candidate', 'name email role avatar stage')
       .populate('job', 'title department')
       .sort({ createdAt: -1 });
@@ -25,6 +32,12 @@ export async function POST(req: NextRequest) {
   try {
     await connectToDatabase();
     const body = await req.json();
+
+    let token = req.headers.get('authorization')?.split(' ')[1];
+    if (!token) token = req.headers.get('cookie')?.split(';').find(c => c.trim().startsWith('accessToken='))?.split('=')[1];
+    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    let decoded;
+    try { decoded = verifyAccessToken(token) as any; } catch (e) { return NextResponse.json({ error: 'Invalid token' }, { status: 401 }); }
     
     const { candidateId, jobId, amount, equity } = body;
     
@@ -45,6 +58,7 @@ export async function POST(req: NextRequest) {
     const offerJobId = jobId || (candidate as any).job;
 
     const newOffer = new Offer({
+      companyId: decoded.companyId,
       application: (candidate as any).applicationId || candidate._id, // fallback if no explicit application
       candidate: candidate._id,
       job: offerJobId,

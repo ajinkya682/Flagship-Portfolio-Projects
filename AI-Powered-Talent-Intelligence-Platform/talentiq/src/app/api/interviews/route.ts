@@ -3,6 +3,7 @@ import connectToDatabase from '@/core/database/mongoose';
 import { Interview } from '@/core/database/models/Interview';
 import { Application } from '@/core/database/models/Application';
 import mongoose from 'mongoose';
+import { verifyAccessToken } from '@/core/auth/jwt';
 
 export async function GET(req: Request) {
   try {
@@ -12,7 +13,13 @@ export async function GET(req: Request) {
     const dateQuery = url.searchParams.get('date'); // YYYY-MM-DD
     const candidateId = url.searchParams.get('candidateId');
 
-    let filter: any = {};
+    let token = req.headers.get('authorization')?.split(' ')[1];
+    if (!token) token = req.headers.get('cookie')?.split(';').find(c => c.trim().startsWith('accessToken='))?.split('=')[1];
+    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    let decoded;
+    try { decoded = verifyAccessToken(token) as any; } catch (e) { return NextResponse.json({ error: 'Invalid token' }, { status: 401 }); }
+
+    let filter: any = { companyId: decoded.companyId };
     if (candidateId) filter.candidate = candidateId;
 
     if (dateQuery) {
@@ -37,6 +44,13 @@ export async function POST(req: Request) {
   try {
     await connectToDatabase();
     const body = await req.json();
+
+    let token = req.headers.get('authorization')?.split(' ')[1];
+    if (!token) token = req.headers.get('cookie')?.split(';').find(c => c.trim().startsWith('accessToken='))?.split('=')[1];
+    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    let decoded;
+    try { decoded = verifyAccessToken(token) as any; } catch (e) { return NextResponse.json({ error: 'Invalid token' }, { status: 401 }); }
+
     const { candidateId, applicationId, jobId, scheduledAt, locationType } = body;
 
     if (!candidateId || !applicationId || !jobId || !scheduledAt) {
@@ -66,6 +80,7 @@ export async function POST(req: Request) {
     endOfDay.setHours(23, 59, 59, 999);
 
     const existingInterviews = await Interview.find({
+      companyId: decoded.companyId,
       scheduledAt: { $gte: startOfDay, $lt: endOfDay },
       status: { $ne: 'cancelled' }
     });
@@ -84,6 +99,7 @@ export async function POST(req: Request) {
 
     // Create the interview
     const interview = new Interview({
+      companyId: decoded.companyId,
       application: new mongoose.Types.ObjectId(applicationId),
       candidate: new mongoose.Types.ObjectId(candidateId),
       job: new mongoose.Types.ObjectId(jobId),

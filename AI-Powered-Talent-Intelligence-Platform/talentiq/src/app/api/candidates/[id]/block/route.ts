@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import connectToDatabase from '@/core/database/mongoose';
 import { Candidate } from '@/core/database/models/Candidate';
+import { verifyAccessToken } from '@/core/auth/jwt';
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   try {
@@ -10,8 +11,14 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     const body = await req.json();
     const { isBlocked } = body;
 
-    const candidate = await Candidate.findByIdAndUpdate(
-      id,
+    let token = req.headers.get('authorization')?.split(' ')[1];
+    if (!token) token = req.headers.get('cookie')?.split(';').find(c => c.trim().startsWith('accessToken='))?.split('=')[1];
+    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    let decoded;
+    try { decoded = verifyAccessToken(token) as any; } catch (e) { return NextResponse.json({ error: 'Invalid token' }, { status: 401 }); }
+
+    const candidate = await Candidate.findOneAndUpdate(
+      { _id: id, companyId: decoded.companyId },
       { isBlocked },
       { new: true }
     );

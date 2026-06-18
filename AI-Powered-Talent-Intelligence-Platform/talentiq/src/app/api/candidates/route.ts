@@ -37,6 +37,7 @@ export async function POST(req: Request) {
 
     // 1. Create the Candidate document
     const newCandidate = await Candidate.create({
+      companyId: job.company,
       name,
       email,
       phone,
@@ -57,6 +58,7 @@ export async function POST(req: Request) {
 
     // 2. Create the Application document
     const application = await Application.create({
+      companyId: job.company,
       job: job._id,
       candidate: newCandidate._id,
       stage: 'Screening', // default
@@ -157,7 +159,7 @@ export async function GET(req: Request) {
     }, {} as Record<string, string>);
 
     // Find all applications for these jobs
-    const applications = await Application.find({ job: { $in: jobIds } })
+    const applications = await Application.find({ companyId: decoded.companyId, job: { $in: jobIds } })
       .populate('candidate')
       .sort({ appliedAt: -1 });
 

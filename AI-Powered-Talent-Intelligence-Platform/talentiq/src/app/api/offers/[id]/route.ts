@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectToDatabase from '@/core/database/mongoose';
 import { Offer } from '@/core/database/models/Offer';
+import { verifyAccessToken } from '@/core/auth/jwt';
 
 export async function PATCH(
   req: NextRequest,
@@ -12,7 +13,15 @@ export async function PATCH(
     const body = await req.json();
     const { status } = body;
 
-    const offer = await Offer.findById(id);
+    const { status } = body;
+
+    let token = req.headers.get('authorization')?.split(' ')[1];
+    if (!token) token = req.headers.get('cookie')?.split(';').find(c => c.trim().startsWith('accessToken='))?.split('=')[1];
+    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    let decoded;
+    try { decoded = verifyAccessToken(token) as any; } catch (e) { return NextResponse.json({ error: 'Invalid token' }, { status: 401 }); }
+
+    const offer = await Offer.findOne({ _id: id, companyId: decoded.companyId });
     if (!offer) {
       return NextResponse.json({ error: 'Offer not found' }, { status: 404 });
     }
@@ -38,12 +47,20 @@ export async function DELETE(
     await connectToDatabase();
     const { id } = params;
 
-    const offer = await Offer.findById(id);
+    const { id } = params;
+
+    let token = req.headers.get('authorization')?.split(' ')[1];
+    if (!token) token = req.headers.get('cookie')?.split(';').find(c => c.trim().startsWith('accessToken='))?.split('=')[1];
+    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    let decoded;
+    try { decoded = verifyAccessToken(token) as any; } catch (e) { return NextResponse.json({ error: 'Invalid token' }, { status: 401 }); }
+
+    const offer = await Offer.findOne({ _id: id, companyId: decoded.companyId });
     if (!offer) {
       return NextResponse.json({ error: 'Offer not found' }, { status: 404 });
     }
 
-    await Offer.findByIdAndDelete(id);
+    await Offer.findOneAndDelete({ _id: id, companyId: decoded.companyId });
 
     return NextResponse.json({ success: true });
   } catch (error) {

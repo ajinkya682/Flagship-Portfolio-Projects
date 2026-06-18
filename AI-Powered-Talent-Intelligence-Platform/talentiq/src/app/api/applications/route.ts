@@ -27,7 +27,7 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const jobId = searchParams.get('jobId');
     
-    const query: any = {};
+    const query: any = { companyId: decoded.companyId };
     if (jobId) {
       query.job = jobId;
     }

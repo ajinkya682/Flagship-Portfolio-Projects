@@ -3,6 +3,7 @@ import connectToDatabase from '@/core/database/mongoose';
 import { HireLetter } from '@/core/database/models/HireLetter';
 import { Application } from '@/core/database/models/Application';
 import { Candidate } from '@/core/database/models/Candidate';
+import { verifyAccessToken } from '@/core/auth/jwt';
 
 export async function GET(req: NextRequest) {
   try {
@@ -10,7 +11,13 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const candidateId = searchParams.get('candidateId');
 
-    const query: any = {};
+    let token = req.headers.get('authorization')?.split(' ')[1];
+    if (!token) token = req.headers.get('cookie')?.split(';').find(c => c.trim().startsWith('accessToken='))?.split('=')[1];
+    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    let decoded;
+    try { decoded = verifyAccessToken(token) as any; } catch (e) { return NextResponse.json({ error: 'Invalid token' }, { status: 401 }); }
+
+    const query: any = { companyId: decoded.companyId };
     if (candidateId) query.candidateId = candidateId;
 
     const letters = await HireLetter.find(query)
@@ -28,6 +35,13 @@ export async function POST(req: NextRequest) {
   try {
     await connectToDatabase();
     const body = await req.json();
+
+    let token = req.headers.get('authorization')?.split(' ')[1];
+    if (!token) token = req.headers.get('cookie')?.split(';').find(c => c.trim().startsWith('accessToken='))?.split('=')[1];
+    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    let decoded;
+    try { decoded = verifyAccessToken(token) as any; } catch (e) { return NextResponse.json({ error: 'Invalid token' }, { status: 401 }); }
+
     const {
       candidateId,
       companyName,
@@ -58,6 +72,7 @@ export async function POST(req: NextRequest) {
     }
 
     const hireLetter = new HireLetter({
+      companyId: decoded.companyId,
       applicationId: application._id,
       candidateId: candidate._id,
       jobId: application.job,
