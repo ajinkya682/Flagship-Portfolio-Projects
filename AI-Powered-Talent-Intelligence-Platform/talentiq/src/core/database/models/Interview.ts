@@ -9,9 +9,17 @@ export interface IInterview extends Document {
   duration: number;
   locationType: 'video' | 'phone' | 'onsite';
   meetingLink?: string;
+  roomId?: string; // WebRTC Unique Room ID
   interviewers: mongoose.Types.ObjectId[];
-  status: 'scheduled' | 'completed' | 'cancelled';
+  status: 'scheduled' | 'waiting' | 'live' | 'completed' | 'cancelled';
   scorecards: mongoose.Types.ObjectId[];
+  startedAt?: Date;
+  endedAt?: Date;
+  notes: Array<{
+    authorId: mongoose.Types.ObjectId;
+    text: string;
+    timestamp: Date;
+  }>;
 }
 
 const InterviewSchema: Schema = new Schema({
@@ -23,9 +31,20 @@ const InterviewSchema: Schema = new Schema({
   duration: { type: Number, required: true }, // in minutes
   locationType: { type: String, enum: ['video', 'phone', 'onsite'], default: 'video' },
   meetingLink: { type: String },
+  roomId: { type: String },
   interviewers: [{ type: Schema.Types.ObjectId, ref: 'User' }],
-  status: { type: String, enum: ['scheduled', 'completed', 'cancelled'], default: 'scheduled' },
-  scorecards: [{ type: Schema.Types.ObjectId, ref: 'Scorecard' }]
+  status: { type: String, enum: ['scheduled', 'waiting', 'live', 'completed', 'cancelled'], default: 'scheduled' },
+  scorecards: [{ type: Schema.Types.ObjectId, ref: 'Scorecard' }],
+  startedAt: { type: Date },
+  endedAt: { type: Date },
+  notes: {
+    type: [{
+      authorId: { type: Schema.Types.ObjectId, ref: 'User' },
+      text: String,
+      timestamp: { type: Date, default: Date.now }
+    }],
+    default: []
+  }
 }, { timestamps: true });
 
 export const Interview: Model<IInterview> = mongoose.models.Interview || mongoose.model<IInterview>('Interview', InterviewSchema);

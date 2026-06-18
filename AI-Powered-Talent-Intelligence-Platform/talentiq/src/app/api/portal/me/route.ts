@@ -8,6 +8,7 @@ import { Company } from '@/core/database/models/Company';
 import { Offer } from '@/core/database/models/Offer';
 import { HireLetter } from '@/core/database/models/HireLetter';
 import { Assignment } from '@/core/database/models/Assignment';
+import { Interview } from '@/core/database/models/Interview';
 import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret';
@@ -109,7 +110,15 @@ export async function GET(req: Request) {
             type: t.type,
           }))
         : [{ event: 'Applied for position', date: new Date(application.appliedAt).toLocaleDateString(), type: 'stage_change' }],
-      interviews: [],
+      interviews: (await Interview.find({ candidate: candidate._id }).sort({ scheduledAt: 1 }).lean()).map((i: any) => ({
+        id: i._id.toString(),
+        date: new Date(i.scheduledAt).toLocaleDateString(),
+        time: new Date(i.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        scheduledAt: i.scheduledAt,
+        duration: i.duration,
+        locationType: i.locationType,
+        status: i.status,
+      })),
       messages: [],
       offer: latestOffer ? {
         id: latestOffer._id.toString(),

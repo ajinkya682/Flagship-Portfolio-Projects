@@ -99,6 +99,31 @@ export default function CandidateDashboard() {
   const [assignmentText, setAssignmentText] = useState('')
   const [assignmentSubmitting, setAssignmentSubmitting] = useState(false)
   const [assignmentSubmitted, setAssignmentSubmitted] = useState(false)
+  const [isUpcomingInterviewJoinable, setIsUpcomingInterviewJoinable] = useState(false)
+
+  // Derive upcoming interview early so the hook can use it
+  const upcomingInterview = portalData?.interviews?.find((i: any) => {
+    if (i.status !== 'scheduled') return false;
+    const dateObj = new Date(i.scheduledAt);
+    const endTime = new Date(dateObj.getTime() + (Number(i.duration) || 60) * 60000);
+    return new Date() <= endTime;
+  })
+
+  useEffect(() => {
+    if (!upcomingInterview) return;
+    
+    const checkJoinable = () => {
+      const now = new Date();
+      const dateObj = new Date(upcomingInterview.scheduledAt);
+      const endTime = new Date(dateObj.getTime() + (Number(upcomingInterview.duration) || 60) * 60000);
+      const joinable = now >= new Date(dateObj.getTime() - 15 * 60000) && now <= endTime;
+      setIsUpcomingInterviewJoinable(joinable);
+    };
+
+    checkJoinable();
+    const interval = setInterval(checkJoinable, 10000); // Check every 10 seconds
+    return () => clearInterval(interval);
+  }, [upcomingInterview]);
 
   const [realtimeMessages, setRealtimeMessages] = useState<any[]>([])
   const [isConnected, setIsConnected] = useState(false)
@@ -325,7 +350,6 @@ export default function CandidateDashboard() {
 
   const STAGES = ['Applied', 'Screening', 'Interview', 'Assessment', 'Offer', 'Hired']
   const currentStageIndex = Math.max(0, STAGES.indexOf(application.stage))
-  const upcomingInterview = interviews.find((i: any) => i.status === 'scheduled')
 
   const handleTabClick = (tabId: TabType) => {
     setActiveTab(tabId)
@@ -455,9 +479,15 @@ export default function CandidateDashboard() {
                     <span className="font-bold text-[12px] text-blue-900">Upcoming Interview</span>
                   </div>
                   <p className="text-[12px] text-blue-700 mb-[10px]">{upcomingInterview.date} at {upcomingInterview.time}</p>
-                  <Link href={`/meet/${upcomingInterview.id}`} className="w-full h-[34px] bg-blue-600 text-white rounded-[8px] flex items-center justify-center text-[12px] font-semibold hover:bg-blue-700 transition-colors">
-                    Join Interview
-                  </Link>
+                  {isUpcomingInterviewJoinable ? (
+                    <Link href={`/portal/interviews/room/${upcomingInterview.id}?role=candidate`} className="w-full h-[34px] bg-blue-600 text-white rounded-[8px] flex items-center justify-center text-[12px] font-semibold hover:bg-blue-700 transition-colors">
+                      Join Interview
+                    </Link>
+                  ) : (
+                    <div className="w-full h-[34px] bg-blue-200 text-blue-500 rounded-[8px] flex items-center justify-center text-[12px] font-semibold cursor-not-allowed">
+                      Join (Available 15m before)
+                    </div>
+                  )}
                 </div>
               )}
             </div>

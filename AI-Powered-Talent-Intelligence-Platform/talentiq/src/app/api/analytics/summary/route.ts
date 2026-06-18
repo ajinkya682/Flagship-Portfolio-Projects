@@ -140,8 +140,8 @@ export async function GET(req: NextRequest) {
         if (matchScore >= 75) {
           // Find if candidate applied to any job to get 'originalJobTitle'
           const candidateApp = applications.find((a: any) => a.candidate?._id?.toString() === candidate._id.toString());
-          const originalJobTitle = candidateApp?.job?.title || 'General Pool';
-          const originalJobId = candidateApp?.job?._id || job._id;
+          const originalJobTitle = (candidateApp?.job as any)?.title || 'General Pool';
+          const originalJobId = (candidateApp?.job as any)?._id || job._id;
 
           crossMatches.push({
             candidateId: candidate._id,
