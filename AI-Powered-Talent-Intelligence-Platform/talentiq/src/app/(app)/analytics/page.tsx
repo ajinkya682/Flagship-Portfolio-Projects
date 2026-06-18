@@ -1,10 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Sparkles, TrendingUp, Users, CheckCircle2, AlertCircle, RefreshCw, Briefcase, ChevronRight, FileText } from 'lucide-react'
+import { Sparkles, TrendingUp, Users, CheckCircle2, AlertCircle, RefreshCw, Briefcase, ChevronRight, FileText, Send } from 'lucide-react'
 import Link from 'next/link'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import { useCandidatesStore } from '@/store/candidates.store'
 
 interface CrossMatch {
   candidateId: string
@@ -73,6 +74,10 @@ export default function AnalyticsPage() {
   const [data, setData] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
+  const [applying, setApplying] = useState<string | null>(null)
+  const [applied, setApplied] = useState<Set<string>>(new Set())
+
+  const { candidates } = useCandidatesStore()
 
   const fetchAnalytics = async (force = false) => {
     try {
@@ -87,6 +92,32 @@ export default function AnalyticsPage() {
     } finally {
       setLoading(false)
       setRefreshing(false)
+    }
+  }
+
+  const handleApply = async (candidateId: string, jobId: string, matchScore: number, matchKey: string) => {
+    try {
+      setApplying(matchKey)
+      const res = await fetch('/api/applications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ candidateId, jobId, matchScore })
+      })
+      if (res.ok) {
+        setApplied(prev => new Set(prev).add(matchKey))
+      } else {
+        const error = await res.json()
+        if (error.error === 'Application already exists') {
+          setApplied(prev => new Set(prev).add(matchKey))
+        } else {
+          alert('Failed to apply: ' + error.error)
+        }
+      }
+    } catch (err) {
+      console.error(err)
+      alert('Error applying candidate')
+    } finally {
+      setApplying(null)
     }
   }
 
@@ -262,23 +293,29 @@ export default function AnalyticsPage() {
                       <p className="text-[12px] text-neutral-400">The AI didn't find any candidates matching other open roles this week.</p>
                     </div>
                   ) : (
-                    data.crossMatches.map((match, i) => (
-                      <div key={i} className="p-[16px] bg-white border border-neutral-200 rounded-[14px] shadow-sm hover:shadow-md hover:border-blue-300 transition-all group flex flex-col">
-                        <div className="flex justify-between items-start mb-[16px]">
-                          <div className="flex gap-[12px]">
-                            <div className="w-[36px] h-[36px] bg-neutral-100 rounded-full flex items-center justify-center text-[14px] font-bold text-neutral-600 uppercase border border-neutral-200 shrink-0">
-                              {match.candidateName.charAt(0)}
-                            </div>
-                            <div>
-                              <h3 className="font-bold text-[15px] text-neutral-900 group-hover:text-blue-600 transition-colors">
-                                {match.candidateName}
-                              </h3>
-                              <p className="text-[11px] text-neutral-500 flex items-center gap-[4px] mt-[2px] leading-tight">
-                                Orig: <Briefcase size={10} className="text-neutral-400" /> {match.originalJobTitle}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex flex-col items-end">
+                    data.crossMatches.map((match, i) => {
+                      const candidateObj = candidates.find(c => c.id === match.candidateId);
+                      return (
+                        <div key={i} className="p-[16px] bg-white border border-neutral-200 rounded-[14px] shadow-sm hover:shadow-md hover:border-blue-300 transition-all group flex flex-col">
+                          <div className="flex justify-between items-start mb-[16px]">
+                            <Link href={`/applications/${match.candidateId}`} className="flex gap-[12px] hover:opacity-80 transition-opacity">
+                              {candidateObj?.avatar ? (
+                                <img src={candidateObj.avatar} alt={match.candidateName} className="w-[36px] h-[36px] rounded-full object-cover border border-neutral-200 shrink-0" />
+                              ) : (
+                                <div className="w-[36px] h-[36px] bg-neutral-100 rounded-full flex items-center justify-center text-[14px] font-bold text-neutral-600 uppercase border border-neutral-200 shrink-0">
+                                  {match.candidateName.charAt(0)}
+                                </div>
+                              )}
+                              <div>
+                                <h3 className="font-bold text-[15px] text-neutral-900 group-hover:text-blue-600 transition-colors">
+                                  {match.candidateName}
+                                </h3>
+                                <p className="text-[11px] text-neutral-500 flex items-center gap-[4px] mt-[2px] leading-tight">
+                                  Orig: <Briefcase size={10} className="text-neutral-400" /> {match.originalJobTitle}
+                                </p>
+                              </div>
+                            </Link>
+                            <div className="flex flex-col items-end">
                             <span className="text-[18px] font-display font-bold text-emerald-600 leading-none">{match.matchScore}%</span>
                             <span className="text-[9px] font-bold text-emerald-600/70 uppercase tracking-widest mt-[2px]">Match</span>
                           </div>
@@ -299,11 +336,27 @@ export default function AnalyticsPage() {
                           ))}
                         </div>
 
-                        <Link href={`/jobs/\${match.matchedJobId}`} className="mt-auto w-full flex items-center justify-center gap-[6px] py-[10px] bg-white border border-neutral-200 rounded-[8px] text-[13px] font-bold text-neutral-700 hover:bg-neutral-50 hover:text-blue-600 transition-colors">
-                          <FileText size={14} /> View Open Role <ChevronRight size={14} className="text-neutral-400 opacity-50" />
-                        </Link>
+                        <div className="flex gap-[8px] mt-auto">
+                          <Link href={`/jobs/${match.matchedJobId}`} className="flex-1 flex items-center justify-center gap-[6px] py-[10px] bg-white border border-neutral-200 rounded-[8px] text-[13px] font-bold text-neutral-700 hover:bg-neutral-50 hover:text-blue-600 transition-colors">
+                            <FileText size={14} /> View Role
+                          </Link>
+                          <button 
+                            onClick={() => handleApply(match.candidateId, match.matchedJobId, match.matchScore, `${match.candidateId}-${match.matchedJobId}`)}
+                            disabled={applying === `${match.candidateId}-${match.matchedJobId}` || applied.has(`${match.candidateId}-${match.matchedJobId}`)}
+                            className="flex-1 flex items-center justify-center gap-[6px] py-[10px] bg-blue-600 border border-transparent rounded-[8px] text-[13px] font-bold text-white hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:bg-neutral-400"
+                          >
+                            {applying === `${match.candidateId}-${match.matchedJobId}` ? (
+                              <div className="w-[14px] h-[14px] rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                            ) : applied.has(`${match.candidateId}-${match.matchedJobId}`) ? (
+                              <><CheckCircle2 size={14} /> Applied</>
+                            ) : (
+                              <><Send size={14} /> Apply to Role</>
+                            )}
+                          </button>
+                        </div>
                       </div>
-                    ))
+                    );
+                  })
                   )}
                 </div>
               </div>

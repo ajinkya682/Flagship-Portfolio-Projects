@@ -37,7 +37,7 @@ export default function JobDetailPage() {
   const jobId = params?.id as string
   const [activeTab, setActiveTab] = useState('overview')
 
-  const { jobs, updateJob } = useJobsStore()
+  const { jobs, updateJob, isLoading } = useJobsStore()
   const { candidates } = useCandidatesStore()
   
   const job = jobs.find(j => j.id === jobId)
@@ -67,6 +67,15 @@ export default function JobDetailPage() {
 
   const [statusToConfirm, setStatusToConfirm] = useState<string | null>(null)
   const [isUpdating, setIsUpdating] = useState(false)
+
+  if (isLoading && !job) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full gap-4">
+        <div className="w-[32px] h-[32px] rounded-full border-2 border-primary-200 border-t-primary-500 animate-spin" />
+        <p className="text-neutral-500 text-sm">Loading job details...</p>
+      </div>
+    )
+  }
 
   if (!job) {
     return (
