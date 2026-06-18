@@ -33,7 +33,9 @@ function InterviewCard({ data, candidate, isToday = false }: { data: any; candid
                   {candidate.name}
                 </h3>
                 <span className={`text-[10px] font-bold px-[6px] py-[2px] rounded-full uppercase tracking-wider ${
-                  data.status === 'completed' ? 'bg-emerald-50 text-emerald-700' : 'bg-blue-50 text-blue-700'
+                  data.status === 'completed' ? 'bg-emerald-50 text-emerald-700' : 
+                  data.status === 'missed' ? 'bg-red-50 text-red-700' :
+                  'bg-blue-50 text-blue-700'
                 }`}>
                   {data.status}
                 </span>
@@ -55,9 +57,14 @@ function InterviewCard({ data, candidate, isToday = false }: { data: any; candid
 
           {/* Right: Actions */}
           <div className="flex items-center gap-[8px] shrink-0 border-t border-neutral-50 pt-[12px] md:border-t-0 md:pt-0">
-            {data.status === 'scheduled' && isToday && (
+            {data.isJoinable && (
               <Link href={`/meet/${data.id}`} className="flex items-center gap-[6px] h-[34px] px-[14px] bg-blue-600 hover:bg-blue-700 text-white font-body text-[12px] font-semibold rounded-[8px] shadow-sm transition-colors">
                 <Play size={12} fill="currentColor" /> Join
+              </Link>
+            )}
+            {data.isMissed && (
+              <Link href={`/applications/${candidate.id}`} className="flex items-center gap-[6px] h-[34px] px-[14px] bg-neutral-100 hover:bg-neutral-200 text-neutral-700 border border-neutral-300 font-body text-[12px] font-semibold rounded-[8px] transition-colors">
+                <Calendar size={13} /> Reschedule
               </Link>
             )}
             {data.status === 'completed' && data.scorecardStatus === 'pending' && (
@@ -94,10 +101,17 @@ export default function InterviewsPage() {
           const data = await res.json()
           const mapped = data.map((i: any) => {
             const dateObj = new Date(i.scheduledAt)
+            const durationMs = (i.duration || 45) * 60000
+            const endTime = new Date(dateObj.getTime() + durationMs)
+            const now = new Date()
+
             let dateStr = format(dateObj, 'MMM d, yyyy')
             if (isToday(dateObj)) dateStr = 'Today'
             else if (isTomorrow(dateObj)) dateStr = 'Tomorrow'
             else if (isYesterday(dateObj)) dateStr = 'Yesterday'
+            
+            const isMissed = i.status === 'scheduled' && now > endTime
+            const isJoinable = i.status === 'scheduled' && now >= dateObj && now <= endTime
 
             return {
               id: i._id,
@@ -109,9 +123,11 @@ export default function InterviewsPage() {
               duration: `${i.duration}m`,
               type: i.locationType === 'phone' ? 'Phone' : 'Video',
               interviewer: 'Alex M.',
-              status: i.status,
+              status: isMissed ? 'missed' : i.status,
               scorecardStatus: i.scorecards && i.scorecards.length > 0 ? 'submitted' : 'pending',
-              rating: null
+              rating: null,
+              isJoinable,
+              isMissed
             }
           })
           setInterviews(mapped)
@@ -125,9 +141,10 @@ export default function InterviewsPage() {
     fetchInterviews()
   }, [])
 
-  const todayInterviews = interviews.filter(i => i.date === 'Today')
-  const upcomingInterviews = interviews.filter(i => i.date !== 'Today' && i.date !== 'Yesterday' && i.dateObj >= new Date() || i.date === 'Tomorrow' || i.status === 'scheduled' && i.date !== 'Today')
-  const pastInterviews = interviews.filter(i => i.date === 'Yesterday' || i.status === 'completed' && i.date !== 'Today' || i.dateObj < new Date() && i.date !== 'Today')
+  const todayInterviews = interviews.filter(i => i.date === 'Today' && !i.isMissed && i.status !== 'completed')
+  const upcomingInterviews = interviews.filter(i => (i.dateObj > new Date() || i.date === 'Tomorrow') && i.status === 'scheduled' && i.date !== 'Today')
+  const missedInterviews = interviews.filter(i => i.isMissed)
+  const pastInterviews = interviews.filter(i => i.status === 'completed')
 
   return (
     <div className="flex flex-col h-full -mx-[16px] md:-mx-[32px] -mt-[16px] md:-mt-[32px] bg-neutral-50/50 min-h-screen">
@@ -223,11 +240,30 @@ export default function InterviewsPage() {
               </section>
             )}
 
-            {/* Past */}
+            {/* Missed */}
+            {missedInterviews.length > 0 && (
+              <section>
+                <div className="flex items-center gap-[10px] mb-[16px]">
+                  <h2 className="font-display text-[18px] font-bold text-neutral-900">Missed</h2>
+                </div>
+                <div className="flex flex-col gap-[12px]">
+                  {missedInterviews.map((int, i) => (
+                    <div key={int.id}>
+                      {(i === 0 || missedInterviews[i-1].date !== int.date) && (
+                        <p className="font-body text-[12px] font-semibold text-neutral-500 mb-[8px] ml-[4px]">{int.date}</p>
+                      )}
+                      <InterviewCard data={int} candidate={int.candidate} />
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Past / Completed */}
             {pastInterviews.length > 0 && (
               <section>
                 <div className="flex items-center gap-[10px] mb-[16px]">
-                  <h2 className="font-display text-[18px] font-bold text-neutral-900">Past</h2>
+                  <h2 className="font-display text-[18px] font-bold text-neutral-900">Completed</h2>
                 </div>
                 <div className="flex flex-col gap-[12px]">
                   {pastInterviews.map((int, i) => (
