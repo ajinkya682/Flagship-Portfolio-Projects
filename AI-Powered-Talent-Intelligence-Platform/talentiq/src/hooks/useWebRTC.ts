@@ -26,6 +26,8 @@ export function useWebRTC({ roomId, userId, hasJoined }: WebRTCProps) {
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
   const lastPollRef = useRef<number>(Date.now() - 60000); // Look back 1 minute for initial connect
   const listenersRef = useRef<Record<string, Function[]>>({});
+  const processedSignals = useRef<Set<string>>(new Set());
+  const pendingIceCandidates = useRef<RTCIceCandidateInit[]>([]);
   
   // Mock socket interface for page.tsx compatibility
   const mockSocket = useRef({
@@ -60,7 +62,7 @@ export function useWebRTC({ roomId, userId, hasJoined }: WebRTCProps) {
 
     const pollInterval = setInterval(async () => {
       try {
-        const res = await fetch(`/api/interviews/room/${roomId}/signal?since=${lastPollRef.current}`);
+        const res = await fetch(`/api/interviews/room/${roomId}/signal?since=${lastPollRef.current - 5000}`); // Look back 5s for overlapping signals
         if (!res.ok) return;
         const signals = await res.json();
         
@@ -68,6 +70,9 @@ export function useWebRTC({ roomId, userId, hasJoined }: WebRTCProps) {
           lastPollRef.current = new Date(signals[signals.length - 1].createdAt).getTime();
 
           for (const signal of signals) {
+            if (processedSignals.current.has(signal._id)) continue;
+            processedSignals.current.add(signal._id);
+
             if (signal.senderId === userId) continue; // Skip our own signals
             
             // Dispatch to registered mockSocket listeners
@@ -87,19 +92,31 @@ export function useWebRTC({ roomId, userId, hasJoined }: WebRTCProps) {
               const answer = await peerConnection.createAnswer();
               await peerConnection.setLocalDescription(answer);
               mockSocket.current.emit('answer', { target: signal.payload.caller, caller: userId, sdp: answer });
+
+              for (const c of pendingIceCandidates.current) {
+                try { await peerConnection.addIceCandidate(new RTCIceCandidate(c)); } catch (e) { console.error(e) }
+              }
+              pendingIceCandidates.current = [];
             }
             else if (signal.type === 'answer' && signal.payload.target === userId) {
-              if (peerConnectionRef.current) {
+              if (peerConnectionRef.current && peerConnectionRef.current.signalingState !== 'stable') {
                 await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(signal.payload.sdp));
+
+                for (const c of pendingIceCandidates.current) {
+                  try { await peerConnectionRef.current.addIceCandidate(new RTCIceCandidate(c)); } catch (e) { console.error(e) }
+                }
+                pendingIceCandidates.current = [];
               }
             }
             else if (signal.type === 'ice-candidate' && signal.payload.target === userId) {
-              if (peerConnectionRef.current) {
+              if (peerConnectionRef.current && peerConnectionRef.current.remoteDescription) {
                 try {
                   await peerConnectionRef.current.addIceCandidate(new RTCIceCandidate(signal.payload.candidate));
                 } catch (e) {
                   console.error('Error adding ICE candidate', e);
                 }
+              } else {
+                pendingIceCandidates.current.push(signal.payload.candidate);
               }
             }
             else if (signal.type === 'user-disconnected') {
@@ -108,6 +125,7 @@ export function useWebRTC({ roomId, userId, hasJoined }: WebRTCProps) {
                 peerConnectionRef.current.close();
                 peerConnectionRef.current = null;
               }
+              pendingIceCandidates.current = [];
             }
           }
         }
@@ -165,24 +183,76 @@ export function useWebRTC({ roomId, userId, hasJoined }: WebRTCProps) {
     return pc;
   };
 
-  const toggleMic = () => {
-    if (localStream) {
-      const audioTrack = localStream.getAudioTracks()[0];
-      if (audioTrack) {
-        audioTrack.enabled = !audioTrack.enabled;
-        setIsMuted(!audioTrack.enabled);
-        mockSocket.current.emit('toggle-media', { type: 'audio', isMuted: !audioTrack.enabled });
+  const toggleMic = async () => {
+    if (!isMuted) {
+      if (localStream) {
+        const audioTrack = localStream.getAudioTracks()[0];
+        if (audioTrack) {
+          audioTrack.stop();
+          localStream.removeTrack(audioTrack);
+        }
+      }
+      setIsMuted(true);
+      mockSocket.current.emit('toggle-media', { type: 'audio', isMuted: true });
+    } else {
+      try {
+        const newStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const newAudioTrack = newStream.getAudioTracks()[0];
+        
+        if (localStream) {
+          localStream.addTrack(newAudioTrack);
+        }
+        
+        if (peerConnectionRef.current) {
+          const sender = peerConnectionRef.current.getSenders().find(s => s.track?.kind === 'audio');
+          if (sender) {
+            sender.replaceTrack(newAudioTrack);
+          } else {
+            peerConnectionRef.current.addTrack(newAudioTrack, localStream!);
+          }
+        }
+        
+        setIsMuted(false);
+        mockSocket.current.emit('toggle-media', { type: 'audio', isMuted: false });
+      } catch (err) {
+        console.error('Error restarting audio', err);
       }
     }
   };
 
-  const toggleVideo = () => {
-    if (localStream) {
-      const videoTrack = localStream.getVideoTracks()[0];
-      if (videoTrack) {
-        videoTrack.enabled = !videoTrack.enabled;
-        setIsVideoOff(!videoTrack.enabled);
-        mockSocket.current.emit('toggle-media', { type: 'video', isVideoOff: !videoTrack.enabled });
+  const toggleVideo = async () => {
+    if (!isVideoOff) {
+      if (localStream) {
+        const videoTrack = localStream.getVideoTracks()[0];
+        if (videoTrack) {
+          videoTrack.stop();
+          localStream.removeTrack(videoTrack);
+        }
+      }
+      setIsVideoOff(true);
+      mockSocket.current.emit('toggle-media', { type: 'video', isVideoOff: true });
+    } else {
+      try {
+        const newStream = await navigator.mediaDevices.getUserMedia({ video: true });
+        const newVideoTrack = newStream.getVideoTracks()[0];
+        
+        if (localStream) {
+          localStream.addTrack(newVideoTrack);
+        }
+        
+        if (peerConnectionRef.current) {
+          const sender = peerConnectionRef.current.getSenders().find(s => s.track?.kind === 'video');
+          if (sender) {
+            sender.replaceTrack(newVideoTrack);
+          } else {
+            peerConnectionRef.current.addTrack(newVideoTrack, localStream!);
+          }
+        }
+        
+        setIsVideoOff(false);
+        mockSocket.current.emit('toggle-media', { type: 'video', isVideoOff: false });
+      } catch (err) {
+        console.error('Error restarting video', err);
       }
     }
   };
