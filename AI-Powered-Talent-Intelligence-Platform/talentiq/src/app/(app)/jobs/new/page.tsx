@@ -95,9 +95,10 @@ export default function NewJobPage() {
         ...prev,
         description: response.data.description
       }))
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to generate description', err)
-      setError('Failed to generate description. Please try again.')
+      const backendError = err.response?.data?.error || err.message;
+      setError(`Failed to generate description: ${backendError}`)
     } finally {
       setIsGenerating(false)
     }

@@ -53,7 +53,7 @@ CRITICAL INSTRUCTIONS FOR FORMATTING:
 - Keep it concise, around 150-200 words.`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-flash-latest',
+      model: 'gemini-2.5-flash',
       contents: prompt,
     });
 

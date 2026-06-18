@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import connectToDatabase from '@/core/database/mongoose';
 import { User } from '@/core/database/models/User';
+import { Company } from '@/core/database/models/Company';
 import { verifyAccessToken } from '@/core/auth/jwt';
 
 export async function GET(req: Request) {
