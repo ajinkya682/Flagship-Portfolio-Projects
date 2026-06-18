@@ -9,12 +9,16 @@ import api from '@/lib/api'
 export default function ApiSettingsPage() {
   const { user } = useCurrentUser()
 
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
+  const [savingGemini, setSavingGemini] = useState(false)
+  const [geminiError, setGeminiError] = useState<string | null>(null)
+  const [geminiSuccess, setGeminiSuccess] = useState(false)
 
-  const [apiKeys, setApiKeys] = useState({
-    geminiApiKey: '',
+  const [savingEmail, setSavingEmail] = useState(false)
+  const [emailError, setEmailError] = useState<string | null>(null)
+  const [emailSuccess, setEmailSuccess] = useState(false)
+
+  const [geminiKey, setGeminiKey] = useState('')
+  const [emailKeys, setEmailKeys] = useState({
     emailUser: '',
     clientId: '',
     clientSecret: '',
@@ -23,8 +27,8 @@ export default function ApiSettingsPage() {
 
   useEffect(() => {
     if (user?.company?.apiKeys) {
-      setApiKeys({
-        geminiApiKey: user.company.apiKeys.geminiApiKey || '',
+      setGeminiKey(user.company.apiKeys.geminiApiKey || '')
+      setEmailKeys({
         emailUser: user.company.apiKeys.emailUser || '',
         clientId: user.company.apiKeys.clientId || '',
         clientSecret: user.company.apiKeys.clientSecret || '',
@@ -33,22 +37,49 @@ export default function ApiSettingsPage() {
     }
   }, [user])
 
-  const handleSave = async (e: React.FormEvent) => {
+  const handleSaveGemini = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!user?.company?.id) return
 
-    setSaving(true)
-    setError(null)
-    setSuccess(false)
+    setSavingGemini(true)
+    setGeminiError(null)
+    setGeminiSuccess(false)
 
     try {
-      await api.patch(`/companies/\${user.company.id}`, { apiKeys })
-      setSuccess(true)
-      setTimeout(() => setSuccess(false), 3000)
+      const updatedKeys = { 
+        ...user.company.apiKeys, 
+        geminiApiKey: geminiKey 
+      }
+      await api.patch(`/companies/\${user.company.id}`, { apiKeys: updatedKeys })
+      setGeminiSuccess(true)
+      setTimeout(() => setGeminiSuccess(false), 3000)
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to save API keys')
+      setGeminiError(err.response?.data?.error || 'Failed to save Gemini API key')
     } finally {
-      setSaving(false)
+      setSavingGemini(false)
+    }
+  }
+
+  const handleSaveEmail = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!user?.company?.id) return
+
+    setSavingEmail(true)
+    setEmailError(null)
+    setEmailSuccess(false)
+
+    try {
+      const updatedKeys = { 
+        ...user.company.apiKeys, 
+        ...emailKeys 
+      }
+      await api.patch(`/companies/\${user.company.id}`, { apiKeys: updatedKeys })
+      setEmailSuccess(true)
+      setTimeout(() => setEmailSuccess(false), 3000)
+    } catch (err: any) {
+      setEmailError(err.response?.data?.error || 'Failed to save Email credentials')
+    } finally {
+      setSavingEmail(false)
     }
   }
 
@@ -59,20 +90,10 @@ export default function ApiSettingsPage() {
         <p className="font-body text-[14px] text-neutral-500 mt-[4px]">Configure external services by providing your own API credentials.</p>
       </div>
 
-      <form onSubmit={handleSave} className="flex flex-col gap-[32px]">
-        {error && (
-          <div className="p-[12px] bg-red-50 text-red-600 border border-red-100 rounded-[8px] text-[13px] font-body">
-            {error}
-          </div>
-        )}
-        {success && (
-          <div className="p-[12px] bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-[8px] text-[13px] font-body">
-            API keys saved successfully!
-          </div>
-        )}
-
+      <div className="flex flex-col gap-[32px]">
+        
         {/* AI Credentials */}
-        <div className="bg-white rounded-[16px] border border-neutral-100 shadow-sm overflow-hidden">
+        <form onSubmit={handleSaveGemini} className="bg-white rounded-[16px] border border-neutral-100 shadow-sm overflow-hidden">
           <div className="p-[24px] border-b border-neutral-100 bg-neutral-50/50 flex items-start justify-between gap-[16px]">
             <div className="flex gap-[16px]">
               <div className="w-[40px] h-[40px] bg-purple-50 rounded-[12px] flex items-center justify-center shrink-0">
@@ -96,21 +117,42 @@ export default function ApiSettingsPage() {
           </div>
           
           <div className="p-[24px]">
-            <div className="flex flex-col gap-[6px]">
+            {geminiError && (
+              <div className="mb-[16px] p-[12px] bg-red-50 text-red-600 border border-red-100 rounded-[8px] text-[13px] font-body">
+                {geminiError}
+              </div>
+            )}
+            {geminiSuccess && (
+              <div className="mb-[16px] p-[12px] bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-[8px] text-[13px] font-body">
+                Gemini API key saved successfully!
+              </div>
+            )}
+
+            <div className="flex flex-col gap-[6px] mb-[24px]">
               <label className="font-body text-[13px] font-semibold text-neutral-700">GEMINI_API_KEY</label>
               <input 
                 type="password" 
-                value={apiKeys.geminiApiKey}
-                onChange={e => setApiKeys({...apiKeys, geminiApiKey: e.target.value})}
+                value={geminiKey}
+                onChange={e => setGeminiKey(e.target.value)}
                 placeholder="AIzaSy..."
                 className="h-[40px] px-[12px] bg-white border border-neutral-200 rounded-[8px] text-[13px] focus:outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-500 font-mono" 
               />
             </div>
+            
+            <div className="flex justify-end">
+              <button 
+                type="submit" 
+                disabled={savingGemini} 
+                className="h-[36px] px-[16px] bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white font-body text-[13px] font-semibold rounded-[8px] transition-colors flex items-center gap-[6px]"
+              >
+                {savingGemini ? <LoadingSpinner size="sm" /> : <KeyRound size={14} />} Save AI Key
+              </button>
+            </div>
           </div>
-        </div>
+        </form>
 
         {/* Email Credentials */}
-        <div className="bg-white rounded-[16px] border border-neutral-100 shadow-sm overflow-hidden mb-[64px]">
+        <form onSubmit={handleSaveEmail} className="bg-white rounded-[16px] border border-neutral-100 shadow-sm overflow-hidden mb-[64px]">
           <div className="p-[24px] border-b border-neutral-100 bg-neutral-50/50 flex items-start justify-between gap-[16px]">
             <div className="flex gap-[16px]">
               <div className="w-[40px] h-[40px] bg-blue-50 rounded-[12px] flex items-center justify-center shrink-0">
@@ -134,6 +176,17 @@ export default function ApiSettingsPage() {
           </div>
           
           <div className="p-[24px] flex flex-col gap-[20px]">
+            {emailError && (
+              <div className="p-[12px] bg-red-50 text-red-600 border border-red-100 rounded-[8px] text-[13px] font-body">
+                {emailError}
+              </div>
+            )}
+            {emailSuccess && (
+              <div className="p-[12px] bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-[8px] text-[13px] font-body">
+                Email OAuth credentials saved successfully!
+              </div>
+            )}
+
             <div className="p-[16px] bg-blue-50 border border-blue-100 rounded-[12px]">
               <h4 className="font-body text-[13px] font-bold text-blue-900 mb-[8px]">How to configure Gmail OAuth:</h4>
               <ol className="list-decimal list-inside font-body text-[13px] text-blue-800 space-y-[4px]">
@@ -150,8 +203,8 @@ export default function ApiSettingsPage() {
                 <label className="font-body text-[13px] font-semibold text-neutral-700">Sender Email (EMAIL_USER)</label>
                 <input 
                   type="email" 
-                  value={apiKeys.emailUser}
-                  onChange={e => setApiKeys({...apiKeys, emailUser: e.target.value})}
+                  value={emailKeys.emailUser}
+                  onChange={e => setEmailKeys({...emailKeys, emailUser: e.target.value})}
                   placeholder="careers@yourcompany.com"
                   className="h-[40px] px-[12px] bg-white border border-neutral-200 rounded-[8px] text-[13px] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500" 
                 />
@@ -161,8 +214,8 @@ export default function ApiSettingsPage() {
                 <label className="font-body text-[13px] font-semibold text-neutral-700">Client ID (CLIENT_ID)</label>
                 <input 
                   type="text" 
-                  value={apiKeys.clientId}
-                  onChange={e => setApiKeys({...apiKeys, clientId: e.target.value})}
+                  value={emailKeys.clientId}
+                  onChange={e => setEmailKeys({...emailKeys, clientId: e.target.value})}
                   placeholder="123456789-abc.apps.googleusercontent.com"
                   className="h-[40px] px-[12px] bg-white border border-neutral-200 rounded-[8px] text-[13px] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 font-mono" 
                 />
@@ -172,8 +225,8 @@ export default function ApiSettingsPage() {
                 <label className="font-body text-[13px] font-semibold text-neutral-700">Client Secret (CLIENT_SECRET)</label>
                 <input 
                   type="password" 
-                  value={apiKeys.clientSecret}
-                  onChange={e => setApiKeys({...apiKeys, clientSecret: e.target.value})}
+                  value={emailKeys.clientSecret}
+                  onChange={e => setEmailKeys({...emailKeys, clientSecret: e.target.value})}
                   placeholder="GOCSPX-..."
                   className="h-[40px] px-[12px] bg-white border border-neutral-200 rounded-[8px] text-[13px] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 font-mono" 
                 />
@@ -183,27 +236,27 @@ export default function ApiSettingsPage() {
                 <label className="font-body text-[13px] font-semibold text-neutral-700">Refresh Token (REFRESH_TOKEN)</label>
                 <input 
                   type="password" 
-                  value={apiKeys.refreshToken}
-                  onChange={e => setApiKeys({...apiKeys, refreshToken: e.target.value})}
+                  value={emailKeys.refreshToken}
+                  onChange={e => setEmailKeys({...emailKeys, refreshToken: e.target.value})}
                   placeholder="1//0e..."
                   className="h-[40px] px-[12px] bg-white border border-neutral-200 rounded-[8px] text-[13px] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 font-mono" 
                 />
               </div>
             </div>
+
+            <div className="flex justify-end mt-[8px]">
+              <button 
+                type="submit" 
+                disabled={savingEmail} 
+                className="h-[36px] px-[16px] bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-body text-[13px] font-semibold rounded-[8px] transition-colors flex items-center gap-[6px]"
+              >
+                {savingEmail ? <LoadingSpinner size="sm" /> : <KeyRound size={14} />} Save Credentials
+              </button>
+            </div>
           </div>
-        </div>
-        
-        {/* Fixed Save Button */}
-        <div className="fixed bottom-[32px] right-[32px]">
-          <button 
-            type="submit" 
-            disabled={saving} 
-            className="h-[44px] px-[24px] bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-body text-[14px] font-semibold rounded-[12px] shadow-lg transition-colors flex items-center justify-center gap-[8px]"
-          >
-            {saving ? <LoadingSpinner size="sm" /> : <KeyRound size={16} />} Save Configurations
-          </button>
-        </div>
-      </form>
+        </form>
+
+      </div>
     </div>
   )
 }
