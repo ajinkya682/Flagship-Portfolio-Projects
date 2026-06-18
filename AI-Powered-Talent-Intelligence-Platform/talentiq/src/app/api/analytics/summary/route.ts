@@ -89,8 +89,8 @@ export async function GET(req: NextRequest) {
         stagesCount[app.stage]++;
       }
 
-      if (typeof app.aiScore === "number") {
-        sumAiScore += app.aiScore;
+      if (app.aiScore && typeof app.aiScore.score === "number") {
+        sumAiScore += app.aiScore.score;
         scoredCandidates++;
       }
     });
@@ -117,8 +117,17 @@ export async function GET(req: NextRequest) {
     const crossMatches: any[] = [];
     
     for (const job of jobs) {
-      const requiredSkills = [...(job.skills || []), ...(job.requirements || [])].join(" ").toLowerCase();
-      if (!requiredSkills) continue;
+      let requiredSkillsArr = [...(job.skills || []), ...(job.requirements || [])].map((s: string) => s.toLowerCase());
+      
+      // Fallback: If no explicit skills are defined for the job, use the job title as keywords
+      if (requiredSkillsArr.length === 0) {
+        const fillers = ["developer", "engineer", "intern", "senior", "junior", "lead", "manager", "software", "specialist", "enginer"];
+        const words = job.title.toLowerCase().split(/\s+/).filter((w: string) => w.length > 2);
+        requiredSkillsArr = words.filter(w => !fillers.includes(w));
+        if (requiredSkillsArr.length === 0) requiredSkillsArr = words;
+      }
+
+      if (requiredSkillsArr.length === 0) continue;
 
       // Candidates who applied to this job
       const appliedCandidateIds = new Set(
@@ -130,12 +139,13 @@ export async function GET(req: NextRequest) {
       for (const candidate of candidates) {
         if (appliedCandidateIds.has(candidate._id.toString())) continue;
         
-        const candidateSkills = candidate.extractedSkills || [];
+        const candidateSkills = (candidate.extractedSkills || []).map((s: string) => s.toLowerCase());
         if (candidateSkills.length === 0) continue;
 
-        const matchedSkills = candidateSkills.filter((s: string) => requiredSkills.includes(s.toLowerCase()));
-        const matchRatio = matchedSkills.length / Math.max(1, candidateSkills.length);
-        const matchScore = Math.round(matchRatio * 100);
+        const matchedKeywords = requiredSkillsArr.filter(r => candidateSkills.some(s => s.includes(r) || r.includes(s)));
+        
+        // Calculate match score based on job's required skills, capped at 100
+        const matchScore = Math.min(100, Math.round((matchedKeywords.length / requiredSkillsArr.length) * 100));
 
         if (matchScore >= 75) {
           // Find if candidate applied to any job to get 'originalJobTitle'
@@ -151,7 +161,7 @@ export async function GET(req: NextRequest) {
             matchedJobId: job._id,
             matchedJobTitle: job.title,
             matchScore,
-            matchedSkills: matchedSkills.slice(0, 5),
+            matchedSkills: candidateSkills.filter(s => matchedKeywords.some(r => s.includes(r) || r.includes(s))).slice(0, 5),
           });
         }
       }

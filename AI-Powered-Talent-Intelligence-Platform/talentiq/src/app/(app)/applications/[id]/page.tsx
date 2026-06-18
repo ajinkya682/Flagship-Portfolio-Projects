@@ -9,6 +9,7 @@ import {
   Code, GraduationCap, Search, ThumbsUp, ThumbsDown, Briefcase, Check, X
 } from 'lucide-react'
 import { useDomainStore } from '@/store/domain.store'
+import { useAuthStore } from '@/store/auth.store'
 import { useJobsStore } from '@/store/jobs.store'
 import { useCandidatesStore } from '@/store/candidates.store'
 import { v4 as uuidv4 } from 'uuid'
@@ -50,8 +51,9 @@ export default function ApplicationDetailPage() {
   const candidate = candidates.find(c => c.id === candidateId)
   const job = jobs.find(j => j.id === candidate?.jobId)
 
-  const { users, user } = useDomainStore()
-  const allTeamMembers = user ? (users.some(u => u.id === user.id) ? users : [user, ...users]) : users;
+  const { users } = useDomainStore()
+  const { user } = useAuthStore()
+  const allTeamMembers = user ? (users.some(u => u.id === user.id) ? users : [user as any, ...users]) : users;
   const currentAssigneeId = candidate?.assignedTo || user?.id;
   const currentAssignee = allTeamMembers.find(u => u.id === currentAssigneeId) || user;
 
