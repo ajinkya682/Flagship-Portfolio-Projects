@@ -53,7 +53,7 @@ function NavItem({ icon: Icon, label, href, isCollapsed, isActive, badge, isNew 
       href={href}
       title={isCollapsed ? label : undefined}
       className={cn(
-        'relative flex items-center gap-[10px] px-[10px] py-[8px] rounded-[10px] transition-all duration-200 group overflow-hidden',
+        'relative flex items-center shrink-0 gap-[10px] px-[10px] py-[8px] rounded-[10px] transition-all duration-200 group overflow-hidden',
         isActive
           ? 'bg-blue-50/80 text-blue-700 font-semibold'
           : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100/50 font-medium'
@@ -269,7 +269,7 @@ function SidebarContent({ isMobile = false }: { isMobile?: boolean }) {
       )}
 
       {/* NAVIGATION */}
-      <div className="relative z-10 flex-1 overflow-y-auto px-[12px] flex flex-col gap-[4px] pb-[20px] scrollbar-thin scrollbar-thumb-neutral-200 scrollbar-track-transparent">
+      <div className="relative z-10 flex-1 overflow-y-auto px-[12px] flex flex-col gap-[4px] pb-[20px] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         
         {/* Main group */}
         {!effectiveCollapsed && (
