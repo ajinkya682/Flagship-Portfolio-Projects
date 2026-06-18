@@ -5,6 +5,7 @@ import { HireLetter } from '@/core/database/models/HireLetter';
 import { Application } from '@/core/database/models/Application';
 import { Job } from '@/core/database/models/Job';
 import { Company } from '@/core/database/models/Company';
+import { verifyAccessToken } from '@/core/auth/jwt';
 
 export async function POST(
   req: NextRequest,
@@ -15,7 +16,13 @@ export async function POST(
     const { id } = params;
     console.log('Ensure Company is loaded:', Company.modelName);
 
-    const offer = await Offer.findById(id).populate({
+    let token = req.headers.get('authorization')?.split(' ')[1];
+    if (!token) token = req.headers.get('cookie')?.split(';').find(c => c.trim().startsWith('accessToken='))?.split('=')[1];
+    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    let decoded;
+    try { decoded = verifyAccessToken(token) as any; } catch (e) { return NextResponse.json({ error: 'Invalid token' }, { status: 401 }); }
+
+    const offer = await Offer.findOne({ _id: id, companyId: decoded.companyId }).populate({
       path: 'job',
       populate: { path: 'company' }
     });
@@ -43,6 +50,7 @@ export async function POST(
 
     // Create a new HireLetter based on the offer details
     const hireLetter = new HireLetter({
+      companyId: decoded.companyId,
       applicationId: application._id,
       candidateId: offer.candidate,
       jobId: jobDoc?._id || offer.job, // Use jobDoc._id explicitly
