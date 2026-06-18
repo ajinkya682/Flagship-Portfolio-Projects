@@ -1,8 +1,15 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { UserPlus, MoreVertical, Shield, Mail, Check, X, Plus } from 'lucide-react'
+import { UserPlus, MoreVertical, Shield, Mail, Check, X, Plus, Edit, Trash2, UserX, UserCheck } from 'lucide-react'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
 interface User {
   id: string
@@ -11,7 +18,8 @@ interface User {
   role: string
   avatar: string
   lastActiveAt?: string
-  createdAt?: string
+  createdAt: string
+  isActive: boolean
 }
 
 export default function TeamMembersPage() {
@@ -22,6 +30,10 @@ export default function TeamMembersPage() {
   const [isInviting, setIsInviting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+
+  const [userToEdit, setUserToEdit] = useState<User | null>(null)
+  const [isUpdating, setIsUpdating] = useState(false)
+  const [editError, setEditError] = useState<string | null>(null)
 
   const fetchUsers = async () => {
     try {
@@ -57,17 +69,15 @@ export default function TeamMembersPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, role })
       })
+
       if (!res.ok) {
-        const errorData = await res.json()
-        throw new Error(errorData.error || 'Failed to invite user')
+        const data = await res.json()
+        throw new Error(data.error || 'Failed to invite user')
       }
-      const newUser = await res.json()
-      setUsers([newUser, ...users])
+
       setSuccess(true)
-      setTimeout(() => {
-        setSuccess(false)
-        setShowInviteModal(false)
-      }, 1500)
+      fetchUsers()
+      setTimeout(() => setShowInviteModal(false), 2000)
     } catch (err: any) {
       setError(err.message)
     } finally {
@@ -75,12 +85,66 @@ export default function TeamMembersPage() {
     }
   }
 
-  const formatJoined = (dateStr?: string) => {
-    if (!dateStr) return 'Just now'
-    const date = new Date(dateStr)
+  const handleEditUser = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    if (!userToEdit) return
+    setIsUpdating(true)
+    setEditError(null)
+
+    const formData = new FormData(e.currentTarget)
+    const name = formData.get('name') as string
+    const email = formData.get('email') as string
+    const role = formData.get('role') as string
+
+    try {
+      const res = await fetch(`/api/users/${userToEdit.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, role })
+      })
+
+      if (!res.ok) throw new Error('Failed to update user')
+      
+      setUserToEdit(null)
+      fetchUsers()
+    } catch (err: any) {
+      setEditError(err.message)
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  const handleToggleStatus = async (user: User) => {
+    try {
+      await fetch(`/api/users/${user.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isActive: !user.isActive })
+      })
+      fetchUsers()
+    } catch (error) {
+      console.error('Failed to toggle status', error)
+    }
+  }
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to permanently delete this user?')) return
+    try {
+      await fetch(`/api/users/${id}`, {
+        method: 'DELETE'
+      })
+      fetchUsers()
+    } catch (error) {
+      console.error('Failed to delete user', error)
+    }
+  }
+
+  const formatJoined = (dateString?: string) => {
+    if (!dateString) return 'Just now'
+    const date = new Date(dateString)
     const now = new Date()
-    const diffMs = now.getTime() - date.getTime()
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+    const diffTime = Math.abs(now.getTime() - date.getTime())
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
     
     if (diffDays === 0) return 'Just now'
     if (diffDays === 1) return '1 day ago'
@@ -89,10 +153,8 @@ export default function TeamMembersPage() {
   }
 
   return (
-    <div className="flex flex-col gap-[32px] max-w-[1000px] mb-[64px]">
-      
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-[16px]">
+    <div className="flex flex-col gap-[32px] w-full max-w-full mb-[64px]">
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="font-display text-[26px] font-bold text-neutral-900 tracking-tight">Team Members</h1>
           <p className="font-body text-[14px] text-neutral-500 mt-[4px]">Manage access and roles for your recruiting team.</p>
@@ -106,9 +168,9 @@ export default function TeamMembersPage() {
       </div>
 
       {/* Main Users Table */}
-      <div className="bg-white rounded-[16px] border border-neutral-200 shadow-sm overflow-hidden flex flex-col">
+      <div className="bg-white rounded-[16px] border border-neutral-200 shadow-sm overflow-hidden flex flex-col w-full">
         <div className="w-full overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[800px]">
+          <table className="w-full text-left border-collapse min-w-[600px]">
             <thead>
               <tr className="border-b border-neutral-100 bg-white">
                 <th className="font-body text-[11px] font-bold text-neutral-500 tracking-wider uppercase py-[16px] px-[24px]">USER</th>
@@ -132,79 +194,199 @@ export default function TeamMembersPage() {
                   </td>
                 </tr>
               ) : (
-                users.map((member) => (
-                  <tr key={member.id} className="hover:bg-neutral-50/50 transition-colors">
-                    
-                    {/* USER COLUMN */}
-                    <td className="py-[16px] px-[24px]">
-                      <div className="flex items-center gap-[12px]">
-                        {member.avatar ? (
-                          <img 
-                            src={member.avatar} 
-                            alt={member.name} 
-                            className="w-[36px] h-[36px] rounded-full object-cover border border-neutral-200 shadow-sm shrink-0" 
-                          />
-                        ) : (
-                          <div className="w-[36px] h-[36px] rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-                            <span className="font-display text-[14px] font-bold text-blue-700 uppercase">
-                              {member.name.charAt(0)}
+                users.map((member, index) => {
+                  // Lock the very first admin as the account creator
+                  const isAccountCreator = index === 0 && member.role === 'admin'
+
+                  return (
+                    <tr key={member.id} className="hover:bg-neutral-50/50 transition-colors">
+                      {/* USER COLUMN */}
+                      <td className="py-[16px] px-[24px]">
+                        <div className="flex items-center gap-[12px]">
+                          {member.avatar ? (
+                            <img 
+                              src={member.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&background=random`} 
+                              alt={member.name} 
+                              className="w-[36px] h-[36px] rounded-full object-cover border border-neutral-200 shadow-sm shrink-0" 
+                            />
+                          ) : (
+                            <div className="w-[36px] h-[36px] rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                              <span className="font-display text-[14px] font-bold text-blue-700 uppercase">
+                                {member.name.charAt(0)}
+                              </span>
+                            </div>
+                          )}
+                          <div className="flex flex-col min-w-0 max-w-[150px] sm:max-w-[200px] md:max-w-[300px]">
+                            <span className="font-body text-[14px] font-bold text-neutral-900 truncate">{member.name}</span>
+                            <span className="font-body text-[13px] text-neutral-500 truncate">
+                              {member.email}
                             </span>
                           </div>
-                        )}
-                        <div className="flex flex-col min-w-0">
-                          <span className="font-body text-[14px] font-bold text-neutral-900 truncate">{member.name}</span>
-                          <span className="font-body text-[13px] text-neutral-500 truncate">
-                            {member.email}
-                          </span>
                         </div>
-                      </div>
-                    </td>
+                      </td>
 
-                    {/* ROLE COLUMN */}
-                    <td className="py-[16px] px-[24px]">
-                      <select 
-                        defaultValue={member.role}
-                        className="h-[32px] px-[12px] bg-white border border-neutral-200 rounded-[6px] text-[13px] font-medium text-neutral-700 hover:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-colors cursor-pointer"
-                      >
-                        <option value="admin">Admin</option>
-                        <option value="hiring-manager">Hiring Manager</option>
-                        <option value="recruiter">Recruiter</option>
-                        <option value="viewer">Viewer</option>
-                      </select>
-                    </td>
+                      {/* ROLE COLUMN */}
+                      <td className="py-[16px] px-[24px]">
+                        <span className="font-body text-[13px] font-medium text-neutral-700 capitalize">
+                          {member.role.replace('-', ' ')}
+                        </span>
+                      </td>
 
-                    {/* STATUS COLUMN */}
-                    <td className="py-[16px] px-[24px]">
-                      <span className="inline-flex items-center px-[8px] py-[2px] rounded-full bg-[#D1FAE5] text-[#065F46] text-[10px] font-bold uppercase tracking-wider">
-                        ACTIVE
-                      </span>
-                    </td>
+                      {/* STATUS COLUMN */}
+                      <td className="py-[16px] px-[24px]">
+                        {member.isActive ? (
+                          <span className="inline-flex items-center px-[8px] py-[2px] rounded-full bg-[#D1FAE5] text-[#065F46] text-[10px] font-bold uppercase tracking-wider">
+                            ACTIVE
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-[8px] py-[2px] rounded-full bg-neutral-100 text-neutral-500 text-[10px] font-bold uppercase tracking-wider">
+                            DEACTIVATED
+                          </span>
+                        )}
+                      </td>
 
-                    {/* JOINED COLUMN */}
-                    <td className="py-[16px] px-[24px]">
-                      <span className="font-body text-[13px] text-neutral-500">
-                        {formatJoined(member.createdAt)}
-                      </span>
-                    </td>
+                      {/* JOINED COLUMN */}
+                      <td className="py-[16px] px-[24px]">
+                        <span className="font-body text-[13px] text-neutral-500 whitespace-nowrap">
+                          {formatJoined(member.createdAt)}
+                        </span>
+                      </td>
 
-                    {/* ACTIONS COLUMN */}
-                    <td className="py-[16px] px-[24px] text-right">
-                      <div className="flex items-center justify-end gap-[16px]">
-                        <button className="font-body text-[13px] text-neutral-600 hover:text-neutral-900 font-medium transition-colors">
-                          Edit
-                        </button>
-                        <button className="font-body text-[13px] text-red-500 hover:text-red-700 font-medium transition-colors">
-                          Deactivate
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                      {/* ACTIONS COLUMN */}
+                      <td className="py-[16px] px-[24px] text-right">
+                        {isAccountCreator ? (
+                          <span className="text-[12px] font-medium text-neutral-400 italic">Account Creator</span>
+                        ) : (
+                          <div className="flex justify-end">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <button className="w-[32px] h-[32px] flex items-center justify-center rounded-[8px] hover:bg-neutral-100 text-neutral-500 transition-colors">
+                                  <MoreVertical size={16} />
+                                </button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-[180px] bg-white rounded-[12px] shadow-lg border border-neutral-100 p-[4px] font-body">
+                                <DropdownMenuItem 
+                                  onClick={() => setUserToEdit(member)}
+                                  className="flex items-center gap-[8px] px-[12px] py-[8px] text-[13px] text-neutral-700 hover:bg-neutral-50 rounded-[6px] cursor-pointer outline-none transition-colors"
+                                >
+                                  <Edit size={14} className="text-neutral-400" /> Edit User
+                                </DropdownMenuItem>
+                                
+                                <DropdownMenuItem 
+                                  onClick={() => handleToggleStatus(member)}
+                                  className="flex items-center gap-[8px] px-[12px] py-[8px] text-[13px] text-neutral-700 hover:bg-neutral-50 rounded-[6px] cursor-pointer outline-none transition-colors"
+                                >
+                                  {member.isActive ? (
+                                    <><UserX size={14} className="text-neutral-400" /> Deactivate</>
+                                  ) : (
+                                    <><UserCheck size={14} className="text-neutral-400" /> Activate</>
+                                  )}
+                                </DropdownMenuItem>
+                                
+                                <DropdownMenuSeparator className="bg-neutral-100 h-[1px] my-[2px]" />
+                                
+                                <DropdownMenuItem 
+                                  onClick={() => handleDelete(member.id)}
+                                  className="flex items-center gap-[8px] px-[12px] py-[8px] text-[13px] text-red-600 hover:bg-red-50 rounded-[6px] cursor-pointer outline-none transition-colors"
+                                >
+                                  <Trash2 size={14} /> Delete User
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  )
+                })
               )}
             </tbody>
           </table>
         </div>
       </div>
+
+      {/* Edit User Modal */}
+      {userToEdit && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-[24px] bg-neutral-900/50 backdrop-blur-sm">
+          <div className="bg-white rounded-[16px] shadow-xl w-full max-w-[400px] overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center justify-between p-[24px] border-b border-neutral-100">
+              <div>
+                <h3 className="font-display text-[18px] font-bold text-neutral-900">Edit User</h3>
+                <p className="font-body text-[13px] text-neutral-500 mt-[2px]">Update user details.</p>
+              </div>
+              <button 
+                onClick={() => setUserToEdit(null)}
+                className="w-[32px] h-[32px] flex items-center justify-center rounded-full text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            
+            <form onSubmit={handleEditUser} className="p-[24px] flex flex-col gap-[20px]">
+              {editError && (
+                <div className="p-[12px] bg-red-50 text-red-600 border border-red-100 rounded-[8px] text-[13px] font-body flex items-start gap-[8px]">
+                  <X size={16} className="shrink-0 mt-[2px]" />
+                  <span>{editError}</span>
+                </div>
+              )}
+
+              <div className="flex flex-col gap-[6px]">
+                <label className="font-body text-[13px] font-bold text-neutral-700">Full Name</label>
+                <input 
+                  name="name" 
+                  type="text" 
+                  defaultValue={userToEdit.name}
+                  required 
+                  className="h-[44px] px-[14px] bg-white border border-neutral-200 hover:border-neutral-300 rounded-[10px] text-[14px] font-body focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-colors" 
+                />
+              </div>
+              
+              <div className="flex flex-col gap-[6px]">
+                <label className="font-body text-[13px] font-bold text-neutral-700">Email Address</label>
+                <input 
+                  name="email" 
+                  type="email" 
+                  defaultValue={userToEdit.email}
+                  required 
+                  className="h-[44px] px-[14px] bg-white border border-neutral-200 hover:border-neutral-300 rounded-[10px] text-[14px] font-body focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-colors" 
+                />
+              </div>
+              
+              <div className="flex flex-col gap-[6px]">
+                <label className="font-body text-[13px] font-bold text-neutral-700">Role</label>
+                <select 
+                  name="role" 
+                  required
+                  defaultValue={userToEdit.role}
+                  className="h-[44px] px-[14px] bg-white border border-neutral-200 hover:border-neutral-300 rounded-[10px] text-[14px] font-body focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-colors cursor-pointer"
+                >
+                  <option value="admin">Admin - Full Access</option>
+                  <option value="hiring-manager">Hiring Manager</option>
+                  <option value="recruiter">Recruiter</option>
+                  <option value="viewer">Viewer - Read Only</option>
+                </select>
+              </div>
+
+              <div className="flex items-center justify-end gap-[12px] mt-[8px]">
+                <button 
+                  type="button"
+                  onClick={() => setUserToEdit(null)}
+                  className="h-[40px] px-[16px] text-neutral-600 hover:bg-neutral-100 rounded-[8px] text-[14px] font-medium font-body transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  disabled={isUpdating}
+                  className="h-[40px] px-[20px] bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-[8px] text-[14px] font-bold font-body transition-colors flex items-center justify-center shadow-sm"
+                >
+                  {isUpdating ? <LoadingSpinner size="sm" /> : 'Save Changes'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Invite Modal */}
       {showInviteModal && (

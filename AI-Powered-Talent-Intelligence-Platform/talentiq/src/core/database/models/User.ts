@@ -13,6 +13,7 @@ export interface IUser extends Document {
   hearAbout?: string;
   createdAt: Date;
   lastActiveAt: Date;
+  isActive: boolean;
   resetPasswordToken?: string;
   resetPasswordExpires?: Date;
 }
@@ -29,6 +30,7 @@ const UserSchema: Schema = new Schema({
   plan: { type: String, enum: ['starter', 'growth', 'enterprise'], default: 'starter' },
   hearAbout: { type: String },
   lastActiveAt: { type: Date, default: Date.now },
+  isActive: { type: Boolean, default: true },
   resetPasswordToken: { type: String },
   resetPasswordExpires: { type: Date }
 }, { timestamps: true });

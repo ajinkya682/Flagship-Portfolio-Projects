@@ -21,7 +21,9 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
-    const users = await User.find({ company: decoded.companyId }).select('-passwordHash -refreshTokens');
+    const users = await User.find({ company: decoded.companyId })
+      .select('-passwordHash -refreshTokens')
+      .sort({ createdAt: 1 });
 
     const formattedUsers = users.map(u => ({
       id: u._id.toString(),
@@ -30,7 +32,9 @@ export async function GET(req: Request) {
       role: u.role,
       avatar: u.avatar,
       company: u.company.toString(),
-      plan: u.plan
+      plan: u.plan,
+      createdAt: u.createdAt,
+      isActive: u.isActive !== false // defaults to true if not present
     }));
 
     return NextResponse.json(formattedUsers);
