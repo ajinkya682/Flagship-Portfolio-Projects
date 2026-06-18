@@ -21,11 +21,16 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     }
 
     const body = await req.json();
-    const { name, slug, logo } = body;
+    const { name, slug, logo, pipelineStages, ssoEnabled, apiKeys } = body;
 
-    const updateData: any = { name, slug };
-    if (logo !== undefined) {
-      updateData.logo = logo;
+    const updateData: any = {};
+    if (name !== undefined) updateData.name = name;
+    if (slug !== undefined) updateData.slug = slug;
+    if (logo !== undefined) updateData.logo = logo;
+    if (pipelineStages !== undefined) updateData.pipelineStages = pipelineStages;
+    if (ssoEnabled !== undefined) updateData.ssoEnabled = ssoEnabled;
+    if (apiKeys !== undefined) {
+      updateData.apiKeys = apiKeys;
     }
 
     const company = await Company.findByIdAndUpdate(

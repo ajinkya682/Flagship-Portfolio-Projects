@@ -63,6 +63,7 @@ export async function POST(req: Request) {
         name: user.name,
         email: user.email,
         role: user.role,
+        avatar: user.avatar,
         companyId: company._id,
         companyName: company.name,
         companySlug: company.slug,

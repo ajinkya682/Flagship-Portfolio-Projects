@@ -27,18 +27,20 @@ interface KanbanBoardProps {
   onStageChange?: (applicationId: string, newStage: string) => void
   onAddCandidate?: (stageName: string) => void
   filteredStages?: string[]
+  pipelineStages?: { id: string; name: string; color: string; order: number; isCore: boolean }[]
 }
 
-const STAGES = [
-  { name: 'Applied', color: '#94A3B8' },
-  { name: 'Screening', color: '#3B82F6' },
-  { name: 'Interview', color: '#8B5CF6' },
-  { name: 'Assessment', color: '#EC4899' },
-  { name: 'Offer', color: '#10B981' },
-  { name: 'Hired', color: '#059669' },
+const DEFAULT_STAGES = [
+  { id: 'applied', name: 'Applied', color: '#94A3B8', order: 0, isCore: true },
+  { id: 'screening', name: 'Screening', color: '#3B82F6', order: 1, isCore: false },
+  { id: 'interview', name: 'Interview', color: '#8B5CF6', order: 2, isCore: false },
+  { id: 'assessment', name: 'Assessment', color: '#EC4899', order: 3, isCore: false },
+  { id: 'offer', name: 'Offer', color: '#10B981', order: 4, isCore: false },
+  { id: 'hired', name: 'Hired', color: '#059669', order: 5, isCore: true },
 ]
 
-export default function KanbanBoard({ applications: initialApplications, jobId, onStageChange, onAddCandidate, filteredStages = [] }: KanbanBoardProps) {
+export default function KanbanBoard({ applications: initialApplications, jobId, onStageChange, onAddCandidate, filteredStages = [], pipelineStages }: KanbanBoardProps) {
+  const STAGES = pipelineStages || DEFAULT_STAGES;
   const [applications, setApplications] = useState<Application[]>(initialApplications)
   const [activeId, setActiveId] = useState<string | null>(null)
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null)

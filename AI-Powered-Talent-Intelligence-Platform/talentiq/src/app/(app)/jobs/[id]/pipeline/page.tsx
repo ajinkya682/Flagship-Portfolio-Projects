@@ -9,7 +9,10 @@ import { useState, useMemo } from 'react'
 import dynamic from 'next/dynamic'
 import { useJobsStore } from '@/store/jobs.store'
 import { useCandidatesStore } from '@/store/candidates.store'
+import { useCurrentUser } from '@/hooks/useCurrentUser'
 import AddCandidateModal from '@/components/pipeline/AddCandidateModal'
+
+import { Application } from '@/types/domain.types'
 
 const KanbanBoard = dynamic(() => import('@/components/kanban/KanbanBoard'), { ssr: false })
 
@@ -19,6 +22,8 @@ export default function JobPipelinePage() {
 
   const { jobs } = useJobsStore()
   const { candidates, moveCandidateStage } = useCandidatesStore()
+  const { user } = useCurrentUser()
+  const pipelineStages = user?.company?.pipelineStages
 
   const job = jobs.find(j => j.id === jobId)
 
@@ -38,7 +43,7 @@ export default function JobPipelinePage() {
   }
 
   // Map store candidates to the Application format expected by KanbanBoard
-  const jobApplications = useMemo(() => {
+  const jobApplications: Application[] = useMemo(() => {
     if (!job) return []
     return candidates
       .filter(c => c.jobId === jobId)
@@ -46,14 +51,15 @@ export default function JobPipelinePage() {
       .filter(c => {
         if (filters.source && c.source !== filters.source) return false
         if (c.aiScore < filters.scoreRange[0] || c.aiScore > filters.scoreRange[1]) return false
+        if (filters.stages.length > 0 && !filters.stages.includes(c.stage)) return false
         if (filters.search && !c.name.toLowerCase().includes(filters.search.toLowerCase())) return false
         return true
       })
       .map(c => ({
         id: c.id,
         jobId: c.jobId,
-        job: job,
-        candidate: c,
+        job: job as any,
+        candidate: c as any,
         stage: c.stage,
         aiScore: c.aiScore,
         appliedAt: c.appliedAt,
@@ -63,7 +69,7 @@ export default function JobPipelinePage() {
         assignedTo: undefined,
         daysInStage: c.daysInStage,
         timeline: c.timeline
-      }))
+      } as unknown as Application))
   }, [candidates, jobId, filters, job])
 
   if (!job) {
@@ -94,13 +100,16 @@ export default function JobPipelinePage() {
         </div>
       </div>
 
-      <FilterBar filters={filters} onFiltersChange={setFilters} />
+      <FilterBar filters={filters} onFiltersChange={setFilters} pipelineStages={pipelineStages} />
 
       {/* Kanban Board Area */}
       <KanbanBoard 
-        applications={jobApplications as any} 
-        jobId={jobId} 
-        onStageChange={(appId, newStage) => moveCandidateStage(appId, newStage)}
+        applications={jobApplications} 
+        jobId={jobId}
+        pipelineStages={pipelineStages}
+        onStageChange={(appId, newStage) => {
+          moveCandidateStage(appId, newStage)
+        }}
         onAddCandidate={handleAddCandidate}
         filteredStages={filters.stages}
       />

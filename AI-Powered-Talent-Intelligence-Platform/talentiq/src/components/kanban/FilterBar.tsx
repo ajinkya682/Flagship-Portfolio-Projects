@@ -16,9 +16,10 @@ interface FilterBarProps {
   filters: FiltersState
   onFiltersChange: (newFilters: FiltersState) => void
   jobs?: any[]
+  pipelineStages?: { name: string; id: string }[]
 }
 
-export default function FilterBar({ filters, onFiltersChange, jobs }: FilterBarProps) {
+export default function FilterBar({ filters, onFiltersChange, jobs, pipelineStages = [] }: FilterBarProps) {
   const hasFilters = filters.source !== '' || filters.scoreRange[0] > 0 || filters.scoreRange[1] < 100 || filters.stages.length > 0 || filters.search !== '' || (filters.jobId && filters.jobId !== '')
 
   const handleClear = () => {
@@ -77,12 +78,18 @@ export default function FilterBar({ filters, onFiltersChange, jobs }: FilterBarP
           className="h-[36px] w-[180px] rounded-md border border-neutral-200 px-[12px] font-body text-[13px] focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 bg-white"
         >
           <option value="">All Stages</option>
-          <option value="Applied">Applied</option>
-          <option value="Screening">Screening</option>
-          <option value="Interview">Interview</option>
-          <option value="Assessment">Assessment</option>
-          <option value="Offer">Offer</option>
-          <option value="Hired">Hired</option>
+          {pipelineStages.length > 0 ? pipelineStages.map(stage => (
+            <option key={stage.id} value={stage.name}>{stage.name}</option>
+          )) : (
+            <>
+              <option value="Applied">Applied</option>
+              <option value="Screening">Screening</option>
+              <option value="Interview">Interview</option>
+              <option value="Assessment">Assessment</option>
+              <option value="Offer">Offer</option>
+              <option value="Hired">Hired</option>
+            </>
+          )}
         </select>
 
         <div className="relative">

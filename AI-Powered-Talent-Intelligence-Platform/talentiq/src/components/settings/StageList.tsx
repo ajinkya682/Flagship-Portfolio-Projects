@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import {
   DndContext,
   closestCenter,
@@ -18,20 +17,22 @@ import {
 } from '@dnd-kit/sortable'
 import StageRow from './StageRow'
 
-interface Stage {
+export interface Stage {
   id: string
   name: string
-  isDefault: boolean
+  isCore: boolean
   color: string
+  order: number
 }
 
 interface StageListProps {
-  initialStages: Stage[]
+  stages: Stage[]
+  setStages: (stages: Stage[]) => void
+  onUpdateStage: (id: string, field: keyof Stage, value: any) => void
+  onDeleteStage: (id: string) => void
 }
 
-export default function StageList({ initialStages }: StageListProps) {
-  const [stages, setStages] = useState<Stage[]>(initialStages)
-
+export default function StageList({ stages, setStages, onUpdateStage, onDeleteStage }: StageListProps) {
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -43,12 +44,11 @@ export default function StageList({ initialStages }: StageListProps) {
     const { active, over } = event
 
     if (active.id !== over?.id) {
-      setStages((items) => {
-        const oldIndex = items.findIndex(item => item.id === active.id)
-        const newIndex = items.findIndex(item => item.id === over?.id)
-        
-        return arrayMove(items, oldIndex, newIndex)
-      })
+      const oldIndex = stages.findIndex(item => item.id === active.id)
+      const newIndex = stages.findIndex(item => item.id === over?.id)
+      
+      const newStages = arrayMove(stages, oldIndex, newIndex).map((s, i) => ({ ...s, order: i }))
+      setStages(newStages)
     }
   }
 
@@ -68,8 +68,10 @@ export default function StageList({ initialStages }: StageListProps) {
               key={stage.id} 
               id={stage.id}
               name={stage.name}
-              isDefault={stage.isDefault}
+              isCore={stage.isCore}
               color={stage.color}
+              onUpdate={(field, value) => onUpdateStage(stage.id, field as keyof Stage, value)}
+              onDelete={() => onDeleteStage(stage.id)}
             />
           ))}
         </div>

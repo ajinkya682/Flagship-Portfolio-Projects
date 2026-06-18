@@ -40,6 +40,7 @@ export async function GET(req: Request) {
         name: user.name,
         email: user.email,
         role: user.role,
+        avatar: user.avatar,
         companyId: companyIdStr,
         companyName: company?.name || 'TalentIQ Demo',
         companySlug: company?.slug || 'talentiq-demo',

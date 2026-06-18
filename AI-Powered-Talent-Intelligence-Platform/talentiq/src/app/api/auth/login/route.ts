@@ -68,6 +68,7 @@ export async function POST(req: Request) {
         name: user.name,
         email: user.email,
         role: user.role,
+        avatar: user.avatar,
         companyId: companyIdStr,
         companyName: (user.company as any).name || 'TalentIQ Demo',
         companySlug: (user.company as any).slug || 'talentiq-demo',

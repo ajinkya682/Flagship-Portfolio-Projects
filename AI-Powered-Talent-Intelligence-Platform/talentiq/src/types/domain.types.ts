@@ -11,6 +11,20 @@ export interface Company {
   careerPageUrl: string
   subdomain: string
   slug: string
+  pipelineStages?: { id: string; name: string; color: string; order: number; isCore: boolean }[]
+  ssoEnabled?: boolean
+  apiKeys?: {
+    geminiApiKey?: string
+    emailUser?: string
+    clientId?: string
+    clientSecret?: string
+    refreshToken?: string
+  }
+  billing?: {
+    plan?: string
+    status?: string
+    renewsAt?: string
+  }
 }
 
 // ── User ────────────────────────────────────────────────────────
