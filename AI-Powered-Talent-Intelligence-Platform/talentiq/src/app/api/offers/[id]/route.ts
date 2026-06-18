@@ -13,8 +13,6 @@ export async function PATCH(
     const body = await req.json();
     const { status } = body;
 
-    const { status } = body;
-
     let token = req.headers.get('authorization')?.split(' ')[1];
     if (!token) token = req.headers.get('cookie')?.split(';').find(c => c.trim().startsWith('accessToken='))?.split('=')[1];
     if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -45,8 +43,6 @@ export async function DELETE(
 ) {
   try {
     await connectToDatabase();
-    const { id } = params;
-
     const { id } = params;
 
     let token = req.headers.get('authorization')?.split(' ')[1];
