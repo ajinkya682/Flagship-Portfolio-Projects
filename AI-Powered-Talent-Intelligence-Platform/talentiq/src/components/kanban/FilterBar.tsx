@@ -9,22 +9,25 @@ export interface FiltersState {
   scoreRange: number[]
   stages: string[]
   search: string
+  jobId?: string
 }
 
 interface FilterBarProps {
   filters: FiltersState
   onFiltersChange: (newFilters: FiltersState) => void
+  jobs?: any[]
 }
 
-export default function FilterBar({ filters, onFiltersChange }: FilterBarProps) {
-  const hasFilters = filters.source !== '' || filters.scoreRange[0] > 0 || filters.scoreRange[1] < 100 || filters.stages.length > 0 || filters.search !== ''
+export default function FilterBar({ filters, onFiltersChange, jobs }: FilterBarProps) {
+  const hasFilters = filters.source !== '' || filters.scoreRange[0] > 0 || filters.scoreRange[1] < 100 || filters.stages.length > 0 || filters.search !== '' || (filters.jobId && filters.jobId !== '')
 
   const handleClear = () => {
     onFiltersChange({
       source: '',
       scoreRange: [0, 100],
       stages: [],
-      search: ''
+      search: '',
+      jobId: ''
     })
   }
 
@@ -32,16 +35,29 @@ export default function FilterBar({ filters, onFiltersChange }: FilterBarProps) 
     <div className="flex flex-col border-b border-[#E5E7EB] bg-white w-full">
       <div className="p-[16px] md:px-[32px] flex gap-[12px] flex-wrap items-center">
         
+        {jobs && jobs.length > 0 && (
+          <select 
+            value={filters.jobId || ''}
+            onChange={(e) => onFiltersChange({ ...filters, jobId: e.target.value })}
+            className="h-[36px] w-[160px] rounded-md border border-neutral-200 px-[12px] font-body text-[13px] focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 bg-white"
+          >
+            <option value="">All Jobs</option>
+            {jobs.map(job => (
+              <option key={job.id} value={job.id}>{job.title}</option>
+            ))}
+          </select>
+        )}
+
         <select 
           value={filters.source}
           onChange={(e) => onFiltersChange({ ...filters, source: e.target.value })}
           className="h-[36px] w-[140px] rounded-md border border-neutral-200 px-[12px] font-body text-[13px] focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 bg-white"
         >
           <option value="">All Sources</option>
-          <option value="linkedin">LinkedIn</option>
-          <option value="referral">Referral</option>
-          <option value="career-page">Career Page</option>
-          <option value="indeed">Indeed</option>
+          <option value="LinkedIn">LinkedIn</option>
+          <option value="Referral">Referral</option>
+          <option value="Career Site">Career Site</option>
+          <option value="Indeed">Indeed</option>
         </select>
 
         <div className="flex flex-col gap-[4px] w-[200px] border border-neutral-200 rounded-md px-[12px] py-[6px] justify-center bg-white h-[36px]">
@@ -92,6 +108,9 @@ export default function FilterBar({ filters, onFiltersChange }: FilterBarProps) 
 
       {hasFilters && (
         <div className="px-[16px] md:px-[32px] pb-[16px] pt-[4px] flex gap-[8px] flex-wrap">
+          {filters.jobId && jobs && (
+            <FilterChip label={`Job: ${jobs.find(j => j.id === filters.jobId)?.title || 'Unknown'}`} onRemove={() => onFiltersChange({ ...filters, jobId: '' })} />
+          )}
           {filters.source && (
             <FilterChip label={`Source: ${filters.source}`} onRemove={() => onFiltersChange({ ...filters, source: '' })} />
           )}

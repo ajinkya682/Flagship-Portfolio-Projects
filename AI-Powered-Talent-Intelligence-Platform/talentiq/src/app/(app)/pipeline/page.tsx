@@ -34,6 +34,7 @@ import InterviewBookingModal from '@/components/pipeline/InterviewBookingModal'
 import CreateOfferModal from '@/components/offers/CreateOfferModal'
 import AssignmentModal from '@/components/pipeline/AssignmentModal'
 import HireLetterModal from '@/components/pipeline/HireLetterModal'
+import FilterBar, { type FiltersState } from '@/components/kanban/FilterBar'
 
 const STAGE_CONFIG = [
   { id: 'Applied', name: 'Applied', color: '#94A3B8' },
@@ -212,8 +213,14 @@ function DroppableColumn({ stage, children, count, onAddCandidate }: { stage: an
 export default function PipelinePage() {
   const { jobs } = useJobsStore()
   const { candidates, moveCandidateStage } = useCandidatesStore()
-  const [search, setSearch] = useState('')
-  const [jobFilter, setJobFilter] = useState('All Jobs')
+  
+  const [filters, setFilters] = useState<FiltersState>({
+    source: '',
+    scoreRange: [0, 100],
+    stages: [],
+    search: '',
+    jobId: ''
+  })
   const [activeCandidate, setActiveCandidate] = useState<any>(null)
   const [bookingCandidate, setBookingCandidate] = useState<any>(null)
   const [offerCandidate, setOfferCandidate] = useState<any>(null)
@@ -223,13 +230,10 @@ export default function PipelinePage() {
   const [addModalStage, setAddModalStage] = useState('Applied')
   const [addModalJobId, setAddModalJobId] = useState('')
   
-  const JOBS = ['All Jobs', ...Array.from(new Set(jobs.map(j => j.title)))]
-
   const handleAddCandidate = (stageName: string) => {
     setAddModalStage(stageName)
-    if (jobFilter !== 'All Jobs') {
-      const selectedJob = jobs.find(j => j.title === jobFilter)
-      setAddModalJobId(selectedJob ? selectedJob.id : '')
+    if (filters.jobId) {
+      setAddModalJobId(filters.jobId)
     } else {
       setAddModalJobId('')
     }
@@ -296,38 +300,7 @@ export default function PipelinePage() {
         </div>
 
         {/* Filter Strip */}
-        <div className="flex flex-wrap items-center gap-[12px]">
-          <div className="relative">
-            <Search size={14} className="absolute left-[12px] top-1/2 -translate-y-1/2 text-neutral-400" />
-            <input
-              type="text"
-              placeholder="Search candidates..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="w-[240px] h-[36px] pl-[34px] pr-[12px] bg-neutral-50 border border-neutral-200 rounded-[8px] text-[13px] text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-primary-400 focus:bg-white transition-all"
-            />
-          </div>
-
-          <div className="h-[20px] w-[1px] bg-neutral-200 hidden md:block mx-[4px]" />
-
-          <div className="flex items-center gap-[6px]">
-            <span className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider hidden md:block">Job</span>
-            <div className="relative">
-              <select
-                value={jobFilter}
-                onChange={e => setJobFilter(e.target.value)}
-                className="appearance-none h-[36px] pl-[12px] pr-[32px] bg-white border border-neutral-200 text-neutral-700 text-[13px] font-semibold rounded-[8px] focus:outline-none focus:border-primary-400 transition-all cursor-pointer"
-              >
-                {JOBS.map(j => <option key={j} value={j}>{j}</option>)}
-              </select>
-              <ChevronDown size={14} className="absolute right-[12px] top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none" />
-            </div>
-          </div>
-
-          <button className="h-[36px] px-[12px] bg-white border border-neutral-200 text-neutral-600 font-body text-[13px] font-medium rounded-[8px] hover:bg-neutral-50 transition-colors flex items-center gap-[6px] ml-auto">
-            <Filter size={14} /> More Filters
-          </button>
-        </div>
+        <FilterBar filters={filters} onFiltersChange={setFilters} jobs={jobs} />
       </div>
 
       {/* Kanban Board Area */}
@@ -355,10 +328,16 @@ export default function PipelinePage() {
               {STAGE_CONFIG.map(stage => {
                 const stageCandidates = candidates.filter(c => c.stage === stage.name)
                 const visibleCandidates = stageCandidates.filter(c => {
-                  const matchSearch = c.name.toLowerCase().includes(search.toLowerCase()) || c.role.toLowerCase().includes(search.toLowerCase())
-                  const matchJob = jobFilter === 'All Jobs' || c.role === jobFilter
-                  return matchSearch && matchJob
+                  if (filters.search && !c.name.toLowerCase().includes(filters.search.toLowerCase()) && !c.role.toLowerCase().includes(filters.search.toLowerCase())) return false
+                  if (filters.jobId && c.jobId !== filters.jobId) return false
+                  if (filters.source && c.source !== filters.source) return false
+                  if (c.aiScore < filters.scoreRange[0] || c.aiScore > filters.scoreRange[1]) return false
+                  return true
                 })
+                
+                if (filters.stages.length > 0 && !filters.stages.includes(stage.name)) {
+                  return null;
+                }
 
                 return (
                   <DroppableColumn key={stage.id} stage={stage} count={visibleCandidates.length} onAddCandidate={handleAddCandidate}>
