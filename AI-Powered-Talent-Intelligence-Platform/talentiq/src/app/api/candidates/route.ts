@@ -200,7 +200,13 @@ export async function GET(req: Request) {
         daysInStage: app.daysInStage,
         appliedAt: app.appliedAt,
         notes: app.recruiterNotes || [],
-        timeline: [],
+        timeline: app.timeline && app.timeline.length > 0
+          ? app.timeline.map((t: any) => ({
+              event: t.event,
+              date: new Date(t.date).toLocaleDateString(),
+              type: t.type || 'stage',
+            }))
+          : [{ event: 'Applied via Career Site', date: new Date(app.appliedAt).toLocaleDateString(), type: 'applied' }],
         extractedSkills: c.extractedSkills || [],
         extractedCompanies: c.extractedCompanies || [],
         extractedEducation: c.extractedEducation || [],
