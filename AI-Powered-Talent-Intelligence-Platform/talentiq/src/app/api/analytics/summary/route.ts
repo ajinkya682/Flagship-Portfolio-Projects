@@ -5,7 +5,9 @@ import { AISummary } from "@/core/database/models/AISummary";
 import { Application } from "@/core/database/models/Application";
 import { Job } from "@/core/database/models/Job";
 import { Candidate } from "@/core/database/models/Candidate";
+import { Company } from "@/core/database/models/Company";
 import { ai } from "@/lib/gemini";
+import { verifyAccessToken } from '@/core/auth/jwt';
 
 function getMonday(d: Date) {
   const date = new Date(d);
@@ -18,6 +20,12 @@ export async function GET(req: NextRequest) {
   try {
     await connectToDatabase();
 
+    let token = req.headers.get('authorization')?.split(' ')[1];
+    if (!token) token = req.headers.get('cookie')?.split(';').find(c => c.trim().startsWith('accessToken='))?.split('=')[1];
+    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    let decoded;
+    try { decoded = verifyAccessToken(token) as any; } catch (e) { return NextResponse.json({ error: 'Invalid token' }, { status: 401 }); }
+
     const { searchParams } = new URL(req.url);
     const forceGenerate = searchParams.get("force") === "true";
 
@@ -28,6 +36,7 @@ export async function GET(req: NextRequest) {
     // Try to find existing summary for this week
     if (!forceGenerate) {
       const existingSummary = await AISummary.findOne({
+        companyId: decoded.companyId,
         weekOf: currentMonday,
       });
       if (existingSummary) {
@@ -38,15 +47,16 @@ export async function GET(req: NextRequest) {
     // --- Generate new analytics ---
 
     // 1. Gather pipeline stats
-    const applications = await Application.find()
+    const applications = await Application.find({ companyId: decoded.companyId })
       .populate("candidate")
       .populate("job")
       .lean();
 
     const jobs = await Job.find({
+      company: decoded.companyId,
       status: { $in: ["published", "active"] },
     }).lean();
-    const candidates = await Candidate.find().lean();
+    const candidates = await Candidate.find({ companyId: decoded.companyId }).lean();
 
     const totalCandidates = candidates.length;
     let totalHired = 0;
@@ -104,44 +114,40 @@ export async function GET(req: NextRequest) {
     );
 
     // 2. Cross-job Matching Logic
-    // Find stalled/rejected candidates to match with open jobs
-    const stalledApps = applications.filter(
-      (app: any) => app.stage === "Rejected" || app.daysInStage > 14,
-    );
-
     const crossMatches: any[] = [];
+    
+    for (const job of jobs) {
+      const requiredSkills = [...(job.skills || []), ...(job.requirements || [])].join(" ").toLowerCase();
+      if (!requiredSkills) continue;
 
-    for (const app of stalledApps) {
-      if (!app.candidate || !app.job) continue;
-      const c = app.candidate as any;
-      const j = app.job as any;
+      // Candidates who applied to this job
+      const appliedCandidateIds = new Set(
+        applications
+          .filter((a: any) => a.job?._id?.toString() === job._id.toString())
+          .map((a: any) => a.candidate?._id?.toString())
+      );
 
-      // Very basic intersection heuristic
-      const candidateSkills = c.extractedSkills || [];
-      if (candidateSkills.length === 0) continue;
+      for (const candidate of candidates) {
+        if (appliedCandidateIds.has(candidate._id.toString())) continue;
+        
+        const candidateSkills = candidate.extractedSkills || [];
+        if (candidateSkills.length === 0) continue;
 
-      for (const job of jobs) {
-        if (job._id.toString() === j._id.toString()) continue; // Skip their original job
-
-        const jobReqs = (job.requirements || []).join(" ").toLowerCase();
-
-        // Count how many candidate skills match job requirements
-        const matchedSkills = candidateSkills.filter((s: string) =>
-          jobReqs.includes(s.toLowerCase()),
-        );
-
-        const matchRatio =
-          matchedSkills.length / Math.max(1, candidateSkills.length);
+        const matchedSkills = candidateSkills.filter((s: string) => requiredSkills.includes(s.toLowerCase()));
+        const matchRatio = matchedSkills.length / Math.max(1, candidateSkills.length);
         const matchScore = Math.round(matchRatio * 100);
 
-        // Threshold: 5+ scored candidates, AI score >= 90
-        // We will simulate the AI score threshold here (matchScore >= 90)
-        if (matchScore >= 90) {
+        if (matchScore >= 75) {
+          // Find if candidate applied to any job to get 'originalJobTitle'
+          const candidateApp = applications.find((a: any) => a.candidate?._id?.toString() === candidate._id.toString());
+          const originalJobTitle = candidateApp?.job?.title || 'General Pool';
+          const originalJobId = candidateApp?.job?._id || job._id;
+
           crossMatches.push({
-            candidateId: c._id,
-            candidateName: c.name,
-            originalJobId: j._id,
-            originalJobTitle: j.title,
+            candidateId: candidate._id,
+            candidateName: candidate.name,
+            originalJobId,
+            originalJobTitle,
             matchedJobId: job._id,
             matchedJobTitle: job.title,
             matchScore,
@@ -176,8 +182,9 @@ Return a brief Markdown response (2-3 paragraphs) with key takeaways and recomme
     const aiContent = aiRes.text || "Weekly summary generation failed.";
 
     const summary = await AISummary.findOneAndUpdate(
-      { weekOf: currentMonday },
+      { companyId: decoded.companyId, weekOf: currentMonday },
       {
+        companyId: decoded.companyId,
         weekOf: currentMonday,
         generatedAt: new Date(),
         content: aiContent,
