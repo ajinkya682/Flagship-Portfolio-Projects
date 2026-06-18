@@ -45,6 +45,10 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       application.tags = body.tags;
     }
 
+    if (body.assignedTo !== undefined) {
+      application.assignedTo = body.assignedTo;
+    }
+
     await application.save();
 
     return NextResponse.json({ success: true, stage: application.stage });

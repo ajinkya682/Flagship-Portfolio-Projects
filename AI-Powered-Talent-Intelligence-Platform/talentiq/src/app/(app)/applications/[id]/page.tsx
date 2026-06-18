@@ -50,6 +50,31 @@ export default function ApplicationDetailPage() {
   const candidate = candidates.find(c => c.id === candidateId)
   const job = jobs.find(j => j.id === candidate?.jobId)
 
+  const { users, user } = useDomainStore()
+  const allTeamMembers = user ? (users.some(u => u.id === user.id) ? users : [user, ...users]) : users;
+  const currentAssigneeId = candidate?.assignedTo || user?.id;
+  const currentAssignee = allTeamMembers.find(u => u.id === currentAssigneeId) || user;
+
+  const [isChangingAssignee, setIsChangingAssignee] = useState(false);
+
+  const handleAssigneeChange = async (newAssigneeId: string) => {
+    if (!candidate) return;
+    try {
+      const res = await fetch(`/api/applications/${candidate.applicationId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ assignedTo: newAssigneeId })
+      });
+      if (res.ok) {
+        updateCandidate(candidate.id, { assignedTo: newAssigneeId });
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsChangingAssignee(false);
+    }
+  };
+
   const [noteText, setNoteText] = useState('')
   const [isAddingTag, setIsAddingTag] = useState(false)
   const [newTag, setNewTag] = useState('')
@@ -547,11 +572,28 @@ export default function ApplicationDetailPage() {
             {/* Assignment */}
             <div className="bg-white rounded-[16px] border border-neutral-100 shadow-sm p-[20px]">
               <h3 className="font-display text-[14px] font-bold text-neutral-900 mb-[10px]">Assignment</h3>
-              <div className="flex items-center gap-[8px] mb-[6px]">
-                <img src="https://randomuser.me/api/portraits/men/22.jpg" alt="Alex" className="w-[28px] h-[28px] rounded-full object-cover" />
-                <span className="font-body text-[12px] font-semibold text-neutral-700">{assignedTo}</span>
-              </div>
-              <button className="text-[11px] font-medium text-primary-600 hover:text-primary-700">Change assignee</button>
+              {isChangingAssignee ? (
+                <div className="flex flex-col gap-[8px]">
+                  <select 
+                    className="w-full h-[32px] text-[12px] font-body bg-neutral-50 border border-neutral-200 rounded-md px-[8px] outline-none"
+                    value={currentAssigneeId}
+                    onChange={(e) => handleAssigneeChange(e.target.value)}
+                  >
+                    {allTeamMembers.map(u => (
+                      <option key={u.id} value={u.id}>{u.name}</option>
+                    ))}
+                  </select>
+                  <button onClick={() => setIsChangingAssignee(false)} className="text-[11px] font-medium text-neutral-500 hover:text-neutral-700 self-start">Cancel</button>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center gap-[8px] mb-[6px]">
+                    <img src={currentAssignee?.avatar || "https://ui-avatars.com/api/?name=User&background=random"} alt={currentAssignee?.name || "Assignee"} className="w-[28px] h-[28px] rounded-full object-cover bg-neutral-100" />
+                    <span className="font-body text-[12px] font-semibold text-neutral-700">{currentAssignee?.name || "Unassigned"}</span>
+                  </div>
+                  <button onClick={() => setIsChangingAssignee(true)} className="text-[11px] font-medium text-primary-600 hover:text-primary-700">Change assignee</button>
+                </>
+              )}
             </div>
 
             {/* Tags */}

@@ -209,6 +209,7 @@ export async function GET(req: Request) {
               type: t.type || 'stage',
             }))
           : [{ event: 'Applied via Career Site', date: new Date(app.appliedAt).toLocaleDateString(), type: 'applied' }],
+        assignedTo: app.assignedTo ? app.assignedTo.toString() : undefined,
         extractedSkills: c.extractedSkills || [],
         tags: app.tags || [],
         extractedCompanies: c.extractedCompanies || [],
