@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export interface ICandidate extends Document {
-  companyId: mongoose.Types.ObjectId;
+  companyId?: mongoose.Types.ObjectId;
   name: string;
   email: string;
   phone?: string;
@@ -24,7 +24,7 @@ export interface ICandidate extends Document {
 }
 
 const CandidateSchema: Schema = new Schema({
-  companyId: { type: Schema.Types.ObjectId, ref: 'Company', required: true },
+  companyId: { type: Schema.Types.ObjectId, ref: 'Company' },
   name: { type: String, required: true },
   email: { type: String, required: true },
   phone: { type: String },

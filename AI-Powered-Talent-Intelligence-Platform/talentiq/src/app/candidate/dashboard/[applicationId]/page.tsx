@@ -43,6 +43,9 @@ interface PortalData {
     title: string
     department?: string
     location?: string
+    description?: string
+    employmentType?: string
+    salaryRange?: { min: number; max: number; currency: string }
   }
   company: {
     name: string
@@ -82,9 +85,9 @@ interface PortalData {
   } | null
 }
 
-type TabType = 'overview' | 'resume' | 'messages' | 'profile' | 'offer' | 'hireLetter' | 'assignment'
+type TabType = 'overview' | 'jobDetails' | 'resume' | 'messages' | 'profile' | 'offer' | 'hireLetter' | 'assignment'
 
-export default function CandidateDashboard() {
+export default function CandidateDashboard({ params }: { params: { applicationId: string } }) {
   const router = useRouter()
   const [portalData, setPortalData] = useState<PortalData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -129,15 +132,16 @@ export default function CandidateDashboard() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    fetch('/api/portal/me')
+    fetch(`/api/portal/me?applicationId=${params.applicationId}`)
       .then(res => {
-        if (res.status === 401) { router.push('/portal/login'); return null }
+        if (res.status === 401) { router.push('/candidate/login'); return null }
+        if (!res.ok) throw new Error('Failed to load')
         return res.json()
       })
       .then(data => { if (data) setPortalData(data) })
-      .catch(() => router.push('/portal/login'))
+      .catch(() => router.push('/candidate/dashboard'))
       .finally(() => setIsLoading(false))
-  }, [router])
+  }, [router, params.applicationId])
 
   useEffect(() => {
     if (!portalData) return
@@ -169,8 +173,8 @@ export default function CandidateDashboard() {
   }, [realtimeMessages, activeTab])
 
   const handleLogout = async () => {
-    await fetch('/api/portal/logout', { method: 'POST' })
-    router.push('/portal/login')
+    await fetch('/api/auth/candidate/logout', { method: 'POST' })
+    router.push('/candidate/login')
   }
 
   // Compute notification badges based on unread/unvisited data
@@ -241,7 +245,7 @@ export default function CandidateDashboard() {
         body: JSON.stringify({ status })
       })
       if (res.ok) {
-        const freshData = await fetch('/api/portal/me').then(r => r.json())
+        const freshData = await fetch(`/api/portal/me?applicationId=${params.applicationId}`).then(r => r.json())
         setPortalData(freshData)
         setTabBadges(computeBadges(freshData))
       }
@@ -264,7 +268,7 @@ export default function CandidateDashboard() {
       })
       if (res.ok) {
         setHireSuccess(action === 'sign' ? 'signed' : 'rejected')
-        const freshData = await fetch('/api/portal/me').then(r => r.json())
+        const freshData = await fetch(`/api/portal/me?applicationId=${params.applicationId}`).then(r => r.json())
         setPortalData(freshData)
       }
     } catch (error) {
@@ -286,7 +290,7 @@ export default function CandidateDashboard() {
       })
       if (res.ok) {
         setAssignmentSubmitted(true)
-        const freshData = await fetch('/api/portal/me').then(r => r.json())
+        const freshData = await fetch(`/api/portal/me?applicationId=${params.applicationId}`).then(r => r.json())
         setPortalData(freshData)
       }
     } catch (err) {
@@ -346,6 +350,7 @@ export default function CandidateDashboard() {
 
   const tabs: { id: TabType; label: string; icon: React.ReactNode }[] = [
     { id: 'overview', label: 'Overview', icon: <Sparkles size={15} /> },
+    { id: 'jobDetails', label: 'Job Details', icon: <Briefcase size={15} /> },
     ...(portalData.hireLetter ? [{ id: 'hireLetter' as TabType, label: 'Hire Letter', icon: <FileText size={15} /> }] : []),
     ...(portalData.offer ? [{ id: 'offer' as TabType, label: 'Offer', icon: <FileText size={15} /> }] : []),
     ...(portalData.assignment ? [{ id: 'assignment' as TabType, label: 'Assignment', icon: <FileText size={15} /> }] : []),
@@ -358,15 +363,22 @@ export default function CandidateDashboard() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-neutral-100 flex flex-col font-body">
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-md border-b border-neutral-200/60 py-[14px] px-[24px] flex items-center justify-between sticky top-0 z-20 shadow-sm">
-        <div className="flex items-center gap-[12px]">
-          <div className="w-[36px] h-[36px] bg-blue-600 rounded-[10px] flex items-center justify-center text-white font-display font-bold text-[15px] overflow-hidden shadow-md">
-            {company.logo ? (
-              <img src={company.logo} alt={company.name} className="w-full h-full object-cover" />
-            ) : company.name.charAt(0)}
-          </div>
-          <div>
-            <h2 className="font-display font-bold text-[15px] text-neutral-900 leading-tight">{company.name}</h2>
-            <p className="text-[11px] text-neutral-400 font-medium">Candidate Portal</p>
+        <div className="flex items-center gap-[16px]">
+          <Link href="/candidate/dashboard" className="flex items-center gap-[6px] px-[12px] py-[6px] text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 rounded-full transition-colors text-[13px] font-semibold">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+            Dashboard
+          </Link>
+          <div className="w-[1px] h-[24px] bg-neutral-200 hidden sm:block"></div>
+          <div className="flex items-center gap-[10px]">
+            <div className="w-[32px] h-[32px] bg-blue-600 rounded-[8px] flex items-center justify-center text-white font-display font-bold text-[14px] overflow-hidden shadow-sm">
+              {company.logo ? (
+                <img src={company.logo} alt={company.name} className="w-full h-full object-cover" />
+              ) : company.name.charAt(0)}
+            </div>
+            <div>
+              <h2 className="font-display font-bold text-[14px] text-neutral-900 leading-tight">{company.name}</h2>
+              <p className="text-[10px] text-neutral-400 font-medium">Candidate Portal</p>
+            </div>
           </div>
         </div>
         <div className="flex items-center gap-[12px]">
@@ -642,6 +654,47 @@ export default function CandidateDashboard() {
                         <p className="font-serif italic text-[26px] text-neutral-800">{candidate.signature}</p>
                       </div>
                     </div>
+                  )}
+                </div>
+              )}
+
+              {/* JOB DETAILS TAB */}
+              {activeTab === 'jobDetails' && (
+                <div className="p-[28px] flex flex-col gap-[24px]">
+                  <div>
+                    <h2 className="font-display text-[24px] font-bold text-neutral-900 mb-[4px]">{job.title}</h2>
+                    <div className="flex items-center gap-[12px] flex-wrap">
+                      <span className="flex items-center gap-[6px] text-neutral-500 text-[13px] font-medium bg-neutral-100 px-[10px] py-[4px] rounded-md">
+                        <MapPin size={14} className="text-neutral-400" /> {job.location || 'Remote'}
+                      </span>
+                      {job.department && (
+                        <span className="flex items-center gap-[6px] text-neutral-500 text-[13px] font-medium bg-neutral-100 px-[10px] py-[4px] rounded-md">
+                          <Briefcase size={14} className="text-neutral-400" /> {job.department}
+                        </span>
+                      )}
+                      {job.employmentType && (
+                        <span className="flex items-center gap-[6px] text-neutral-500 text-[13px] font-medium bg-neutral-100 px-[10px] py-[4px] rounded-md">
+                          <User size={14} className="text-neutral-400" /> {job.employmentType}
+                        </span>
+                      )}
+                      {job.salaryRange && (
+                        <span className="flex items-center gap-[6px] text-neutral-500 text-[13px] font-medium bg-neutral-100 px-[10px] py-[4px] rounded-md">
+                          <FileText size={14} className="text-neutral-400" /> 
+                          {job.salaryRange.currency} {job.salaryRange.min.toLocaleString()} - {job.salaryRange.max.toLocaleString()}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <hr className="border-neutral-100" />
+
+                  {job.description ? (
+                    <div 
+                      className="prose prose-sm max-w-none text-neutral-700 prose-headings:font-display prose-headings:font-bold prose-a:text-blue-600 hover:prose-a:text-blue-700 prose-p:leading-relaxed prose-li:text-neutral-700"
+                      dangerouslySetInnerHTML={{ __html: job.description }}
+                    />
+                  ) : (
+                    <p className="text-neutral-500 italic">No detailed description available for this role.</p>
                   )}
                 </div>
               )}

@@ -15,7 +15,13 @@ const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret';
 
 export async function GET(req: Request) {
   try {
-    const token = req.headers.get('cookie')?.split(';').find(c => c.trim().startsWith('candidateToken='))?.split('=')[1];
+    const url = new URL(req.url);
+    const applicationId = url.searchParams.get('applicationId');
+    
+    // Check both candidate_token and old token format
+    const candidateToken = req.headers.get('cookie')?.split(';').find(c => c.trim().startsWith('candidate_token='))?.split('=')[1];
+    const oldToken = req.headers.get('cookie')?.split(';').find(c => c.trim().startsWith('candidateToken='))?.split('=')[1];
+    const token = candidateToken || oldToken;
     
     if (!token) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -28,19 +34,27 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
-    if (decoded.type !== 'candidate' || !decoded.candidateId) {
+    if (!decoded.candidateId && !decoded.type) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    
+    const tokenCandidateId = decoded.candidateId || decoded.id; // handle multiple payload formats
 
     await connectToDatabase();
 
-    const candidate = await Candidate.findById(decoded.candidateId);
+    const candidate = await Candidate.findById(tokenCandidateId);
     if (!candidate) {
       return NextResponse.json({ error: 'Candidate not found' }, { status: 404 });
     }
 
     // Get the application
-    const application = await Application.findOne({ candidate: candidate._id }).sort({ appliedAt: -1 });
+    let application;
+    if (applicationId) {
+      application = await Application.findOne({ _id: applicationId, candidate: candidate._id });
+    } else {
+      application = await Application.findOne({ candidate: candidate._id }).sort({ appliedAt: -1 });
+    }
+    
     if (!application) {
       return NextResponse.json({ error: 'Application not found' }, { status: 404 });
     }
@@ -59,8 +73,8 @@ export async function GET(req: Request) {
     // Latest non-declined offer for the main view
     const latestOffer = allOffers.find((o: any) => o.status !== 'declined') || allOffers[0] || null;
 
-    // Get latest hire letter
-    const hireLetter = await HireLetter.findOne({ candidateId: candidate._id }).sort({ createdAt: -1 });
+    // Get latest hire letter for this specific company
+    const hireLetter = await HireLetter.findOne({ candidateId: candidate._id, companyId: job.company }).sort({ createdAt: -1 });
 
     // Get assignment if in Assessment stage
     const assignment = await Assignment.findOne({ candidateId: candidate._id, status: { $in: ['pending', 'submitted'] } }).sort({ createdAt: -1 });
@@ -98,6 +112,13 @@ export async function GET(req: Request) {
         title: job.title,
         department: job.department,
         location: job.location,
+        description: job.description,
+        employmentType: job.employmentType,
+        salaryRange: job.salaryMin && job.salaryMax ? {
+          min: job.salaryMin,
+          max: job.salaryMax,
+          currency: job.currency || 'USD'
+        } : undefined,
       },
       company: {
         name: company?.name || 'Company',

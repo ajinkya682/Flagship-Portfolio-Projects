@@ -4,6 +4,12 @@ import { Candidate } from '@/core/database/models/Candidate';
 import { Application } from '@/core/database/models/Application';
 import { Job } from '@/core/database/models/Job';
 import { verifyAccessToken } from '@/core/auth/jwt';
+import bcrypt from 'bcryptjs';
+import * as jose from 'jose';
+import { cookies } from 'next/headers';
+import crypto from 'crypto';
+
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback_secret');
 
 export async function POST(req: Request) {
   try {
@@ -35,32 +41,95 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Job not found' }, { status: 404 });
     }
 
-    // 1. Create the Candidate document
-    const newCandidate = await Candidate.create({
-      companyId: job.company,
-      name,
-      email,
-      phone,
-      avatar,
-      linkedinUrl,
-      githubUrl,
-      portfolioUrl,
-      resumeUrl,
-      passportPhotoUrl,
-      signature,
-      availableStartDate,
-      extractedSkills,
-      extractedCompanies,
-      extractedEducation,
-      hasPortalAccess: true,  // Grant access immediately on application
-      portalToken
-    });
+    // Check if candidate is logged in
+    const candidateToken = cookies().get('candidate_token')?.value;
+    let loggedInCandidateId = null;
+    
+    if (candidateToken) {
+      try {
+        const { payload } = await jose.jwtVerify(candidateToken, JWT_SECRET);
+        loggedInCandidateId = payload.candidateId as string;
+      } catch (e) {
+        console.error('Invalid candidate token', e);
+      }
+    }
+
+    let candidateDoc;
+    let plainTokenForResponse = null;
+
+    if (loggedInCandidateId) {
+      // Path B: Returning Candidate
+      candidateDoc = await Candidate.findById(loggedInCandidateId);
+      if (!candidateDoc) {
+        return NextResponse.json({ error: 'Candidate profile not found' }, { status: 404 });
+      }
+      
+      // Update missing fields
+      let updated = false;
+      if (phone && !candidateDoc.phone) { candidateDoc.phone = phone; updated = true; }
+      if (linkedinUrl && !candidateDoc.linkedinUrl) { candidateDoc.linkedinUrl = linkedinUrl; updated = true; }
+      if (githubUrl && !candidateDoc.githubUrl) { candidateDoc.githubUrl = githubUrl; updated = true; }
+      if (portfolioUrl && !candidateDoc.portfolioUrl) { candidateDoc.portfolioUrl = portfolioUrl; updated = true; }
+      if (resumeUrl && !candidateDoc.resumeUrl) { candidateDoc.resumeUrl = resumeUrl; updated = true; }
+      if (passportPhotoUrl && !candidateDoc.passportPhotoUrl) { candidateDoc.passportPhotoUrl = passportPhotoUrl; updated = true; }
+      if (signature && !candidateDoc.signature) { candidateDoc.signature = signature; updated = true; }
+      if (availableStartDate && !candidateDoc.availableStartDate) { candidateDoc.availableStartDate = availableStartDate; updated = true; }
+      
+      if (updated) {
+        await candidateDoc.save();
+      }
+
+      // Check for duplicate application
+      const existingApplication = await Application.findOne({
+        candidate: candidateDoc._id,
+        job: job._id
+      });
+
+      if (existingApplication) {
+        return NextResponse.json({ error: 'You have already applied for this position.' }, { status: 400 });
+      }
+
+    } else {
+      // Path A: New Candidate (or existing but not logged in)
+      const existingEmail = await Candidate.findOne({ email: email.toLowerCase() });
+      if (existingEmail) {
+        return NextResponse.json({ error: 'An account with this email already exists. Please log in first to apply.', requireLogin: true }, { status: 400 });
+      }
+
+      // Generate token securely on backend instead of trusting frontend
+      const generatedToken = crypto.randomBytes(4).toString('hex').toUpperCase(); // e.g. 8 chars like 'A1B2C3D4'
+      const hashedToken = await bcrypt.hash(generatedToken, 10);
+
+      // 1. Create the Candidate document
+      candidateDoc = await Candidate.create({
+        companyId: job.company, // keeping it for backwards compat, though not required
+        name,
+        email: email.toLowerCase(),
+        phone,
+        avatar,
+        linkedinUrl,
+        githubUrl,
+        portfolioUrl,
+        resumeUrl,
+        passportPhotoUrl,
+        signature,
+        availableStartDate,
+        extractedSkills,
+        extractedCompanies,
+        extractedEducation,
+        hasPortalAccess: true,
+        portalToken: hashedToken
+      });
+      
+      // Pass back the plain token just once so the frontend can display it or email it
+      plainTokenForResponse = generatedToken;
+    }
 
     // 2. Create the Application document
     const application = await Application.create({
       companyId: job.company,
       job: job._id,
-      candidate: newCandidate._id,
+      candidate: candidateDoc._id,
       stage: 'Screening', // default
       source: source || 'Career Site',
       aiScore: {
@@ -89,20 +158,20 @@ export async function POST(req: Request) {
       companyId: job.company,
       type: 'new_application',
       title: 'New Application Received',
-      message: `${newCandidate.name} applied for ${job.title}.`,
-      candidateId: newCandidate._id,
+      message: `${candidateDoc.name} applied for ${job.title}.`,
+      candidateId: candidateDoc._id,
       applicationId: application._id,
       linkHref: `/pipeline`,
     });
 
     // Format for frontend response
     const formattedCandidate = {
-      id: newCandidate._id.toString(),
+      id: candidateDoc._id.toString(),
       applicationId: application._id.toString(),
-      name: newCandidate.name,
-      email: newCandidate.email,
-      phone: newCandidate.phone,
-      avatar: newCandidate.avatar,
+      name: candidateDoc.name,
+      email: candidateDoc.email,
+      phone: candidateDoc.phone,
+      avatar: candidateDoc.avatar,
       role: job.title,
       jobId: job._id.toString(),
       stage: application.stage,
@@ -120,20 +189,20 @@ export async function POST(req: Request) {
       notes: application.recruiterNotes || [],
       tags: application.tags || [],
       timeline: [{ event: 'Applied via Career Site', date: 'Just now', type: 'applied' }],
-      extractedSkills: newCandidate.extractedSkills || [],
-      extractedCompanies: newCandidate.extractedCompanies || [],
-      extractedEducation: newCandidate.extractedEducation || [],
+      extractedSkills: candidateDoc.extractedSkills || [],
+      extractedCompanies: candidateDoc.extractedCompanies || [],
+      extractedEducation: candidateDoc.extractedEducation || [],
       strengths: application.aiScore?.strengths || [],
       gaps: application.aiScore?.gaps || [],
       reasons: application.aiScore?.reasons || [],
-      linkedinUrl: newCandidate.linkedinUrl,
-      githubUrl: newCandidate.githubUrl,
-      portfolioUrl: newCandidate.portfolioUrl,
-      resumeUrl: newCandidate.resumeUrl,
-      passportPhotoUrl: newCandidate.passportPhotoUrl,
-      signature: newCandidate.signature,
-      availableStartDate: newCandidate.availableStartDate,
-      portalToken: newCandidate.portalToken,
+      linkedinUrl: candidateDoc.linkedinUrl,
+      githubUrl: candidateDoc.githubUrl,
+      portfolioUrl: candidateDoc.portfolioUrl,
+      resumeUrl: candidateDoc.resumeUrl,
+      passportPhotoUrl: candidateDoc.passportPhotoUrl,
+      signature: candidateDoc.signature,
+      availableStartDate: candidateDoc.availableStartDate,
+      portalToken: plainTokenForResponse || null, // Only for new candidates
     };
 
     return NextResponse.json(formattedCandidate, { status: 201 });
