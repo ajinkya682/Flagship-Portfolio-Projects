@@ -19,7 +19,7 @@ export default function CandidateAuthLayout({
   children: ReactNode;
 }) {
   const cookieStore = cookies();
-  const token = cookieStore.get("accessToken")?.value;
+  const token = cookieStore.get("candidate_token")?.value;
 
   if (token) {
     redirect("/candidate/dashboard");

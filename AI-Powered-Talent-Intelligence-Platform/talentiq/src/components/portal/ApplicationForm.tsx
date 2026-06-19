@@ -22,8 +22,44 @@ export default function ApplicationForm({ job, companySlug, companyName }: { job
   const resumeInputRef = useRef<HTMLInputElement>(null)
   const photoInputRef = useRef<HTMLInputElement>(null)
 
-  const { candidate, isLoading, isLoggedIn, logout } = useCandidateAuth()
+  const { candidate, isLoading, isLoggedIn, logout, refreshAuth } = useCandidateAuth()
   const [currentPath, setCurrentPath] = useState('')
+
+  // Inline Login State
+  const [showInlineLogin, setShowInlineLogin] = useState(false)
+  const [loginEmail, setLoginEmail] = useState('')
+  const [loginToken, setLoginToken] = useState('')
+  const [isLoggingIn, setIsLoggingIn] = useState(false)
+  const [loginError, setLoginError] = useState('')
+
+  const handleInlineLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginError('');
+    setIsLoggingIn(true);
+    
+    try {
+      const res = await fetch("/api/auth/candidate/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: loginEmail, token: loginToken }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        if (refreshAuth) {
+          await refreshAuth();
+        } else {
+          window.location.reload();
+        }
+        setShowInlineLogin(false);
+      } else {
+        setLoginError(data.error || "Invalid email or access token.");
+      }
+    } catch (err) {
+      setLoginError("An error occurred. Please try again.");
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
 
   useEffect(() => {
     setCurrentPath(window.location.pathname)
@@ -249,7 +285,7 @@ export default function ApplicationForm({ job, companySlug, companyName }: { job
 
   return (
     <div className="flex flex-col gap-[24px]">
-      {!isLoggedIn && (
+      {!isLoggedIn && !showInlineLogin && (
         <div className="bg-blue-50 border border-blue-100 rounded-xl p-[16px] flex flex-col sm:flex-row items-center justify-between gap-[12px]">
           <div className="flex items-center gap-[12px]">
             <div className="w-[40px] h-[40px] rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
@@ -260,12 +296,68 @@ export default function ApplicationForm({ job, companySlug, companyName }: { job
               <p className="font-body text-neutral-600 text-[13px]">Log in to auto-fill your details and 1-Click Apply.</p>
             </div>
           </div>
-          <Link
-            href={`/candidate/login?redirect=${encodeURIComponent(currentPath)}`}
+          <button
+            onClick={() => setShowInlineLogin(true)}
             className="w-full sm:w-auto px-[20px] h-[36px] bg-white border border-blue-200 hover:border-blue-300 hover:bg-blue-50 text-blue-700 font-semibold text-[13px] rounded-lg transition-colors flex items-center justify-center"
           >
             Log In to Apply
-          </Link>
+          </button>
+        </div>
+      )}
+
+      {!isLoggedIn && showInlineLogin && (
+        <div className="bg-white border border-neutral-200 rounded-xl p-[24px] shadow-sm animate-in fade-in slide-in-from-top-2 duration-300">
+          <div className="flex items-center justify-between mb-[16px]">
+            <div>
+              <h3 className="font-display font-bold text-[18px] text-neutral-900">Log In</h3>
+              <p className="font-body text-[13px] text-neutral-500">Enter your portal credentials to auto-fill your application.</p>
+            </div>
+            <button 
+              onClick={() => setShowInlineLogin(false)}
+              className="text-neutral-400 hover:text-neutral-700 p-[4px]"
+            >
+              Cancel
+            </button>
+          </div>
+          
+          <form onSubmit={handleInlineLogin} className="flex flex-col gap-[16px]">
+            {loginError && (
+              <div className="bg-red-50 text-red-600 text-[13px] font-body p-[12px] rounded-md border border-red-100 flex items-start gap-[8px]">
+                <AlertCircle size={16} className="mt-[2px] shrink-0" />
+                <p>{loginError}</p>
+              </div>
+            )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-[16px]">
+              <div className="flex flex-col gap-[6px]">
+                <label className="font-body text-[13px] font-semibold text-neutral-700">Email Address</label>
+                <input 
+                  type="email" 
+                  required 
+                  value={loginEmail}
+                  onChange={(e) => setLoginEmail(e.target.value)}
+                  className="h-[44px] px-[12px] border border-neutral-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500" 
+                />
+              </div>
+              <div className="flex flex-col gap-[6px]">
+                <label className="font-body text-[13px] font-semibold text-neutral-700">Access Token</label>
+                <input 
+                  type="password" 
+                  required 
+                  value={loginToken}
+                  onChange={(e) => setLoginToken(e.target.value)}
+                  className="h-[44px] px-[12px] border border-neutral-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500" 
+                />
+              </div>
+            </div>
+            <button 
+              type="submit" 
+              disabled={isLoggingIn}
+              className="w-full md:w-auto md:self-end h-[44px] px-[32px] bg-blue-600 hover:bg-blue-700 text-white font-semibold text-[14px] rounded-lg transition-colors flex items-center justify-center gap-[8px] disabled:opacity-70"
+            >
+              {isLoggingIn && <Loader2 size={16} className="animate-spin" />}
+              {isLoggingIn ? 'Logging in...' : 'Log In'}
+            </button>
+          </form>
         </div>
       )}
 

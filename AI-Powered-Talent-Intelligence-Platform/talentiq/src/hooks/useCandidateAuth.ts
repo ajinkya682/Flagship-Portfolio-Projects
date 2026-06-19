@@ -17,28 +17,31 @@ export function useCandidateAuth() {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  useEffect(() => {
-    async function checkAuth() {
-      try {
-        const res = await fetch('/api/auth/candidate/me');
-        if (res.ok) {
-          const data = await res.json();
-          if (data.authenticated && data.candidate) {
-            setCandidate(data.candidate);
-            setIsLoggedIn(true);
-          } else {
-            setIsLoggedIn(false);
-          }
+  const checkAuth = async () => {
+    try {
+      const res = await fetch('/api/auth/candidate/me');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.authenticated && data.candidate) {
+          setCandidate(data.candidate);
+          setIsLoggedIn(true);
         } else {
           setIsLoggedIn(false);
+          setCandidate(null);
         }
-      } catch (error) {
+      } else {
         setIsLoggedIn(false);
-      } finally {
-        setIsLoading(false);
+        setCandidate(null);
       }
+    } catch (error) {
+      setIsLoggedIn(false);
+      setCandidate(null);
+    } finally {
+      setIsLoading(false);
     }
+  };
 
+  useEffect(() => {
     checkAuth();
   }, []);
 
@@ -53,5 +56,5 @@ export function useCandidateAuth() {
     }
   };
 
-  return { candidate, isLoading, isLoggedIn, logout };
+  return { candidate, isLoading, isLoggedIn, logout, refreshAuth: checkAuth };
 }
