@@ -1,54 +1,54 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { AlertCircle } from 'lucide-react'
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { AlertCircle } from "lucide-react";
+import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 
 export default function CandidateLogin() {
-  const [email, setEmail] = useState('')
-  const [code, setCode] = useState('')
-  const [error, setError] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const router = useRouter()
-  
-  const [redirectPath, setRedirectPath] = useState('/candidate/dashboard')
-  
+  const [email, setEmail] = useState("");
+  const [code, setCode] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+
+  const [redirectPath, setRedirectPath] = useState("/candidate/dashboard");
+
   useEffect(() => {
     // We do this inside useEffect to avoid hydration errors with useSearchParams
-    const params = new URLSearchParams(window.location.search)
-    const redirect = params.get('redirect')
+    const params = new URLSearchParams(window.location.search);
+    const redirect = params.get("redirect");
     if (redirect) {
-      setRedirectPath(redirect)
+      setRedirectPath(redirect);
     }
-  }, [])
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-    setIsLoading(true)
-    
+    e.preventDefault();
+    setError("");
+    setIsLoading(true);
+
     try {
-      const res = await fetch('/api/auth/candidate/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, token: code })
-      })
-      
-      const data = await res.json()
-      
+      const res = await fetch("/api/auth/candidate/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, token: code }),
+      });
+
+      const data = await res.json();
+
       if (res.ok && data.success) {
-        window.location.href = redirectPath
+        window.location.href = redirectPath;
       } else {
-        setError(data.error || 'Invalid email or access token.')
+        setError(data.error || "Invalid email or access token.");
       }
     } catch (err) {
-      setError('An error occurred. Please try again later.')
+      setError("An error occurred. Please try again later.");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="flex flex-col w-full">
@@ -70,7 +70,9 @@ export default function CandidateLogin() {
         )}
 
         <div className="flex flex-col gap-[6px]">
-          <label className="font-body text-[13px] font-semibold text-neutral-700">Email Address</label>
+          <label className="font-body text-[13px] font-semibold text-neutral-700">
+            Email Address
+          </label>
           <input
             type="email"
             required
@@ -83,8 +85,13 @@ export default function CandidateLogin() {
 
         <div className="flex flex-col gap-[6px]">
           <div className="flex justify-between items-center">
-            <label className="font-body text-[13px] font-semibold text-neutral-700">Access Token</label>
-            <Link href="/candidate/forgot-token" className="font-body text-[13px] font-medium text-blue-600 hover:text-blue-700">
+            <label className="font-body text-[13px] font-semibold text-neutral-700">
+              Access Token
+            </label>
+            <Link
+              href="/candidate/forgot-token"
+              className="font-body text-[13px] font-medium text-blue-600 hover:text-blue-700"
+            >
               Forgot token?
             </Link>
           </div>
@@ -94,7 +101,7 @@ export default function CandidateLogin() {
             value={code}
             onChange={(e) => setCode(e.target.value)}
             placeholder="e.g. X7K9P2M"
-            className="h-[44px] px-[12px] bg-white border border-neutral-200 rounded-lg text-[15px] text-neutral-900 font-mono tracking-widest uppercase placeholder:text-neutral-400 placeholder:normal-case placeholder:tracking-normal focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
+            className="h-[44px] px-[12px] bg-white border border-neutral-200 rounded-lg text-[15px] text-neutral-900 font-mono tracking-widest placeholder:text-neutral-400 placeholder:normal-case placeholder:tracking-normal focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
           />
         </div>
 
@@ -103,9 +110,13 @@ export default function CandidateLogin() {
           disabled={isLoading}
           className="mt-[8px] w-full h-[44px] bg-blue-600 hover:bg-blue-700 text-white font-body text-[15px] font-semibold rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
         >
-          {isLoading ? <LoadingSpinner size="sm" className="text-white" /> : 'Log In'}
+          {isLoading ? (
+            <LoadingSpinner size="sm" className="text-white" />
+          ) : (
+            "Log In"
+          )}
         </button>
       </form>
     </div>
-  )
+  );
 }
