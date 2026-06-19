@@ -263,6 +263,39 @@ export default function MobileDrawer({ isOpen, onClose, isLoggedIn }: MobileDraw
           </Link>
 
           <Link
+            href="/careers"
+            onClick={onClose}
+            className={cn(
+              "flex items-center justify-between p-3 rounded-xl transition-colors group",
+              isActive("/careers") ? "bg-[#EEF2FF]" : "hover:bg-neutral-50",
+            )}
+          >
+            <div className="flex items-center gap-3">
+              <Users
+                className={cn(
+                  "w-5 h-5",
+                  isActive("/careers") ? "text-[#3B58F6]" : "text-indigo-400",
+                )}
+              />
+              <span
+                className={cn(
+                  "font-body text-[15px]",
+                  isActive("/careers")
+                    ? "font-semibold text-[#3B58F6]"
+                    : "font-medium text-neutral-800",
+                )}
+              >
+                Careers
+              </span>
+            </div>
+            {isActive("/careers") ? (
+              <ChevronRight className="w-4 h-4 text-[#3B58F6]" />
+            ) : (
+              <ChevronRight className="w-4 h-4 text-neutral-400 group-hover:text-neutral-600" />
+            )}
+          </Link>
+
+          <Link
             href="/resources"
             onClick={onClose}
             className={cn(

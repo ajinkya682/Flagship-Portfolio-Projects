@@ -218,6 +218,20 @@ export default function MarketingNav({ isLoggedIn }: { isLoggedIn?: boolean }) {
               )}
             </Link>
 
+            {/* Careers Link */}
+            <Link
+              href="/careers"
+              className={cn(
+                "relative font-body text-[15px] font-medium transition-colors hover:text-[#3B58F6]",
+                isActive("/careers") ? "text-[#3B58F6]" : "text-neutral-600",
+              )}
+            >
+              Careers
+              {isActive("/careers") && (
+                <span className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-[#3B58F6] rounded-full shadow-[0_0_8px_rgba(59,88,246,0.6)] animate-in fade-in zoom-in duration-300" />
+              )}
+            </Link>
+
             {/* Resources Link */}
             <Link
               href="/resources"
