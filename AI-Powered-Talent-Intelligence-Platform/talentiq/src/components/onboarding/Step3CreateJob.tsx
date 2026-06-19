@@ -22,7 +22,7 @@ const REQUIREMENTS = [
 
 export default function Step3CreateJob({ onNext, onBack }: { onNext: () => void, onBack: () => void }) {
   const { user } = useAuth()
-  const { register, handleSubmit, setValue, watch, control } = useForm({
+  const { register, handleSubmit, setValue, watch, control } = useForm<any>({
     defaultValues: {
       title: '',
       department: 'engineering',
@@ -32,7 +32,7 @@ export default function Step3CreateJob({ onNext, onBack }: { onNext: () => void,
       salaryMin: '',
       salaryMax: '',
       description: '',
-      requirements: REQUIREMENTS.reduce((acc, req) => ({ ...acc, [req.id]: true }), {})
+      requirements: REQUIREMENTS.reduce((acc, req) => ({ ...acc, [req.id]: true }), {} as Record<string, boolean>)
     }
   })
   
