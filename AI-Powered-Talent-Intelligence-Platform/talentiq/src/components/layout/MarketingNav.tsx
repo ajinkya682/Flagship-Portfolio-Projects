@@ -17,7 +17,7 @@ import MobileDrawer from "./MobileDrawer";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 
-export default function MarketingNav() {
+export default function MarketingNav({ isLoggedIn }: { isLoggedIn?: boolean }) {
   const pathname = usePathname() || "";
   const [scrolled, setScrolled] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
@@ -247,32 +247,45 @@ export default function MarketingNav() {
             </Link>
           </div>
 
-          {/* Right: Buttons & Mobile Menu Toggle */}
           <div className="flex items-center gap-5">
             <div className="hidden lg:flex items-center gap-6">
-              <Link
-                href="/login"
-                className="font-body text-[15px] font-medium text-neutral-700 hover:text-neutral-900 transition-colors"
-              >
-                Log in
-              </Link>
-              <Link
-                href="/register"
-                className="h-[42px] px-6 inline-flex items-center justify-center gap-2 font-body text-[14px] font-semibold text-white bg-[#3B58F6] hover:bg-[#2e45c7] rounded-full shadow-[0_4px_14px_rgba(59,88,246,0.3)] hover:shadow-[0_6px_20px_rgba(59,88,246,0.4)] hover:-translate-y-0.5 transition-all duration-200"
-              >
-                Start Free Trial
-                <ArrowRight className="w-4 h-4" />
-              </Link>
+              {isLoggedIn ? (
+                <Link
+                  href="/dashboard"
+                  className="h-[42px] px-6 inline-flex items-center justify-center gap-2 font-body text-[14px] font-semibold text-white bg-[#3B58F6] hover:bg-[#2e45c7] rounded-full shadow-[0_4px_14px_rgba(59,88,246,0.3)] hover:shadow-[0_6px_20px_rgba(59,88,246,0.4)] hover:-translate-y-0.5 transition-all duration-200"
+                >
+                  Dashboard
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    className="font-body text-[15px] font-medium text-neutral-700 hover:text-neutral-900 transition-colors"
+                  >
+                    Log in
+                  </Link>
+                  <Link
+                    href="/register"
+                    className="h-[42px] px-6 inline-flex items-center justify-center gap-2 font-body text-[14px] font-semibold text-white bg-[#3B58F6] hover:bg-[#2e45c7] rounded-full shadow-[0_4px_14px_rgba(59,88,246,0.3)] hover:shadow-[0_6px_20px_rgba(59,88,246,0.4)] hover:-translate-y-0.5 transition-all duration-200"
+                  >
+                    Start Free Trial
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </>
+              )}
             </div>
 
             {/* Mobile Actions */}
             <div className="flex lg:hidden items-center gap-4">
-              <Link
-                href="/login"
-                className="font-body text-[14px] font-medium text-neutral-800"
-              >
-                Log in
-              </Link>
+              {!isLoggedIn && (
+                <Link
+                  href="/login"
+                  className="font-body text-[14px] font-medium text-neutral-800"
+                >
+                  Log in
+                </Link>
+              )}
               <button
                 className="p-2.5 bg-[#3B58F6] text-white rounded-xl shadow-md hover:bg-[#2e45c7] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#3B58F6]"
                 onClick={() => setMobileDrawerOpen(true)}
@@ -288,6 +301,7 @@ export default function MarketingNav() {
       <MobileDrawer
         isOpen={mobileDrawerOpen}
         onClose={() => setMobileDrawerOpen(false)}
+        isLoggedIn={isLoggedIn}
       />
     </>
   );

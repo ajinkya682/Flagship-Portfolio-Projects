@@ -21,9 +21,10 @@ import { cn } from "@/lib/utils";
 interface MobileDrawerProps {
   isOpen: boolean;
   onClose: () => void;
+  isLoggedIn?: boolean;
 }
 
-export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
+export default function MobileDrawer({ isOpen, onClose, isLoggedIn }: MobileDrawerProps) {
   const pathname = usePathname() || "";
   const isActive = (path: string) =>
     pathname === path || pathname.startsWith(`${path}/`);
@@ -334,26 +335,39 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
 
         {/* Bottom Actions */}
         <div className="p-4 border-t border-neutral-100 flex flex-col gap-3">
-          <Link
-            href="/login"
-            onClick={onClose}
-            className="flex items-center justify-between p-3 rounded-xl hover:bg-neutral-50 text-neutral-700 transition-colors group"
-          >
-            <div className="flex items-center gap-3">
-              <LogIn className="w-5 h-5 text-[#3B58F6]" />
-              <span className="font-body text-[15px] font-medium">Log in</span>
-            </div>
-            <ArrowRight className="w-4 h-4 text-neutral-300 group-hover:text-neutral-500" />
-          </Link>
+          {isLoggedIn ? (
+            <Link
+              href="/dashboard"
+              onClick={onClose}
+              className="flex items-center justify-center gap-2 p-4 w-full rounded-xl font-body text-[15px] font-medium text-white bg-[#3B58F6] hover:bg-[#2e45c7] transition-all shadow-md shadow-blue-500/20"
+            >
+              <span>Dashboard</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                onClick={onClose}
+                className="flex items-center justify-between p-3 rounded-xl hover:bg-neutral-50 text-neutral-700 transition-colors group"
+              >
+                <div className="flex items-center gap-3">
+                  <LogIn className="w-5 h-5 text-[#3B58F6]" />
+                  <span className="font-body text-[15px] font-medium">Log in</span>
+                </div>
+                <ArrowRight className="w-4 h-4 text-neutral-300 group-hover:text-neutral-500" />
+              </Link>
 
-          <Link
-            href="/register"
-            onClick={onClose}
-            className="flex items-center justify-between p-4 w-full rounded-xl font-body text-[15px] font-medium text-white bg-[#3B58F6] hover:bg-[#2e45c7] transition-all shadow-md shadow-blue-500/20"
-          >
-            <span>Start Free Trial</span>
-            <ArrowRight className="w-4 h-4" />
-          </Link>
+              <Link
+                href="/register"
+                onClick={onClose}
+                className="flex items-center justify-between p-4 w-full rounded-xl font-body text-[15px] font-medium text-white bg-[#3B58F6] hover:bg-[#2e45c7] transition-all shadow-md shadow-blue-500/20"
+              >
+                <span>Start Free Trial</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </>
