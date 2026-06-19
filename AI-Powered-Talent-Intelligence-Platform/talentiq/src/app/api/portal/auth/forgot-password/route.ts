@@ -35,29 +35,35 @@ export async function POST(req: Request) {
     // Trigger urgent email worker
     const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/candidate/reset-token?token=${token}`;
     
+    const emailHtml = `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2>Reset Your Password</h2>
+        <p>Hi ${candidate.name},</p>
+        <p>You requested a password reset. Click the button below to reset your password. This link expires in 1 hour.</p>
+        <a href="${resetUrl}" style="display: inline-block; padding: 10px 20px; margin: 20px 0; background-color: #000; color: #fff; text-decoration: none; border-radius: 5px;">Reset Password</a>
+        <p>If you didn't request this, you can safely ignore this email.</p>
+        <p>Best,<br/>The TalentIQ Team</p>
+      </div>
+    `;
+
     try {
       await inngest.send({
         name: 'email/send.urgent',
         data: {
           to: email,
           subject: 'Reset your TalentIQ Password',
-          html: `
-            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2>Reset Your Password</h2>
-              <p>Hi ${candidate.name},</p>
-              <p>You requested a password reset. Click the button below to reset your password. This link expires in 1 hour.</p>
-              <a href="${resetUrl}" style="display: inline-block; padding: 10px 20px; margin: 20px 0; background-color: #000; color: #fff; text-decoration: none; border-radius: 5px;">Reset Password</a>
-              <p>If you didn't request this, you can safely ignore this email.</p>
-              <p>Best,<br/>The TalentIQ Team</p>
-            </div>
-          `
+          html: emailHtml
         }
       });
     } catch (inngestError) {
-      console.warn('Failed to send email via Inngest. This is normal if Inngest local dev server is not running.');
-      console.log('--- DEVELOPMENT RESET LINK ---');
-      console.log(resetUrl);
-      console.log('------------------------------');
+      console.warn('Failed to send email via Inngest. Falling back to direct email sending...');
+      // Fallback to sending it directly synchronously if the local Inngest server is not running
+      const { sendEmail } = await import('@/lib/nodemailer');
+      await sendEmail({
+        to: email,
+        subject: 'Reset your TalentIQ Password',
+        html: emailHtml
+      });
     }
 
     return NextResponse.json({ message: 'If an account with that email exists, we sent a password reset link.' });
