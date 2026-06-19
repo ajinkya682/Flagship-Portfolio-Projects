@@ -32,6 +32,38 @@ export default function JobsPage() {
   const activeCount = jobs.filter(j => j.status === 'published').length
   const totalApplicants = candidates.length
 
+  const now = new Date()
+  const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+  const twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000)
+
+  const thisWeekCount = candidates.filter(c => new Date(c.appliedAt) >= oneWeekAgo).length
+  const lastWeekCount = candidates.filter(c => {
+    const d = new Date(c.appliedAt)
+    return d >= twoWeeksAgo && d < oneWeekAgo
+  }).length
+
+  let trendText = ''
+  let isPositive = true
+  if (lastWeekCount === 0) {
+    if (thisWeekCount > 0) {
+      trendText = `+${thisWeekCount} new this week`
+    } else {
+      trendText = 'No new applications this week'
+      isPositive = false
+    }
+  } else {
+    const percentChange = Math.round(((thisWeekCount - lastWeekCount) / lastWeekCount) * 100)
+    if (percentChange > 0) {
+      trendText = `Applications up ${percentChange}% this week`
+    } else if (percentChange < 0) {
+      trendText = `Applications down ${Math.abs(percentChange)}% this week`
+      isPositive = false
+    } else {
+      trendText = `Applications stable this week`
+      isPositive = false
+    }
+  }
+
   return (
     <div className="flex flex-col max-w-[1400px] mx-auto w-full gap-[24px]">
 
@@ -142,9 +174,9 @@ export default function JobsPage() {
         <p className="font-body text-[13px] text-neutral-500">
           Showing <span className="font-semibold text-neutral-900">{filtered.length}</span> of {jobs.length} jobs
         </p>
-        <div className="flex items-center gap-[4px] text-[12px] text-emerald-600 font-semibold">
-          <TrendingUp size={12} />
-          Applications up 31% this week
+        <div className={`flex items-center gap-[4px] text-[12px] font-semibold ${isPositive ? 'text-emerald-600' : 'text-neutral-500'}`}>
+          {isPositive && <TrendingUp size={12} />}
+          {trendText}
         </div>
       </div>
 
