@@ -11,7 +11,7 @@ import {
   ShieldCheck,
   Check,
   Settings,
-  Building2
+  Building2,
 } from "lucide-react";
 
 export default function BusinessAuthLayout({
@@ -27,7 +27,7 @@ export default function BusinessAuthLayout({
   }
 
   return (
-    <div className="flex h-[100dvh] overflow-y-auto md:overflow-hidden bg-[#fbfcfd] flex-col md:flex-row font-body">
+    <div className="flex min-h-screen bg-white flex-col md:flex-row font-body">
       {/* ─────────────────────────────────────────
           LEFT PANEL — matches the shared image
       ───────────────────────────────────────── */}
@@ -102,7 +102,8 @@ export default function BusinessAuthLayout({
               With Smarter Hiring
             </h1>
             <p className="text-[15px] text-[#2e4a6b] leading-relaxed max-w-[380px] font-medium">
-              Manage your pipeline, jobs, and settings all in one powerful platform.
+              Manage your pipeline, jobs, and settings all in one powerful
+              platform.
             </p>
           </div>
 
