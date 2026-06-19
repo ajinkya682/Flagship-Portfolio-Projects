@@ -28,12 +28,6 @@ export default function Step5Complete() {
         Go to Dashboard
       </Link>
 
-      <Link
-        href="/settings/team"
-        className="mt-[16px] font-body text-[14px] font-medium text-neutral-500 hover:text-neutral-900"
-      >
-        Invite teammates first
-      </Link>
     </div>
   )
 }

@@ -45,11 +45,13 @@ export default function OnboardingStepPage({ params }: { params: { step: string 
         Step {stepNum} of 5
       </div>
 
-      {stepNum === 1 && <Step1CompanySetup onNext={handleNext} />}
-      {stepNum === 2 && <Step2InviteTeam onNext={handleNext} onBack={handleBack} />}
-      {stepNum === 3 && <Step3CreateJob onNext={handleNext} onBack={handleBack} />}
-      {stepNum === 4 && <Step4AIScoring onNext={handleNext} onBack={handleBack} />}
-      {stepNum === 5 && <Step5Complete />}
+      <div className={`mx-auto w-full ${stepNum === 4 ? 'max-w-[1200px]' : 'max-w-[640px]'}`}>
+        {stepNum === 1 && <Step1CompanySetup onNext={handleNext} />}
+        {stepNum === 2 && <Step2InviteTeam onNext={handleNext} onBack={handleBack} />}
+        {stepNum === 3 && <Step3CreateJob onNext={handleNext} onBack={handleBack} />}
+        {stepNum === 4 && <Step4AIScoring onNext={handleNext} onBack={handleBack} />}
+        {stepNum === 5 && <Step5Complete />}
+      </div>
     </div>
   )
 }

@@ -22,9 +22,7 @@ export default function OnboardingLayout({ children }: { children: ReactNode }) 
 
       {/* Main Content Area */}
       <main className="flex-grow pt-[120px] pb-[64px] px-[24px] overflow-y-auto">
-        <div className="max-w-[640px] mx-auto">
-          {children}
-        </div>
+        {children}
       </main>
     </div>
   )

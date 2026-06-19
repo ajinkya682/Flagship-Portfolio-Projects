@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { useState, useEffect } from 'react'
+import { ArrowRight } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import api from '@/lib/api'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
@@ -15,8 +16,8 @@ const schema = z.object({
   timezone: z.string().min(1, 'Required'),
 })
 
-export default function Step1CompanySetup({ onNext }: { onNext: () => void }) {
-  const { user } = useAuth()
+  export default function Step1CompanySetup({ onNext }: { onNext: () => void }) {
+  const { user, setUser } = useAuth()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { register, handleSubmit, reset, formState: { errors } } = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
@@ -37,12 +38,30 @@ export default function Step1CompanySetup({ onNext }: { onNext: () => void }) {
     if (user?.company?.id) {
       setIsSubmitting(true)
       try {
+        const newSlug = data.companyName.toLowerCase().replace(/[^a-z0-9]+/g, '-')
         await api.patch(`/companies/${user.company.id}`, {
           name: data.companyName,
+          slug: newSlug,
           industry: data.industry,
           size: data.size,
           timezone: data.timezone,
         })
+        
+        // Update local user state so Step 3 can access the new slug
+        if (setUser && user) {
+          setUser({
+            ...user,
+            company: {
+              ...user.company,
+              name: data.companyName,
+              slug: newSlug,
+              industry: data.industry,
+              size: data.size,
+              timezone: data.timezone,
+            }
+          })
+        }
+        
       } catch (err) {
         console.error('Failed to update company:', err)
       } finally {
@@ -103,18 +122,16 @@ export default function Step1CompanySetup({ onNext }: { onNext: () => void }) {
 
         <div className="flex gap-3 mt-[16px]">
           <button 
-            type="button" 
-            onClick={onNext}
-            className="flex-1 h-[48px] bg-white border border-neutral-200 text-neutral-700 font-semibold rounded-lg hover:bg-neutral-50"
-          >
-            Skip for now
-          </button>
-          <button 
             type="submit" 
             disabled={isSubmitting}
-            className="flex-1 h-[48px] bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-lg flex items-center justify-center disabled:opacity-70"
+            className="w-full h-[48px] bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-lg flex items-center justify-center gap-2 disabled:opacity-70 transition-colors"
           >
-            {isSubmitting ? <LoadingSpinner size="sm" className="text-white" /> : 'Continue'}
+            {isSubmitting ? <LoadingSpinner size="sm" className="text-white" /> : (
+              <>
+                Continue
+                <ArrowRight size={18} />
+              </>
+            )}
           </button>
         </div>
       </form>
