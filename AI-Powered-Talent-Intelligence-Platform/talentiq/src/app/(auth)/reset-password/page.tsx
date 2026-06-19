@@ -157,7 +157,19 @@ function ResetPasswordForm() {
   )
 }
 
+import { useAuth } from '@/hooks/useAuth'
+
 export default function ResetPasswordPage() {
+  const { isAuthenticated } = useAuth()
+
+  if (isAuthenticated) {
+    return (
+      <div className="flex justify-center items-center h-64 w-full">
+        <LoadingSpinner size="md" className="text-primary-500" />
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-col w-full animate-in fade-in duration-500">
       <Suspense fallback={<div className="flex justify-center py-8"><LoadingSpinner size="md" className="text-primary-500" /></div>}>

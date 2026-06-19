@@ -3,8 +3,11 @@
 import { useState } from 'react'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { Plus, X } from 'lucide-react'
+import api from '@/lib/api'
+import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 
 export default function Step2InviteTeam({ onNext, onBack }: { onNext: () => void, onBack: () => void }) {
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const { register, control, handleSubmit } = useForm({
     defaultValues: {
       invites: [{ email: '', role: 'MEMBER' }]
@@ -16,6 +19,27 @@ export default function Step2InviteTeam({ onNext, onBack }: { onNext: () => void
     name: "invites"
   })
 
+  const onSubmit = async (data: any) => {
+    setIsSubmitting(true)
+    try {
+      const validInvites = data.invites.filter((inv: any) => inv.email.trim() !== '')
+      if (validInvites.length > 0) {
+        await Promise.all(validInvites.map((inv: any) => 
+          api.post('/users', {
+            email: inv.email,
+            name: inv.email.split('@')[0], // placeholder name
+            role: inv.role === 'ADMIN' ? 'admin' : 'recruiter'
+          })
+        ))
+      }
+    } catch (err) {
+      console.error('Failed to invite team:', err)
+    } finally {
+      setIsSubmitting(false)
+    }
+    onNext()
+  }
+
   return (
     <div className="bg-white p-[32px] md:p-[48px] rounded-[24px] shadow-sm border border-neutral-100 mt-6">
       <h1 className="font-display text-[28px] font-bold text-neutral-900 leading-tight">
@@ -25,7 +49,7 @@ export default function Step2InviteTeam({ onNext, onBack }: { onNext: () => void
         Hiring is a team sport. Invite recruiters and hiring managers.
       </p>
 
-      <form onSubmit={handleSubmit(onNext)} className="mt-[32px] flex flex-col gap-[20px]">
+      <form onSubmit={handleSubmit(onSubmit)} className="mt-[32px] flex flex-col gap-[20px]">
         {fields.map((field, index) => (
           <div key={field.id} className="flex gap-[12px] items-start">
             <div className="flex-1 flex flex-col gap-[6px]">
@@ -58,11 +82,11 @@ export default function Step2InviteTeam({ onNext, onBack }: { onNext: () => void
         </button>
 
         <div className="flex items-center gap-[16px] mt-[16px]">
-          <button type="button" onClick={onBack} className="h-[48px] px-[24px] border border-neutral-200 text-neutral-700 font-semibold rounded-lg hover:bg-neutral-50">
+          <button type="button" onClick={onBack} disabled={isSubmitting} className="h-[48px] px-[24px] border border-neutral-200 text-neutral-700 font-semibold rounded-lg hover:bg-neutral-50 disabled:opacity-50">
             Back
           </button>
-          <button type="submit" className="flex-1 h-[48px] bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-lg">
-            Send Invites
+          <button type="submit" disabled={isSubmitting} className="flex-1 h-[48px] bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-lg flex items-center justify-center disabled:opacity-70">
+            {isSubmitting ? <LoadingSpinner size="sm" className="text-white" /> : 'Send Invites'}
           </button>
         </div>
 

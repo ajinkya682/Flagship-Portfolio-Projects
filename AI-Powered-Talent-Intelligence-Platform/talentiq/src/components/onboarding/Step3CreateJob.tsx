@@ -4,11 +4,32 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Sparkles } from 'lucide-react'
 import api from '@/lib/api'
+import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 
 export default function Step3CreateJob({ onNext, onBack }: { onNext: () => void, onBack: () => void }) {
   const { register, handleSubmit, setValue, watch } = useForm()
   const [isGenerating, setIsGenerating] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const onSubmit = async (data: any) => {
+    setIsSubmitting(true)
+    try {
+      await api.post('/jobs', {
+        title: data.title,
+        department: data.department,
+        type: data.type,
+        location: 'Remote',
+        remote: 'remote',
+        description: data.description || 'Description not provided',
+      })
+    } catch (err) {
+      console.error('Failed to create job', err)
+    } finally {
+      setIsSubmitting(false)
+    }
+    onNext()
+  }
 
   const handleGenerateAI = async () => {
     const title = watch('title')
@@ -48,7 +69,7 @@ export default function Step3CreateJob({ onNext, onBack }: { onNext: () => void,
         Let&apos;s set up a role so you can see the AI scoring in action.
       </p>
 
-      <form onSubmit={handleSubmit(onNext)} className="mt-[32px] flex flex-col gap-[20px]">
+      <form onSubmit={handleSubmit(onSubmit)} className="mt-[32px] flex flex-col gap-[20px]">
         <div className="flex flex-col gap-[6px]">
           <label className="font-body text-[13px] font-semibold text-neutral-700">Job Title</label>
           <input
@@ -101,11 +122,18 @@ export default function Step3CreateJob({ onNext, onBack }: { onNext: () => void,
         </div>
 
         <div className="flex items-center gap-[16px] mt-[8px]">
-          <button type="button" onClick={onBack} className="h-[48px] px-[24px] border border-neutral-200 text-neutral-700 font-semibold rounded-lg hover:bg-neutral-50">
+          <button type="button" onClick={onBack} disabled={isSubmitting} className="h-[48px] px-[24px] border border-neutral-200 text-neutral-700 font-semibold rounded-lg hover:bg-neutral-50 disabled:opacity-50">
             Back
           </button>
-          <button type="submit" className="flex-1 h-[48px] bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-lg">
-            Create Job
+          <button 
+            type="button" 
+            onClick={onNext}
+            className="flex-1 h-[48px] bg-white border border-neutral-200 text-neutral-700 font-semibold rounded-lg hover:bg-neutral-50"
+          >
+            Skip for now
+          </button>
+          <button type="submit" disabled={isSubmitting} className="flex-1 h-[48px] bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-lg flex items-center justify-center disabled:opacity-70">
+            {isSubmitting ? <LoadingSpinner size="sm" className="text-white" /> : 'Create Job'}
           </button>
         </div>
       </form>

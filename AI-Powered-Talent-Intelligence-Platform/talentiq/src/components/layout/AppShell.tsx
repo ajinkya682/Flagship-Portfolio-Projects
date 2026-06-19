@@ -1,6 +1,7 @@
 'use client'
 
-import { ReactNode, useEffect } from 'react'
+import { ReactNode, useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useUIStore } from '@/store/ui.store'
 import { useAuthStore } from '@/store/auth.store'
 import { useJobsStore } from '@/store/jobs.store'
@@ -14,18 +15,27 @@ export default function AppShell({ children }: { children: ReactNode }) {
   const { user, fetchUser, isLoading } = useAuthStore()
   const { fetchJobs } = useJobsStore()
   const { fetchCandidates } = useCandidatesStore()
+  const router = useRouter()
+  const [hasAttemptedAuth, setHasAttemptedAuth] = useState(false)
 
   useEffect(() => {
-    // If the middleware allowed us here but the user state is missing 
-    // (e.g. local storage cleared), hydrate the session from the database via the secure cookie
     if (!user) {
-      fetchUser()
+      fetchUser().finally(() => setHasAttemptedAuth(true))
+    } else {
+      setHasAttemptedAuth(true)
     }
-    fetchJobs()
-    fetchCandidates()
-  }, [fetchJobs, fetchCandidates, fetchUser, user])
+  }, [fetchUser, user])
 
-  if (isLoading) {
+  useEffect(() => {
+    if (hasAttemptedAuth && !user && !isLoading) {
+      router.push('/login')
+    } else if (hasAttemptedAuth && user) {
+      fetchJobs()
+      fetchCandidates()
+    }
+  }, [hasAttemptedAuth, user, isLoading, router, fetchJobs, fetchCandidates])
+
+  if (!user || isLoading || !hasAttemptedAuth) {
     return (
       <div className="flex h-screen items-center justify-center bg-neutral-50">
         <div className="flex flex-col items-center gap-4">

@@ -45,6 +45,15 @@ export default function Step4AIScoring({ onNext, onBack }: { onNext: () => void,
           <button onClick={handleUpload} className="mt-[24px] flex items-center gap-[8px] text-[14px] font-medium text-accent-600 hover:text-accent-700">
             <FileText size={16} /> Use sample resume instead
           </button>
+
+          <div className="flex gap-[16px] mt-[32px] w-full max-w-[400px]">
+            <button onClick={onBack} className="flex-1 h-[48px] border border-neutral-200 text-neutral-700 font-semibold rounded-lg hover:bg-neutral-50">
+              Back
+            </button>
+            <button onClick={onNext} className="flex-1 h-[48px] bg-white border border-neutral-200 text-neutral-700 font-semibold rounded-lg hover:bg-neutral-50">
+              Skip for now
+            </button>
+          </div>
         </div>
       )}
 
@@ -65,6 +74,9 @@ export default function Step4AIScoring({ onNext, onBack }: { onNext: () => void,
           <div className="flex items-center gap-[16px] mt-[32px]">
             <button onClick={onBack} className="h-[48px] px-[24px] border border-neutral-200 text-neutral-700 font-semibold rounded-lg hover:bg-neutral-50">
               Back
+            </button>
+            <button onClick={onNext} className="flex-1 h-[48px] bg-white border border-neutral-200 text-neutral-700 font-semibold rounded-lg hover:bg-neutral-50">
+              Skip for now
             </button>
             <button onClick={onNext} className="flex-1 h-[48px] bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-lg">
               Finish Setup

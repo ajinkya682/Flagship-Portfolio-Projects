@@ -84,6 +84,14 @@ export default function RegisterPage() {
   const hasMinLength = passwordValue.length >= 8;
   const hasNumber = /[0-9]/.test(passwordValue);
 
+  if (isAuthenticated) {
+    return (
+      <div className="flex justify-center items-center h-64 w-full">
+        <LoadingSpinner size="md" className="text-blue-600" />
+      </div>
+    );
+  }
+
   const onStep1Submit = () => {
     setStep(2);
   };
@@ -100,7 +108,7 @@ export default function RegisterPage() {
         companySize: data.companySize,
         hearAbout: data.hearAbout,
       });
-      window.location.href = "/dashboard";
+      window.location.href = "/onboarding/step/1";
     } catch (err: any) {
       const errorMessage = err.response?.data?.error || err.message || 'Failed to create account';
       setError(errorMessage);

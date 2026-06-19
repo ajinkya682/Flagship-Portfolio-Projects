@@ -10,7 +10,7 @@ export async function GET(req: Request) {
     // Auth Check
     let token = req.headers.get('authorization')?.split(' ')[1];
     if (!token) {
-      token = req.headers.get('cookie')?.split(';').find(c => c.trim().startsWith('accessToken='))?.split('=')[1];
+      token = req.headers.get('cookie')?.split(';')?.find(c => c.trim().startsWith('accessToken='))?.split('=')[1];
     }
 
     if (!token) {
@@ -66,7 +66,7 @@ export async function POST(req: Request) {
     // Auth Check
     let token = req.headers.get('authorization')?.split(' ')[1];
     if (!token) {
-      token = req.headers.get('cookie')?.split(';').find(c => c.trim().startsWith('accessToken='))?.split('=')[1];
+      token = req.headers.get('cookie')?.split(';')?.find(c => c.trim().startsWith('accessToken='))?.split('=')[1];
     }
 
     if (!token) {

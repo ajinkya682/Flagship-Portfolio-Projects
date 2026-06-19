@@ -14,10 +14,21 @@ const forgotPasswordSchema = z.object({
 
 type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>
 
+import { useAuth } from '@/hooks/useAuth'
+
 export default function ForgotPasswordPage() {
   const [success, setSuccess] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
+  const { isAuthenticated } = useAuth()
+
+  if (isAuthenticated) {
+    return (
+      <div className="flex justify-center items-center h-64 w-full">
+        <LoadingSpinner size="md" className="text-primary-500" />
+      </div>
+    )
+  }
 
   const {
     register,

@@ -36,6 +36,14 @@ export default function LoginPage() {
     defaultValues: { email: '', password: '' },
   })
 
+  if (isAuthenticated) {
+    return (
+      <div className="flex justify-center items-center h-64 w-full">
+        <LoadingSpinner size="md" className="text-primary-500" />
+      </div>
+    )
+  }
+
   const onSubmit = async (data: LoginFormValues) => {
     setIsSubmitting(true)
     setError(null)

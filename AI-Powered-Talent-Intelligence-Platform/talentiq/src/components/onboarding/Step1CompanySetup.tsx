@@ -3,6 +3,10 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
+import { useState, useEffect } from 'react'
+import { useAuth } from '@/hooks/useAuth'
+import api from '@/lib/api'
+import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 
 const schema = z.object({
   companyName: z.string().min(2, 'Required'),
@@ -12,9 +16,41 @@ const schema = z.object({
 })
 
 export default function Step1CompanySetup({ onNext }: { onNext: () => void }) {
-  const { register, handleSubmit, formState: { errors } } = useForm<z.infer<typeof schema>>({
+  const { user } = useAuth()
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
   })
+
+  useEffect(() => {
+    if (user?.company) {
+      reset({
+        companyName: user.company.name || '',
+        industry: user.company.industry || '',
+        size: user.company.size || '',
+        timezone: user.company.timezone || '',
+      })
+    }
+  }, [user, reset])
+
+  const onSubmit = async (data: z.infer<typeof schema>) => {
+    if (user?.company?.id) {
+      setIsSubmitting(true)
+      try {
+        await api.patch(`/companies/${user.company.id}`, {
+          name: data.companyName,
+          industry: data.industry,
+          size: data.size,
+          timezone: data.timezone,
+        })
+      } catch (err) {
+        console.error('Failed to update company:', err)
+      } finally {
+        setIsSubmitting(false)
+      }
+    }
+    onNext()
+  }
 
   return (
     <div className="bg-white p-[32px] md:p-[48px] rounded-[24px] shadow-sm border border-neutral-100 mt-6">
@@ -25,7 +61,7 @@ export default function Step1CompanySetup({ onNext }: { onNext: () => void }) {
         This helps us tailor your workspace and AI models.
       </p>
 
-      <form onSubmit={handleSubmit(onNext)} className="mt-[32px] flex flex-col gap-[20px]">
+      <form onSubmit={handleSubmit(onSubmit)} className="mt-[32px] flex flex-col gap-[20px]">
         <div className="flex flex-col gap-[6px]">
           <label className="font-body text-[13px] font-semibold text-neutral-700">Company Name</label>
           <input
@@ -65,9 +101,22 @@ export default function Step1CompanySetup({ onNext }: { onNext: () => void }) {
           </select>
         </div>
 
-        <button type="submit" className="mt-[16px] h-[48px] bg-primary-500 text-white font-semibold rounded-lg">
-          Continue
-        </button>
+        <div className="flex gap-3 mt-[16px]">
+          <button 
+            type="button" 
+            onClick={onNext}
+            className="flex-1 h-[48px] bg-white border border-neutral-200 text-neutral-700 font-semibold rounded-lg hover:bg-neutral-50"
+          >
+            Skip for now
+          </button>
+          <button 
+            type="submit" 
+            disabled={isSubmitting}
+            className="flex-1 h-[48px] bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-lg flex items-center justify-center disabled:opacity-70"
+          >
+            {isSubmitting ? <LoadingSpinner size="sm" className="text-white" /> : 'Continue'}
+          </button>
+        </div>
       </form>
     </div>
   )
