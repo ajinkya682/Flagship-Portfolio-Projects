@@ -35,28 +35,35 @@ export async function POST(req: Request) {
     // Trigger urgent email worker
     const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/candidate/reset-token?token=${token}`;
     
-    await inngest.send({
-      name: 'email/send.urgent',
-      data: {
-        to: email,
-        subject: 'Reset your TalentIQ Password',
-        html: `
-          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2>Reset Your Password</h2>
-            <p>Hi ${candidate.name},</p>
-            <p>You requested a password reset. Click the button below to reset your password. This link expires in 1 hour.</p>
-            <a href="${resetUrl}" style="display: inline-block; padding: 10px 20px; margin: 20px 0; background-color: #000; color: #fff; text-decoration: none; border-radius: 5px;">Reset Password</a>
-            <p>If you didn't request this, you can safely ignore this email.</p>
-            <p>Best,<br/>The TalentIQ Team</p>
-          </div>
-        `
-      }
-    });
+    try {
+      await inngest.send({
+        name: 'email/send.urgent',
+        data: {
+          to: email,
+          subject: 'Reset your TalentIQ Password',
+          html: `
+            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2>Reset Your Password</h2>
+              <p>Hi ${candidate.name},</p>
+              <p>You requested a password reset. Click the button below to reset your password. This link expires in 1 hour.</p>
+              <a href="${resetUrl}" style="display: inline-block; padding: 10px 20px; margin: 20px 0; background-color: #000; color: #fff; text-decoration: none; border-radius: 5px;">Reset Password</a>
+              <p>If you didn't request this, you can safely ignore this email.</p>
+              <p>Best,<br/>The TalentIQ Team</p>
+            </div>
+          `
+        }
+      });
+    } catch (inngestError) {
+      console.warn('Failed to send email via Inngest. This is normal if Inngest local dev server is not running.');
+      console.log('--- DEVELOPMENT RESET LINK ---');
+      console.log(resetUrl);
+      console.log('------------------------------');
+    }
 
     return NextResponse.json({ message: 'If an account with that email exists, we sent a password reset link.' });
 
   } catch (error) {
     console.error('Forgot password error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: error instanceof Error ? error.message : 'Internal server error' }, { status: 500 });
   }
 }
