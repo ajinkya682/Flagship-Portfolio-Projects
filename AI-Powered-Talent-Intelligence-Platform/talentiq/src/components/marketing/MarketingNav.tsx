@@ -3,6 +3,7 @@
 import * as React from "react"
 import { ChevronDown, Menu, X, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import Link from "next/link"
 import { cn } from "@/lib/utils"
 
 export function MarketingNav() {
@@ -71,9 +72,11 @@ export function MarketingNav() {
 
           {/* Right: Auth Buttons (Desktop only) */}
           <div className="hidden items-center gap-3 md:flex">
-            <Button variant="ghost" size="compact">
-              Log in
-            </Button>
+            <Link href="/login">
+              <Button variant="ghost" size="compact">
+                Log in
+              </Button>
+            </Link>
             <Button variant="primary" size="compact" iconRight={<ArrowRight size={14} />}>
               Start Free Trial
             </Button>
@@ -130,7 +133,9 @@ export function MarketingNav() {
           </div>
 
           <div className="p-6 flex flex-col gap-3 mt-auto border-t border-neutral-100 bg-neutral-50">
-            <Button variant="ghost" className="w-full justify-center">Log in</Button>
+            <Link href="/login" className="w-full">
+              <Button variant="ghost" className="w-full justify-center">Log in</Button>
+            </Link>
             <Button variant="primary" className="w-full justify-center">Start Free Trial</Button>
           </div>
         </div>

@@ -33,7 +33,7 @@ export async function POST(req: Request) {
     await candidate.save();
 
     // Trigger urgent email worker
-    const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/portal/reset-password?token=${token}`;
+    const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/candidate/reset-token?token=${token}`;
     
     await inngest.send({
       name: 'email/send.urgent',
