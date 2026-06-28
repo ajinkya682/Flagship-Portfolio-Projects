@@ -146,7 +146,20 @@ export function useWebRTC({ roomId, userId, hasJoined }: WebRTCProps) {
   // Start Local Media
   const startLocalStream = useCallback(async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: {
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+          frameRate: { ideal: 30 }
+        }, 
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+          sampleRate: 48000,
+          channelCount: 2
+        } 
+      });
       setLocalStream(stream);
       return stream;
     } catch (err) {
@@ -256,7 +269,20 @@ export function useWebRTC({ roomId, userId, hasJoined }: WebRTCProps) {
 
   const stopScreenShare = async () => {
     try {
-      const camStream = await navigator.mediaDevices.getUserMedia({ video: true });
+      const camStream = await navigator.mediaDevices.getUserMedia({ 
+        video: {
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+          frameRate: { ideal: 30 }
+        },
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+          sampleRate: 48000,
+          channelCount: 2
+        } 
+      });
       const camTrack = camStream.getVideoTracks()[0];
       
       if (peerConnectionRef.current) {
