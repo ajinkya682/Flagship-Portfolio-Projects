@@ -5,8 +5,10 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useWebRTC } from '@/hooks/useWebRTC';
 import { 
   Mic, MicOff, Video, VideoOff, MonitorUp, PhoneOff, 
-  Clock, User, FileText, CheckCircle2, AlertCircle, RefreshCw
+  Clock, User, FileText, CheckCircle2, AlertCircle, RefreshCw,
+  Minimize2, Maximize2
 } from 'lucide-react';
+import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 //
 export default function InterviewRoomPage({ params }: { params: { roomId: string } }) {
@@ -25,6 +27,9 @@ export default function InterviewRoomPage({ params }: { params: { roomId: string
 
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
+  const videoContainerRef = useRef<HTMLDivElement>(null);
+  const [isSwapped, setIsSwapped] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
 
   const [noteText, setNoteText] = useState('');
   const [savingNote, setSavingNote] = useState(false);
@@ -53,13 +58,13 @@ export default function InterviewRoomPage({ params }: { params: { roomId: string
     if (localVideoRef.current && localStream) {
       localVideoRef.current.srcObject = localStream;
     }
-  }, [localStream, hasJoined]);
+  }, [localStream, hasJoined, isSwapped]);
 
   useEffect(() => {
     if (remoteVideoRef.current && remoteStream) {
       remoteVideoRef.current.srcObject = remoteStream;
     }
-  }, [remoteStream, hasJoined]);
+  }, [remoteStream, hasJoined, isSwapped]);
 
   // Listen for real-time chat messages
   useEffect(() => {
@@ -249,43 +254,86 @@ export default function InterviewRoomPage({ params }: { params: { roomId: string
       <div className="flex-1 flex overflow-hidden">
         {/* Main Video Area */}
         <div className="flex-1 relative flex flex-col p-[16px]">
-          <div className="flex-1 bg-black rounded-[24px] overflow-hidden relative shadow-2xl border border-white/5">
+          <div ref={videoContainerRef} className="flex-1 bg-black rounded-[24px] overflow-hidden relative shadow-2xl border border-white/5">
             
-            {/* Remote Video (Big) */}
-            {remoteStream ? (
+            {/* Background Video (Big) */}
+            <div className="absolute inset-0">
               <video 
-                ref={remoteVideoRef} 
+                ref={isSwapped ? localVideoRef : remoteVideoRef}
                 autoPlay 
-                playsInline 
+                playsInline
+                muted={isSwapped ? true : false} 
                 className="w-full h-full object-cover"
               />
-            ) : (
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#1E293B]">
-                <div className="w-[100px] h-[100px] rounded-full bg-white/5 flex items-center justify-center mb-[24px]">
-                   <span className="text-[32px] font-bold text-white/20">{roomData.candidate?.name?.charAt(0) || '?'}</span>
-                </div>
-                <p className="text-white/40 font-medium">Waiting for other participant to join...</p>
-              </div>
-            )}
-
-            {/* Local Video (PiP) */}
-            <div className="absolute bottom-[24px] right-[24px] w-[240px] aspect-video bg-neutral-800 rounded-[16px] overflow-hidden shadow-2xl border-2 border-white/10 transition-all hover:scale-105 group">
-              <video 
-                ref={localVideoRef} 
-                autoPlay 
-                playsInline 
-                muted 
-                className={`w-full h-full object-cover \${isVideoOff ? 'opacity-0' : 'opacity-100'}`}
-              />
-              {isVideoOff && (
-                <div className="absolute inset-0 flex items-center justify-center bg-neutral-800">
-                  <VideoOff size={24} className="text-white/40" />
+              {(!isSwapped && !remoteStream) && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#1E293B]">
+                  <div className="w-[100px] h-[100px] rounded-full bg-white/5 flex items-center justify-center mb-[24px]">
+                     <span className="text-[32px] font-bold text-white/20">{roomData.candidate?.name?.charAt(0) || '?'}</span>
+                  </div>
+                  <p className="text-white/40 font-medium">Waiting for other participant to join...</p>
                 </div>
               )}
-              <div className="absolute bottom-[8px] left-[8px] px-[8px] py-[2px] bg-black/60 backdrop-blur-sm rounded-[4px] text-[10px] text-white font-medium">
-                You
-              </div>
             </div>
+
+            {/* PiP Video (Small / Draggable) */}
+            {!isMinimized ? (
+              <motion.div 
+                drag 
+                dragConstraints={videoContainerRef}
+                dragElastic={0.1}
+                dragMomentum={false}
+                initial={{ bottom: 24, right: 24 }}
+                className="absolute w-[240px] aspect-video bg-neutral-800 rounded-[16px] overflow-hidden shadow-2xl border-2 border-white/10 transition-shadow hover:scale-105 group cursor-move z-10"
+                onClick={() => setIsSwapped(!isSwapped)}
+              >
+                <video 
+                  ref={isSwapped ? remoteVideoRef : localVideoRef} 
+                  autoPlay 
+                  playsInline 
+                  muted={isSwapped ? false : true} 
+                  className={`w-full h-full object-cover ${(isVideoOff && !isSwapped) ? 'opacity-0' : 'opacity-100'}`}
+                />
+                
+                {/* Fallback if local video is off */}
+                {(!isSwapped && isVideoOff) && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-neutral-800">
+                    <VideoOff size={24} className="text-white/40" />
+                  </div>
+                )}
+                
+                {/* Fallback if remote video is not connected (and we are swapped) */}
+                {(isSwapped && !remoteStream) && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-neutral-800">
+                     <span className="text-[24px] font-bold text-white/20">{roomData.candidate?.name?.charAt(0) || '?'}</span>
+                  </div>
+                )}
+
+                <div className="absolute bottom-[8px] left-[8px] px-[8px] py-[2px] bg-black/60 backdrop-blur-sm rounded-[4px] text-[10px] text-white font-medium">
+                  {isSwapped ? 'Remote' : 'You'}
+                </div>
+
+                {/* Minimize Button */}
+                <button 
+                  onClick={(e) => { e.stopPropagation(); setIsMinimized(true); }}
+                  className="absolute top-[8px] right-[8px] w-[24px] h-[24px] bg-black/60 rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/80"
+                >
+                  <Minimize2 size={12} />
+                </button>
+              </motion.div>
+            ) : (
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="absolute bottom-[24px] right-[24px] z-10"
+              >
+                <button 
+                  onClick={() => setIsMinimized(false)}
+                  className="h-[48px] px-[16px] bg-neutral-800 border-2 border-white/10 rounded-[12px] flex items-center gap-[8px] text-white font-medium shadow-2xl hover:bg-neutral-700 transition-colors"
+                >
+                  <Maximize2 size={16} /> Show {isSwapped ? 'Remote' : 'You'}
+                </button>
+              </motion.div>
+            )}
 
           </div>
 
