@@ -9,6 +9,9 @@ export async function GET(req: Request) {
   try {
     await connectToDatabase();
     
+    // Ensure models are registered (prevents Webpack tree-shaking in production)
+    if (!Company) console.warn('Company model not loaded');
+    
     // Auth Check
     let token = req.headers.get('authorization')?.split(' ')[1];
     if (!token) {
