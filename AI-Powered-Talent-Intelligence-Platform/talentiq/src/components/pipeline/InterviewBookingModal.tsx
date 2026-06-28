@@ -70,7 +70,7 @@ export default function InterviewBookingModal({ isOpen, onClose, candidate, onCo
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          candidateId: candidate.id,
+          candidateId: candidate.candidateId || candidate.id,
           applicationId: candidate.applicationId,
           jobId: candidate.jobId,
           scheduledAt: selectedTime,

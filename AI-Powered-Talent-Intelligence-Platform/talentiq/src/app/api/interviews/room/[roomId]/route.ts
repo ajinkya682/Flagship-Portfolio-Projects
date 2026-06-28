@@ -40,7 +40,7 @@ export async function GET(req: NextRequest, { params }: { params: { roomId: stri
     }
 
     // Verify access
-    if (decoded.type === 'candidate') {
+    if (decoded.role === 'candidate') {
       if (interview.candidate?._id?.toString() !== decoded.candidateId) {
         return NextResponse.json({ error: "Unauthorized access to room" }, { status: 403 });
       }
@@ -76,7 +76,7 @@ export async function POST(req: NextRequest, { params }: { params: { roomId: str
     let decoded;
     try { decoded = verifyAccessToken(token) as any; } catch (e) { return NextResponse.json({ error: 'Invalid token' }, { status: 401 }); }
 
-    if (decoded.type === 'candidate') {
+    if (decoded.role === 'candidate') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
     const { roomId } = params;

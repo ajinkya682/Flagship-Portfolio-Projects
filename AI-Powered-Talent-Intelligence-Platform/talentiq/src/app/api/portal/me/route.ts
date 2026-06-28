@@ -34,7 +34,7 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
-    if (!decoded.candidateId && !decoded.type) {
+    if (!decoded.candidateId && !decoded.role) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     

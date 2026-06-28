@@ -21,7 +21,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
-    if (decoded.type !== 'candidate' || !decoded.candidateId) {
+    if (decoded.role !== 'candidate' || !decoded.candidateId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
