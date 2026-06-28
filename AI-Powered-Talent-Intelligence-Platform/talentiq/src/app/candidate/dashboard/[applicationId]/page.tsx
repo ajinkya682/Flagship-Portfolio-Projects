@@ -472,7 +472,7 @@ export default function CandidateDashboardApplicationDetail({ params }: { params
                         <p className="text-[14px] text-slate-600 ml-[40px] font-medium">{upcomingInterview.date} at {upcomingInterview.time}</p>
                       </div>
                       {isUpcomingInterviewJoinable ? (
-                        <Link href={`/portal/interviews/room/${upcomingInterview.id}?role=candidate`} className="h-[44px] px-[24px] bg-blue-600 text-white rounded-[12px] flex items-center justify-center text-[14px] font-bold hover:bg-blue-700 transition-all shadow-md shadow-blue-600/20 group">
+                        <Link href={`/candidate/interviews/room/${upcomingInterview.id}?role=candidate`} className="h-[44px] px-[24px] bg-blue-600 text-white rounded-[12px] flex items-center justify-center text-[14px] font-bold hover:bg-blue-700 transition-all shadow-md shadow-blue-600/20 group">
                           Join Room <ChevronRight size={16} className="ml-[4px] group-hover:translate-x-[4px] transition-transform" />
                         </Link>
                       ) : (

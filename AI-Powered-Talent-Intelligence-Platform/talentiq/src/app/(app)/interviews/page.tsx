@@ -58,7 +58,7 @@ function InterviewCard({ data, candidate, isToday = false }: { data: any; candid
           {/* Right: Actions */}
           <div className="flex items-center gap-[8px] shrink-0 border-t border-neutral-50 pt-[12px] md:border-t-0 md:pt-0">
             {data.isJoinable && (
-              <Link href={`/portal/interviews/room/${data.id}?role=recruiter`} className="flex items-center gap-[6px] h-[34px] px-[14px] bg-blue-600 hover:bg-blue-700 text-white font-body text-[12px] font-semibold rounded-[8px] shadow-sm transition-colors">
+              <Link href={`/candidate/interviews/room/${data.id}?role=recruiter`} className="flex items-center gap-[6px] h-[34px] px-[14px] bg-blue-600 hover:bg-blue-700 text-white font-body text-[12px] font-semibold rounded-[8px] shadow-sm transition-colors">
                 <Play size={12} fill="currentColor" /> Join
               </Link>
             )}
