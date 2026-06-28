@@ -63,14 +63,15 @@ export async function POST(req: Request) {
     const proposedEnd = new Date(proposedStart.getTime() + duration * 60000);
 
     // Ensure working hours (9 AM to 5 PM)
-    const hour = proposedStart.getHours();
-    const minutes = proposedStart.getMinutes();
-    const decimalHour = hour + minutes / 60;
+    // Removed strict backend check because the server runs in UTC and candidate local time can vary.
+    // The frontend already enforces 9-5 slots based on the candidate's local time zone.
+    // const hour = proposedStart.getHours();
+    // const minutes = proposedStart.getMinutes();
+    // const decimalHour = hour + minutes / 60;
     
-    // 5 PM is 17:00. Since slot is 45 mins, last slot can start at 16:15
-    if (decimalHour < 9 || decimalHour > 16.25) {
-      return NextResponse.json({ error: 'Interviews must be scheduled between 9:00 AM and 5:00 PM.' }, { status: 400 });
-    }
+    // if (decimalHour < 9 || decimalHour > 16.25) {
+    //   return NextResponse.json({ error: 'Interviews must be scheduled between 9:00 AM and 5:00 PM.' }, { status: 400 });
+    // }
 
     // Check for double booking
     // Find any interview where the scheduledAt time overlaps with [proposedStart, proposedEnd]
