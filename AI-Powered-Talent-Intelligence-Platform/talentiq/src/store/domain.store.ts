@@ -63,6 +63,7 @@ export interface Job {
 
 export interface Candidate {
   id: string
+  candidateId?: string
   applicationId?: string
   name: string
   email: string

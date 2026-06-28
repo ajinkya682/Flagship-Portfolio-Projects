@@ -57,7 +57,7 @@ export default function MobileDrawer({ isOpen, onClose, isLoggedIn }: MobileDraw
       {/* Floating Card Drawer */}
       <div
         className={cn(
-          "fixed inset-x-4 top-0 bottom-0 right-0 left-0 bg-white shadow-2xl  z-[200] transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] flex flex-col overflow-hidden max-w-[400px] mx-auto",
+          "fixed inset-x-4 top-0 bottom-0 right-0 left-0 bg-white shadow-2xl  z-[200] transition-all duration-300 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)] flex flex-col overflow-hidden max-w-[400px] mx-auto",
           isOpen
             ? "translate-y-0 opacity-100 scale-100"
             : "-translate-y-8 opacity-0 scale-95 pointer-events-none",

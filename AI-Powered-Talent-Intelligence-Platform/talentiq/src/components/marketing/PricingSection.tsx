@@ -125,7 +125,7 @@ export default function PricingSection() {
             </button>
             {/* Sliding Pill Indicator */}
             <div
-              className="absolute w-[120px] h-10 bg-white rounded-full shadow-sm transition-transform duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]"
+              className="absolute w-[120px] h-10 bg-white rounded-full shadow-sm transition-transform duration-300 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)]"
               style={{
                 transform: `translateX(${billingPeriod === "annual" ? "100%" : "0"})`,
               }}
