@@ -3,11 +3,8 @@ import nodemailer from 'nodemailer';
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    type: 'OAuth2',
-    user: process.env.EMAIL_USER,
-    clientId: process.env.CLIENT_ID,
-    clientSecret: process.env.CLIENT_SECRET,
-    refreshToken: process.env.REFRESH_TOKEN,
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASS,
   },
 });
 
@@ -20,8 +17,8 @@ export const sendEmail = async ({
   subject: string;
   html: string;
 }) => {
-  // If OAuth2 env vars are not set, log the email instead of throwing an error
-  if (!process.env.EMAIL_USER || !process.env.CLIENT_ID || !process.env.REFRESH_TOKEN) {
+  // If app password env vars are not set, log the email instead of throwing an error
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_PASS) {
     console.warn('\n====== NO SMTP CONFIGURATION ======');
     console.warn(`Simulating email to: ${to}`);
     console.warn(`Subject: ${subject}`);
@@ -32,7 +29,7 @@ export const sendEmail = async ({
 
   try {
     const info = await transporter.sendMail({
-      from: `"TalentIQ" <${process.env.EMAIL_USER}>`,
+      from: `"TalentIQ" <${process.env.GMAIL_USER}>`,
       to,
       subject,
       html,
