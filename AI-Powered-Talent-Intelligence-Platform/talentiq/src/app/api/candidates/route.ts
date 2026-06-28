@@ -250,7 +250,8 @@ export async function GET(req: Request) {
     const formattedCandidates = applications.map(app => {
       const c = app.candidate as any; // populated candidate
       return {
-        id: c._id.toString(),
+        id: app._id.toString(),
+        candidateId: c._id.toString(),
         applicationId: app._id.toString(),
         name: c.name,
         email: c.email,

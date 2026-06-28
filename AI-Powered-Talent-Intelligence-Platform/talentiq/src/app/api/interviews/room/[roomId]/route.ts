@@ -17,7 +17,8 @@ export async function GET(req: NextRequest, { params }: { params: { roomId: stri
       const cookies = req.headers.get('cookie');
       token = cookies?.split(';').find(c => c.trim().startsWith('accessToken='))?.split('=')[1];
       if (!token) {
-        token = cookies?.split(';').find(c => c.trim().startsWith('candidateToken='))?.split('=')[1];
+        const cTokenStr = cookies?.split(';').find(c => c.trim().startsWith('candidateToken=') || c.trim().startsWith('candidate_token='));
+        token = cTokenStr?.split('=')[1];
       }
     }
     if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -62,7 +63,14 @@ export async function POST(req: NextRequest, { params }: { params: { roomId: str
     await connectToDatabase();
     
     let token = req.headers.get('authorization')?.split(' ')[1];
-    if (!token) token = req.headers.get('cookie')?.split(';').find(c => c.trim().startsWith('accessToken='))?.split('=')[1];
+    if (!token) {
+      const cookies = req.headers.get('cookie');
+      token = cookies?.split(';').find(c => c.trim().startsWith('accessToken='))?.split('=')[1];
+      if (!token) {
+        const cTokenStr = cookies?.split(';').find(c => c.trim().startsWith('candidateToken=') || c.trim().startsWith('candidate_token='));
+        token = cTokenStr?.split('=')[1];
+      }
+    }
     if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     
     let decoded;

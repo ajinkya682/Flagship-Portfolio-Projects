@@ -45,8 +45,18 @@ export default function ApplicationsPage() {
     return matchSearch && matchStage && matchSource
   })
 
+  const groupedFiltered = Object.values(filtered.reduce((acc, app) => {
+    const key = app.candidateId || app.email;
+    if (!acc[key]) {
+      acc[key] = { ...app, applicationCount: 1 };
+    } else {
+      acc[key].applicationCount += 1;
+    }
+    return acc;
+  }, {} as Record<string, any>));
+
   const toggleSelect = (id: string) => setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
-  const allSelected = filtered.length > 0 && filtered.every(a => selected.includes(a.id))
+  const allSelected = groupedFiltered.length > 0 && groupedFiltered.every(a => selected.includes(a.id))
 
   return (
     <div className="flex flex-col h-full -mx-[16px] md:-mx-[32px] -mt-[16px] md:-mt-[32px] bg-neutral-50/50 min-h-screen">
@@ -151,7 +161,7 @@ export default function ApplicationsPage() {
                   <input
                     type="checkbox"
                     checked={allSelected}
-                    onChange={() => setSelected(allSelected ? [] : filtered.map(a => a.id))}
+                    onChange={() => setSelected(allSelected ? [] : groupedFiltered.map(a => a.id))}
                     className="w-[14px] h-[14px] rounded border-neutral-300 accent-blue-600"
                   />
                 </th>
@@ -166,7 +176,7 @@ export default function ApplicationsPage() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((app) => (
+              {groupedFiltered.map((app) => (
                 <tr key={app.id} className={`border-b border-neutral-50 last:border-0 transition-colors group ${selected.includes(app.id) ? 'bg-blue-50/40' : 'hover:bg-neutral-50/60'}`}>
                   <td className="px-[16px] py-[12px]">
                     <input
@@ -188,7 +198,7 @@ export default function ApplicationsPage() {
                         <p className="font-body text-[11px] text-neutral-400">{app.email}</p>
                         {app.tags && app.tags.length > 0 && (
                           <div className="flex gap-[4px] mt-[3px]">
-                            {app.tags.map(tag => (
+                            {app.tags.map((tag: string) => (
                               <span key={tag} className="text-[9px] font-bold bg-neutral-100 text-neutral-500 px-[5px] py-[1px] rounded-full uppercase">{tag}</span>
                             ))}
                           </div>
@@ -197,7 +207,7 @@ export default function ApplicationsPage() {
                     </div>
                   </td>
                   <td className="px-[12px] py-[12px] hidden md:table-cell">
-                    <span className="font-body text-[12px] text-neutral-600 max-w-[180px] block truncate">{app.role}</span>
+                    <span className="font-body text-[12px] text-neutral-600 max-w-[180px] block truncate">{app.applicationCount > 1 ? `${app.applicationCount} jobs` : app.role}</span>
                   </td>
                   <td className="px-[12px] py-[12px]">
                     <span className={`font-body text-[11px] font-semibold px-[8px] py-[3px] rounded-full ${STAGE_STYLES[app.stage] ?? 'bg-neutral-100 text-neutral-600'}`}>
